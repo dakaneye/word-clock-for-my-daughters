@@ -120,7 +120,7 @@ Amazon wishlist `4Q4NKIFBMW56` pulled together on 2026-04-15. Every parts-doc li
 | MAX98357A | GODIYMODULES 2-pack, $6.88 | Spare amp included |
 | 8Ω speaker | DWEII 4-pack 3W 8Ω **with JST-PH2.0 pre-attached**, $9.99 | Matches the final-PCB 2-pin JST connector — zero crimping needed |
 | microSD breakout | Stemedu 2-pack, $5.99 | |
-| microSD card | SanDisk 4GB, $18.95 | ⚠️ **Overpriced.** Swap for a 32GB Class 10 (~$8-10). Retro low-capacity cards cost more than current-gen. |
+| microSD card | SanDisk 4GB, $18.95 | SanDisk Ultra 32GB is the same ~$19. Swap for 32GB — same price, 8× storage headroom. No money saved, but future-proof. |
 | USB-C breakout | Cermant 10-pack with coupon, $8.99 | |
 | Tact switches | QTEATAK 20-pack, $6.99 | |
 | Breadboard | BOJACK 3-value kit (4× 830-tie + 400-tie + bonus jumpers), $9.99 | Extras useful for parallel experiments |
@@ -128,7 +128,7 @@ Amazon wishlist `4Q4NKIFBMW56` pulled together on 2026-04-15. Every parts-doc li
 | USB-C cable | Anker Nano 240W 6ft, $16.99 | Solid — the CC-resistor breakout needs a real USB-C cable, this is one. |
 | 5V 2A charger | TCKN 2-pack, $11.99 | |
 
-**Wishlist total: ~$135.** Higher than the doc's $57-80 estimate because of multi-packs (worth it) and the overpriced SanDisk 4GB (swap it). Ships in 1-2 days from Amazon Prime, 2-4 weeks from AliExpress (don't bother saving $10-15 on 3 weeks of waiting).
+**Wishlist total: ~$135.** Higher than the doc's $57-80 estimate almost entirely because of multi-packs (worth it for first-time hardware bring-up). SD card pricing is flat from 4GB to 32GB at this tier — swap to 32GB for headroom. Ships in 1-2 days from Amazon Prime, 2-4 weeks from AliExpress (don't bother saving $10-15 on 3 weeks of waiting).
 
 ## After the order arrives
 

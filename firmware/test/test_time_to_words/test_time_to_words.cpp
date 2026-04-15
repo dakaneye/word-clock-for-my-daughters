@@ -110,10 +110,20 @@ void test_five_am_is_morning(void) {
     TEST_ASSERT_FALSE(contains(ws, WordId::NIGHT));
 }
 
-void test_late_night_edge(void) {
-    WordSet ws = time_to_words(4, 59);
-    TEST_ASSERT_TRUE(contains(ws, WordId::NIGHT));
-    TEST_ASSERT_FALSE(contains(ws, WordId::MORNING));
+// Any AM time is morning, including pre-dawn hours.
+void test_one_am_is_morning(void) {
+    WordSet ws = time_to_words(1, 0);
+    TEST_ASSERT_TRUE(contains(ws, WordId::MORNING));
+    TEST_ASSERT_FALSE(contains(ws, WordId::NIGHT));
+}
+
+// Five-to-five AM announces the approaching 5 and stays in morning.
+void test_four_fiftyfive_is_morning(void) {
+    WordSet ws = time_to_words(4, 55);
+    TEST_ASSERT_TRUE(contains(ws, WordId::MORNING));
+    TEST_ASSERT_TRUE(contains(ws, WordId::FIVE_HR));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TO));
+    TEST_ASSERT_FALSE(contains(ws, WordId::NIGHT));
 }
 
 void test_wordset_bounds(void) {
@@ -137,7 +147,8 @@ int main(int, char**) {
     RUN_TEST(test_five_pm_is_evening);
     RUN_TEST(test_nine_pm_is_night);
     RUN_TEST(test_five_am_is_morning);
-    RUN_TEST(test_late_night_edge);
+    RUN_TEST(test_one_am_is_morning);
+    RUN_TEST(test_four_fiftyfive_is_morning);
     RUN_TEST(test_wordset_bounds);
     return UNITY_END();
 }

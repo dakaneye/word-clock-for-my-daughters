@@ -38,12 +38,14 @@ uint8_t to_12h(uint8_t h24) {
 }
 
 TimeOfDay classify(uint8_t h24, uint8_t m5) {
+    // Rule: AM = morning, 12:00 exact = noon, 00:00 exact = midnight.
+    // PM breaks into AFTERNOON (12-16), EVENING (17-20), NIGHT (21-23).
     if (h24 == 12 && m5 == 0) return TimeOfDay::NOON_EXACT;
     if (h24 == 0  && m5 == 0) return TimeOfDay::MIDNIGHT_EXACT;
-    if (h24 >= 5  && h24 < 12) return TimeOfDay::MORNING;
-    if (h24 >= 12 && h24 < 17) return TimeOfDay::AFTERNOON;
-    if (h24 >= 17 && h24 < 21) return TimeOfDay::EVENING;
-    return TimeOfDay::NIGHT; // 21..23 or 0..4
+    if (h24 < 12)              return TimeOfDay::MORNING;   // 0..11 AM
+    if (h24 < 17)              return TimeOfDay::AFTERNOON; // 12..16 PM
+    if (h24 < 21)              return TimeOfDay::EVENING;   // 17..20 PM
+    return TimeOfDay::NIGHT;                                // 21..23 PM
 }
 
 void push(WordSet& ws, WordId id) {

@@ -6272,7 +6272,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical"
 			(at 104.14 26.67 0)
 			(hide yes)
 			(show_name no)
@@ -6367,7 +6367,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "ESP32_DevKit_V1:ESP32_38Pin"
 			(at 58.42 81.28 0)
 			(hide yes)
 			(show_name no)
@@ -7530,7 +7530,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical"
 			(at 104.14 69.85 0)
 			(hide yes)
 			(show_name no)
@@ -7945,7 +7945,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:CP_Radial_D10.0mm_P5.00mm"
 			(at 144.4752 26.67 0)
 			(hide yes)
 			(show_name no)
@@ -8025,7 +8025,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH_6mm"
 			(at 44.45 156.21 0)
 			(hide yes)
 			(show_name no)
@@ -8991,7 +8991,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical"
 			(at 104.14 48.26 0)
 			(hide yes)
 			(show_name no)
@@ -9329,7 +9329,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
 			(at 21.2852 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -10384,7 +10384,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x16_P2.54mm_Vertical"
 			(at 102.87 87.63 0)
 			(hide yes)
 			(show_name no)
@@ -11368,7 +11368,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
 			(at 87.63 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -11894,7 +11894,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
 			(at 82.2452 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -12366,7 +12366,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
 			(at 119.0752 63.5 0)
 			(hide yes)
 			(show_name no)
@@ -13156,7 +13156,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH_6mm"
 			(at 73.66 156.21 0)
 			(hide yes)
 			(show_name no)
@@ -13238,7 +13238,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
 			(at 79.7052 40.64 0)
 			(hide yes)
 			(show_name no)
@@ -13476,7 +13476,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm"
 			(at 56.8452 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -16547,7 +16547,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH_6mm"
 			(at 97.79 154.94 0)
 			(hide yes)
 			(show_name no)
@@ -17203,7 +17203,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal"
 			(at 121.412 107.95 90)
 			(hide yes)
 			(show_name no)

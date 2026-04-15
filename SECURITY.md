@@ -1,16 +1,16 @@
 # Security Policy
 
-Single-maintainer personal project. No bug bounty, no formal SLA.
+## Reporting a Vulnerability
 
-## Reporting
+If you discover a security vulnerability, please report it responsibly.
 
-Email samjdacanay@gmail.com with:
-- A description of the issue
-- Steps to reproduce
-- Affected version or commit SHA
+**Do not open a public issue.**
 
-Please do **not** open public issues for security-sensitive reports until a fix is in place.
+Email: security@dakaneye.dev
+
+You should receive a response within 48 hours. If the vulnerability is confirmed,
+a fix will be developed and released as soon as possible.
 
 ## Supported Versions
 
-Only `main` is supported. Tagged releases are snapshots of `main` at the time of tagging.
+Only the latest release is supported with security updates.

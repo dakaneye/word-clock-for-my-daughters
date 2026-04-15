@@ -84,7 +84,9 @@
 - **What to look for:** 6×6mm through-hole tact switches, any actuation force (50-100gf is comfortable). Bag-of-20 packs are dirt cheap.
 - **Sourcing:** Amazon — "6x6x5mm tactile push button switch 20 pack".
 
-### Solderless breadboard (830 tie-point) — **$5-8** × 1 (get 2 if you might want parallel experiments)
+### Solderless breadboard (830 tie-point) — ~~**$5-8** × 1~~ **Already owned**
+
+> **Status:** Salvaged from a larger dual-bus prototyping board (Va/Vb/Vc/Vd rails, ~2400 tie points). Better than the $10 kit, no need to order.
 
 - **What it is:** A plastic board with a grid of holes that are internally connected in rows. Poke component leads in, poke jumper wires in, nothing needs to be soldered — you can rearrange freely.
 - **Why this clock needs it:** Phase 2 is all about wiring everything together and testing, without committing to a PCB layout. Breadboard lets you move a button, add an LED to the data line, re-pin an I²S wire, all without a soldering iron.
@@ -97,6 +99,7 @@
 - **Why this clock needs them:** Connect breadboard points to dev-board pins (need M-F — female end plugs onto the dev board's header pins, male end into breadboard), breadboard-to-breadboard (M-M), and breakout-to-breakout (F-F when both have header pins).
 - **What to look for:** Kit with 40 each of M-M, M-F, F-F in assorted colors. Length 20cm is a good default.
 - **Sourcing:** Amazon "breadboard jumper wires kit" — one pack has everything.
+- **Note:** An M-M-only set was salvaged alongside the breadboard; keep as extras, but the EDGELEC kit is still needed for M-F (required to connect the ESP32 dev board's male header pins into the breadboard).
 
 ### USB-C cable + 5V 2A USB charger — **$0-10**
 
@@ -106,7 +109,15 @@
 
 ## Total
 
-Low estimate: ~$57. High estimate: ~$80. (DS3231 removed — already owned.)
+Low estimate: ~$50. High estimate: ~$72. (DS3231 + breadboard removed — already owned.)
+
+## Also salvaged (2026-04-15)
+
+Pulled from a trashed prototyping stash:
+- Dual-bus breadboard (~2400 tie points, Va/Vb/Vc/Vd rails) — replaces wishlist breadboard kit
+- Assorted resistors (useful for pull-ups / current limiting on buttons and WS2812B data line)
+- M-M jumper wires (extras; M-F still needs to be ordered)
+- Alligator clip test leads (useful with a multimeter for probing)
 
 ## Wishlist (2026-04-15)
 
@@ -123,12 +134,12 @@ Amazon wishlist `4Q4NKIFBMW56` pulled together on 2026-04-15. Every parts-doc li
 | microSD card | SanDisk 4GB, $18.95 | SanDisk Ultra 32GB is the same ~$19. Swap for 32GB — same price, 8× storage headroom. No money saved, but future-proof. |
 | USB-C breakout | Cermant 10-pack with coupon, $8.99 | |
 | Tact switches | QTEATAK 20-pack, $6.99 | |
-| Breadboard | BOJACK 3-value kit (4× 830-tie + 400-tie + bonus jumpers), $9.99 | Extras useful for parallel experiments |
+| Breadboard | ~~BOJACK 3-value kit, $9.99~~ | **Remove — salvaged a better dual-bus board** |
 | Jumper wires | EDGELEC 120pc M-M/M-F/F-F, $7.49 | |
 | USB-C cable | Anker Nano 240W 6ft, $16.99 | Solid — the CC-resistor breakout needs a real USB-C cable, this is one. |
 | 5V 2A charger | TCKN 2-pack, $11.99 | |
 
-**Wishlist total: ~$135.** Higher than the doc's $57-80 estimate almost entirely because of multi-packs (worth it for first-time hardware bring-up). SD card pricing is flat from 4GB to 32GB at this tier — swap to 32GB for headroom. Ships in 1-2 days from Amazon Prime, 2-4 weeks from AliExpress (don't bother saving $10-15 on 3 weeks of waiting).
+**Wishlist total: ~$125** after removing the breadboard (salvaged). SD card pricing is flat from 4GB to 32GB at this tier — swap to 32GB for headroom. Multi-packs account for most of the remaining spend and are worth it for first-time hardware bring-up. Ships in 1-2 days from Amazon Prime, 2-4 weeks from AliExpress (don't bother saving $10-15 on 3 weeks of waiting).
 
 ## After the order arrives
 

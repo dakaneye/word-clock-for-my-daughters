@@ -103,7 +103,7 @@ This is our parts list translated into KiCad symbol terms. I've picked library s
 | USB-C breakout (Cermant 16P) | `Connector_Generic:Conn_01x04` (4-pin single-row header) | built-in | We'll label: VBUS, GND, CC1, CC2. The physical breakout has 16 pads; we only use 4. Footprint (on PCB) will match all 16 pads later — that's a PCB-layer concern, not schematic. |
 | WS2812B strip (external) | `Connector_Generic:Conn_01x03` (3-pin single-row header) | built-in | +5V, GND, DATA |
 | Tact switch × 3 | `Switch:SW_Push` | built-in | Standard momentary push button |
-| 74HCT125 level shifter | `74xx:74HC125` (symbol) — set **Value** to `74HCT125` | built-in | 14-pin quad buffer. KiCad has one schematic symbol per base part (74HC125 = 74HCT125 pinout); family is a BOM concern. |
+| 74HCT245 level shifter | `74xx:74HC245` (symbol) — set **Value** to `74HCT245` | built-in | 20-pin octal bus transceiver. KiCad has one schematic symbol per base part (74HC245 = 74HCT245 pinout); HC vs HCT family is a BOM concern. We only use 1 of 8 channels; rest tied off. |
 | 100nF ceramic cap (×5-8) | `Device:C` | built-in | Decoupling near each IC |
 | 1000µF electrolytic cap | `Device:CP` (polarized) | built-in | Bulk cap near LED strip |
 | 4.7kΩ resistor (×2) | `Device:R` | built-in | I²C pullups — only if DS3231 breakout doesn't have them |
@@ -206,22 +206,27 @@ Press **A**. Search `SW_Push`. Place 3 of them, one at a time. Press Escape afte
 - **References:** `SW1`, `SW2`, `SW3` (auto-numbered)
 - **Values:** `Hour`, `Minute`, `Audio` (set via **E** for each)
 
-### Step 3.9 — Place 74HCT125 level shifter
+### Step 3.9 — Place 74HCT245 level shifter
 
-Press **A**. Search **`74HC125`** (no T — KiCad uses one symbol for both HC and HCT; they have identical pinouts). Place it between the ESP32 and the WS2812B strip connector.
-- **Reference:** `U2`
-- **Value:** `74HCT125` (override the symbol's default `74HC125` in the Value field — HCT is what we actually want for TTL-compatible 3.3V input thresholds)
+Press **A**. Search **`74HC245`** (no T — KiCad uses one symbol for both HC and HCT families; they have identical pinouts). Place it between the ESP32 and the WS2812B strip connector.
+- **Reference:** `U1`
+- **Value:** `74HCT245` (override the symbol's default `74HC245` — HCT is the family we need for TTL-compatible 3.3V input thresholds)
 
-The 74HCT125 is a quad buffer with 4 independent channels. Each channel has:
-- `A` input (our 3.3V-logic signal from ESP32)
-- `Y` output (shifted 5V-logic signal to the LED strip)
-- `/OE` enable (active low — tie to GND to always enable the channel)
+The 74HCT245 is an **octal bus transceiver** — 8 bidirectional channels. Each channel has an `A` pin and a `B` pin; direction is set by a single shared `DIR` (also labeled `A→B` on the KiCad symbol) pin:
+- `DIR = HIGH`: A inputs → B outputs (what we want — ESP32 3.3V drives A, shifted 5V comes out B)
+- `DIR = LOW`: B inputs → A outputs (the other direction; not our case)
 
-Plus shared `Vcc` (5V) and `GND` pins.
+One shared `CE` (chip enable, also labeled `/OE`) — active low. Tie to GND to enable all channels.
 
-We only use **channel 1**: `A1` → GPIO13 LED data, `Y1` → (through 300Ω series resistor) → WS2812B DIN, `/1OE` → GND.
+Shared `Vcc` (5V) and `GND` pins.
 
-Unused channels (2, 3, 4): tie each `/OE` pin to `+5V` to disable them (the output goes high-impedance, no power draw), and tie each `A` input to `GND` so the input isn't floating. We'll wire these in Part 4.
+**We only use channel 0:** `A0` → GPIO13 LED data, `B0` → (through 300Ω series resistor) → WS2812B DIN.
+
+**Unused channels (A1-A7 inputs, B1-B7 outputs):**
+- Tie `A1-A7` all to `GND` (floating CMOS inputs waste power and oscillate)
+- Leave `B1-B7` unconnected (outputs can safely float)
+
+We'll wire these in Part 4.
 
 ### Step 3.10 — Place passive components
 
@@ -257,7 +262,7 @@ Use **power ports** for GND, +3V3, +5V. Use **local labels** for everything else
 
 Press **P**. Search for each:
 - `GND` — place 1 instance near each symbol's GND pin (drag a wire from GND pin, then drop the port)
-- `+5V` — place near USB-C VBUS, WS2812B +5V pin, 74HCT125 Vcc, microSD VCC, MAX98357A VIN
+- `+5V` — place near USB-C VBUS, WS2812B +5V pin, 74HCT245 Vcc, microSD VCC, MAX98357A VIN
 - `+3V3` — place near ESP32 3V3 pin, DS3231 VCC
 
 **How to use a power port:** press **P**, pick the power symbol (GND, +5V, +3V3), and place it on the sheet. Then press **W** (wire) and draw a short wire from the symbol's pin to the port. The port itself IS the net label — no separate text needed.
@@ -272,8 +277,8 @@ Nets to create (copy from pinout.md):
 
 | Net label | Pins on this net |
 |---|---|
-| `LED_DATA_3V3` | ESP32 GPIO13 pin, 74HCT125 A1 |
-| `LED_DATA_5V` | 74HCT125 B1, 300Ω resistor one side |
+| `LED_DATA_3V3` | ESP32 GPIO13 pin, 74HCT245 A0 |
+| `LED_DATA_5V` | 74HCT245 B0, 300Ω resistor one side |
 | `LED_DATA_OUT` | 300Ω resistor other side, WS2812B strip DATA |
 | `I2C_SDA` | ESP32 GPIO21, DS3231 SDA, 4.7kΩ pullup (if needed) |
 | `I2C_SCL` | ESP32 GPIO22, DS3231 SCL, 4.7kΩ pullup (if needed) |
@@ -290,27 +295,19 @@ Nets to create (copy from pinout.md):
 
 ### Step 4.3 — Wire the level shifter correctly
 
-The 74HCT125 has four identical channels; we use one. Wire the 74HCT125 pins:
-- **Vcc (pin 14):** `+5V`
-- **GND (pin 7):** `GND`
-- **Channel 1 (the one we use):**
-  - `/1OE` (pin 1) → `GND` (always enable this channel's output)
-  - `1A` (pin 2) → net `LED_DATA_3V3` (comes from ESP32 GPIO13)
-  - `1Y` (pin 3) → net `LED_DATA_5V` (goes to the 300Ω resistor)
-- **Channel 2 (unused):**
-  - `/2OE` (pin 4) → `+5V` (disable channel output)
-  - `2A` (pin 5) → `GND` (tie off unused input)
-  - `2Y` (pin 6) → leave unconnected (press **Q** for a "no connect" marker to silence ERC)
-- **Channel 3 (unused):**
-  - `/3OE` (pin 10) → `+5V`
-  - `3A` (pin 9) → `GND`
-  - `3Y` (pin 8) → no connect (**Q**)
-- **Channel 4 (unused):**
-  - `/4OE` (pin 13) → `+5V`
-  - `4A` (pin 11) → `GND`
-  - `4Y` (pin 12) → no connect (**Q**)
+The 74HCT245 is a single-direction-at-a-time octal bus transceiver. Wire it:
 
-Unused *inputs* must be tied — floating CMOS inputs waste power and oscillate. Unused *outputs* can be left unconnected (with a no-connect flag to silence ERC).
+- **Vcc (pin 20):** `+5V`
+- **GND (pin 10):** `GND`
+- **DIR / A→B (pin 1):** `+5V` (selects A inputs → B outputs direction)
+- **CE / /OE (pin 19):** `GND` (active-low enable — tie to GND to always enable the transceiver)
+- **Used channel — channel 0:**
+  - `A0` (pin 2) → net `LED_DATA_3V3` (from ESP32 GPIO13)
+  - `B0` (pin 18) → net `LED_DATA_5V` (to the 300Ω resistor, then to WS2812B DIN)
+- **Unused A inputs (A1-A7, pins 3-9):** all tied to `GND` via short wires. Floating CMOS inputs waste power and can oscillate. Cleanest way in KiCad: drop a power port `GND` near each, wire them in a vertical bus.
+- **Unused B outputs (B1-B7, pins 17-11):** leave unconnected. Press **Q** on each to add a "no connect" marker so ERC doesn't complain.
+
+Rule of thumb: **unused inputs get tied off; unused outputs get no-connect flags.**
 
 ### Step 4.4 — Wire the tact switches
 
@@ -325,7 +322,7 @@ Place a 100nF cap between VIN/VCC and GND for each IC with a power pin:
 - MAX98357A: cap between `+5V` and `GND` near it
 - DS3231: cap between `+3V3` and `GND` near it
 - microSD: cap between `+5V` and `GND` near it
-- 74HCT125: cap between `+5V` and `GND` near it
+- 74HCT245: cap between `+5V` and `GND` near it
 - ESP32: cap between `+3V3` and `GND` near it (onboard cap exists on dev board; still add one on PCB)
 
 Bulk cap (1000µF polarized):
@@ -390,7 +387,7 @@ git push
 Before going to PCB layout, send me the commit SHA and I'll review the schematic against:
 
 1. The pinout (`docs/hardware/pinout.md`) — every pin labeled correctly?
-2. Datasheet compatibility (`docs/hardware/research/`) — 74HCT125 wired correctly? DS3231 orientation right?
+2. Datasheet compatibility (`docs/hardware/research/`) — 74HCT245 wired correctly? DS3231 orientation right?
 3. Internal consistency — no floating inputs, no stacked pullups, correct cap orientations
 4. Completeness — every signal in the pinout represented on the schematic
 

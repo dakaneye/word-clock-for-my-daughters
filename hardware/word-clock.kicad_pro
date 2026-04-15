@@ -416,7 +416,7 @@
         "uuid": "1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
       }
     ],
-    "used_designators": "#FLG1-3,J_USB1,#PWR1-23,J_RTC1,J_SD1,J_AMP1,R1-6,SW1-4,U1-2,C1-7,J_LED1,J1",
+    "used_designators": "#FLG1-3,D1-35,J_USB1,#PWR1-93,J_RTC1,J_SD1,J_AMP1,R1-6,SW1-4,U1-2,C1-7,J_LED1,J1",
     "variants": []
   },
   "sheets": [

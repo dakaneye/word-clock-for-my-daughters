@@ -231,19 +231,31 @@ For our project:
 
 When you click on a WS2812B symbol, the preview pane will show the 4-pad 5050 footprint — square, ~5mm × 5mm.
 
-### ESP32 DevKit V1 footprint — special handling required
+### ESP32 DevKit V1 footprint — use a community library
 
-The ESP32 DevKit V1 is two parallel 1×19 pin headers with **22.86mm (0.9")** between the two rows — NOT 2.54mm like a standard 2×19 connector. The stock `PinHeader_2x19` footprint has both rows at 2.54mm apart, which is physically wrong for our board.
+The AITRIP ESP32 DevKit V1 has 38 pins with **25.4mm (1.0")** row-to-row spacing. The stock `PinHeader_2x19_P2.54mm` footprint has both rows at 2.54mm apart — physically wrong and unusable.
 
-**Two options to fix this:**
+**Recommended: install [Swif7ify/KiCad-ESP32-CP2102-38Pin](https://github.com/Swif7ify/KiCad-ESP32-CP2102-38Pin).** MIT licensed, verified for the 38-pin DevKit V1 with CP2102 USB chip. Includes matching symbol AND footprint with 25.4mm row spacing.
 
-1. **Create a custom footprint** (cleanest): Open **Footprint Editor** (from KiCad project manager). Duplicate `PinHeader_2x19_P2.54mm_Vertical` into a local library, then edit pad positions so rows are 22.86mm apart instead of 2.54mm. Save as `ESP32_DEVKITV1_38pin`. Assign this footprint to the ESP32 symbol.
+```bash
+git clone https://github.com/Swif7ify/KiCad-ESP32-CP2102-38Pin.git ~/kicad-libs/esp32-devkit
+```
 
-2. **Use two separate 1×19 footprints** (hacky workaround): split the ESP32 symbol in the schematic into two 1×19 connector symbols representing left-side and right-side pins. Each gets a `PinHeader_1x19_P2.54mm_Vertical` footprint. On the PCB, place them 22.86mm apart. This fragments the schematic though — worse than option 1.
+In KiCad:
+1. **Preferences → Manage Symbol Libraries** → Add → point at the `.kicad_sym` file from the cloned repo. Nickname it `ESP32_DevKit_V1`.
+2. **Preferences → Manage Footprint Libraries** → Add → point at the `.kicad_mod` file (or the `.pretty` folder containing it).
+3. Close and reopen KiCad.
+4. In the schematic: delete the generic 2×19 connector you currently have. Press **A**, search for the Swif7ify ESP32 symbol, place it, re-wire your labels to the correct pins (the Swif7ify symbol already has `D13`, `D22`, etc. named — saves you the pin-renaming work).
+5. In CvPcb (footprint assignment, step 2.2): assign Swif7ify's ESP32 footprint to the new symbol.
 
-**My recommendation: option 1.** Search KiCad forums for "ESP32 DevKit V1 footprint" — several users have published their own that you can reference or import. Also check 3rd-party libraries (SparkFun, Adafruit) via KiCad's **Preferences → Manage Symbol Libraries → Add existing library** if you want pre-made.
+**Why this works for our board:** the AITRIP product image shows dimensions `2.05" × 1.18"`. Back-calculating: `1.18" board width − 0.09" × 2 pin-inset = 1.00" row spacing`. Matches Swif7ify's 25.4mm exactly.
 
-**Do not proceed to placement (Phase 3) with the 2.54mm row spacing** — the ESP32 dev board will not physically fit the PCB pads.
+**Alternatives** (in case Swif7ify doesn't work out):
+- [MightyMirko/esp32_devkit_38Pins](https://github.com/MightyMirko/esp32_devkit_38Pins)
+- [RajeevGaddam07/ESP32-38-Pin-KiCad-Footprint](https://github.com/RajeevGaddam07/ESP32-38-Pin-KiCad-Footprint)
+- SnapMagic's [ESP32 DEVKIT V1](https://www.snapeda.com/parts/DEVKIT%20V1%20ESP32-WROOM-32/Espressif%20Systems/view-part/) (requires free account)
+
+**Do not proceed to placement (Phase 3) with the 2.54mm stock footprint** — the ESP32 dev board will not physically fit the PCB pads.
 
 **Save as you go** (Cmd+S in the CvPcb window).
 

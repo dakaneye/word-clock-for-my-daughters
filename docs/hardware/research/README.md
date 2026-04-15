@@ -6,17 +6,16 @@ When a spec is challenged ("are you sure GPIO 0 must be HIGH?"), the chain of ev
 
 ## Components researched
 
-| Component | File | Last verified |
+| Component / topic | File | Last verified |
 |---|---|---|
 | MAX98357A (I²S amp) | [max98357a.md](max98357a.md) | 2026-04-15 |
 | WS2812B (addressable RGB LED) | [ws2812b.md](ws2812b.md) | 2026-04-15 |
 | DS3231 ZS-042 (RTC breakout module) | [ds3231-zs042.md](ds3231-zs042.md) | 2026-04-15 |
 | HW-125 (microSD SPI breakout) | [hw125-microsd.md](hw125-microsd.md) | 2026-04-15 |
+| ESP32-WROOM-32 GPIO boot behavior | [esp32-gpio-boot-behavior.md](esp32-gpio-boot-behavior.md) | 2026-04-15 |
+| USB-C CC resistors without PD | [usb-c-cc-resistors.md](usb-c-cc-resistors.md) | 2026-04-15 |
+| FastLED on ESP32 — peripheral choice + WiFi | [fastled-esp32.md](fastled-esp32.md) | 2026-04-15 |
 
-## Still-needed research
+## Deferred until Phase 2 bring-up reveals questions
 
-- ESP32-WROOM-32 boot behavior for every GPIO pin we use (to confirm no unintended output during boot, e.g. on GPIO 13 = LED data)
-- USB-C CC-resistor spec behavior without PD (confirm 5V/1.5A vs 5V/3A delivered to our breakout)
-- FastLED timing requirements on ESP32 — does it use RMT peripheral, and does that conflict with anything else?
-
-Added to the pinout doc's risks section; actual research pending as Phase 2 develops.
+Nothing currently blocking schematic or PCB work. Add here as new questions emerge.

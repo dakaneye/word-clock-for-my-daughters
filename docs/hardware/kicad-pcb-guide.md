@@ -6,9 +6,9 @@
 
 **Goal of this session:** Produce `hardware/word-clock.kicad_pcb` — a 7" × 7" double-sided PCB with all electrical components on the back and 35 SMD WS2812B LEDs on the front at positions matching the wood face's letter grid. Run DRC clean. Export gerbers ready for JLCPCB PCBA.
 
-**Estimated time:** ~6-10 hours total, spread across 3-5 sessions. Take breaks — PCB layout is the hardest part of hardware design, and forcing progress on a tired brain creates routing mistakes you won't find until the board is fabricated.
+**Pacing:** Take breaks between phases. PCB layout is the hardest part of hardware design — forcing progress on a tired brain creates routing mistakes you won't find until the board is fabricated.
 
-**Critical prerequisite:** Phase A (schematic rework) must complete before Phase B (PCB layout). Don't jump ahead.
+**Critical prerequisite:** Phase 1 (schematic rework) must complete before Phase 2 (PCB layout). Don't jump ahead.
 
 ---
 
@@ -31,17 +31,17 @@
 
 ---
 
-# Phase A: Schematic rework for 35 SMD WS2812B LEDs
+# Phase 1: Schematic rework for 35 SMD WS2812B LEDs
 
 This phase replaces the single `J_LED` connector with 35 individual WS2812B chip symbols, chained data-wise and sharing power rails. Do this entirely in the Schematic Editor before touching the PCB editor.
 
-## A.1: Delete the J_LED connector
+## 1.1: Delete the J_LED connector
 
 In the Schematic Editor, click on `J_LED1` (WS2812B strip connector). Press **Delete**.
 
 Also delete any existing wires/labels associated with it. Keep `R1` (the 300Ω series resistor) — we still need that in series between the 74HC245 output and the first LED.
 
-## A.2: Add 35 WS2812B symbols
+## 1.2: Add 35 WS2812B symbols
 
 Press **A** (add symbol). Search **`WS2812B`** in the symbol picker. KiCad's stock library has it at `LED:WS2812B`. Place one instance.
 
@@ -59,7 +59,7 @@ Now we need 35 of them. The efficient approach in KiCad:
 
 Reference designators will auto-assign as D1, D2, ... D35 when you annotate.
 
-## A.3: Map LEDs to WordIds
+## 1.3: Map LEDs to WordIds
 
 Each LED corresponds to one `WordId` from the firmware enum. Label each WS2812B symbol with the word it represents. Select each symbol, press **E**, set the **Value** field to the WordId name (e.g., `LED_IT`, `LED_IS`, `LED_HALF`, ...).
 
@@ -124,7 +124,7 @@ constexpr uint8_t word_to_led[static_cast<uint8_t>(WordId::COUNT)] = {
 
 For now, just assign D-numbers by physical order below. We'll reconcile with firmware in Phase 2.
 
-## A.4: Wire power rails to all LEDs
+## 1.4: Wire power rails to all LEDs
 
 Every LED gets +5V and GND. Two approaches:
 
@@ -134,7 +134,7 @@ Every LED gets +5V and GND. Two approaches:
 
 For 35 LEDs, Approach 1 is faster to execute. Do that.
 
-## A.5: Chain the data signal
+## 1.5: Chain the data signal
 
 The data chain is: **R1 (300Ω) → D1.DIN → D1.DOUT → D2.DIN → D2.DOUT → ... → D35.DIN**
 
@@ -152,9 +152,9 @@ Net labels to wire:
 
 Yes, this means 34 distinct `LED_Dn_OUT` labels. Tedious but mechanical. Each label connects exactly two pins (previous LED's output, next LED's input).
 
-**Shortcut:** draw a short wire from D1.DOUT, place label `LED_D1_OUT` at the end. Then **M** the label, use **Ctrl+D** to duplicate it, edit the text to `LED_D2_OUT`, place on D2.DOUT, etc. Takes ~15-20 minutes for all 34 labels.
+**Shortcut:** draw a short wire from D1.DOUT, place label `LED_D1_OUT` at the end. Then **M** the label, use **Ctrl+D** to duplicate it, edit the text to `LED_D2_OUT`, place on D2.DOUT, etc.
 
-## A.6: Add decoupling caps (optional but recommended)
+## 1.6: Add decoupling caps (optional but recommended)
 
 WS2812B datasheet recommends a 100nF cap between VDD and VSS at each LED. Strips in the wild often omit them and work fine, but for a keeper build, add them.
 
@@ -166,7 +166,7 @@ Auto-annotation will number them C8 through C42 (after the existing C2-C7).
 
 **My recommendation: skip for v1.** You already have 6 caps; adding 35 more clutters the schematic without clear benefit for a first-pass board. Decide based on your tolerance for schematic density.
 
-## A.7: Re-run ERC
+## 1.7: Re-run ERC
 
 Same steps as before. Expect new warnings you can safely ignore:
 - Unused pin on D35.DOUT — add a no-connect marker to silence.
@@ -174,7 +174,7 @@ Same steps as before. Expect new warnings you can safely ignore:
 
 Must-fix errors: anything labeled "Error". Warnings can be dismissed.
 
-## A.8: Annotate and save
+## 1.8: Annotate and save
 
 **Tools → Annotate Schematic** to assign D1-D35 to the LEDs.
 
@@ -182,7 +182,7 @@ Must-fix errors: anything labeled "Error". Warnings can be dismissed.
 
 **File → Plot → PDF** to regenerate the human-readable schematic PDF.
 
-## A.9: Commit the schematic rework
+## 1.9: Commit the schematic rework
 
 ```bash
 cd /Users/samueldacanay/dev/personal/word-clock-for-my-daughters
@@ -193,11 +193,11 @@ git push
 
 ---
 
-# Phase B: PCB Editor basics and footprint assignment
+# Phase 2: PCB Editor basics and footprint assignment
 
 Before you can lay out a PCB, every schematic symbol must have a footprint assigned (the physical pad layout). This is a one-time tedious step.
 
-## B.1: Open the Footprint Assignment tool
+## 2.1: Open the Footprint Assignment tool
 
 From the Schematic Editor: **Tools → Assign Footprints** (or an icon that looks like a chip with a pointer). Opens the CvPcb tool with three panes:
 
@@ -205,7 +205,7 @@ From the Schematic Editor: **Tools → Assign Footprints** (or an icon that look
 - Middle: your unassigned symbols
 - Right: footprint preview (shows the physical pad layout)
 
-## B.2: Assign a footprint to each symbol
+## 2.2: Assign a footprint to each symbol
 
 Click each symbol in the middle pane, then browse the left pane to find an appropriate footprint. Double-click to assign. The footprint name appears next to the symbol.
 
@@ -238,23 +238,23 @@ The ESP32 DevKit V1 is two parallel 1×19 pin headers with **22.86mm (0.9")** be
 
 2. **Use two separate 1×19 footprints** (hacky workaround): split the ESP32 symbol in the schematic into two 1×19 connector symbols representing left-side and right-side pins. Each gets a `PinHeader_1x19_P2.54mm_Vertical` footprint. On the PCB, place them 22.86mm apart. This fragments the schematic though — worse than option 1.
 
-**My recommendation: option 1.** Takes ~15 min first time. Search KiCad forums for "ESP32 DevKit V1 footprint" — several users have published their own that you can reference or import. Also check 3rd-party libraries (SparkFun, Adafruit) via KiCad's **Preferences → Manage Symbol Libraries → Add existing library** if you want pre-made.
+**My recommendation: option 1.** Search KiCad forums for "ESP32 DevKit V1 footprint" — several users have published their own that you can reference or import. Also check 3rd-party libraries (SparkFun, Adafruit) via KiCad's **Preferences → Manage Symbol Libraries → Add existing library** if you want pre-made.
 
-**Do not proceed to placement (Phase C) with the 2.54mm row spacing** — the ESP32 dev board will not physically fit the PCB pads.
+**Do not proceed to placement (Phase 3) with the 2.54mm row spacing** — the ESP32 dev board will not physically fit the PCB pads.
 
 **Save as you go** (Cmd+S in the CvPcb window).
 
-## B.3: Launch the PCB Editor
+## 2.3: Launch the PCB Editor
 
 Back in the main KiCad project manager, double-click `word-clock.kicad_pcb`. An empty PCB editor opens.
 
-## B.4: Update PCB from Schematic
+## 2.4: Update PCB from Schematic
 
 **Tools → Update PCB from Schematic** (or **F8**). Dialog opens showing what will be added. Click **Update PCB**.
 
 All 35 LED footprints, the ESP32 header, all breakout headers, the 74HC245, switches, resistor, and caps appear in a pile at the origin. Looks like a mess. That's fine — we'll place them next.
 
-## B.5: Set board outline (Edge.Cuts layer)
+## 2.5: Set board outline (Edge.Cuts layer)
 
 Select the **Edge.Cuts** layer from the right-side panel (gray/yellow color by default).
 
@@ -264,7 +264,7 @@ Exact coordinates: **(0, 0)** top-left, **(177.8, 177.8)** bottom-right. In KiCa
 
 Tip: set the **grid origin** at the top-left of the board outline — **Place → Grid Origin**, click at (0, 0). This makes it easy to position LEDs relative to the board's top-left corner.
 
-## B.6: Commit progress
+## 2.6: Commit progress
 
 ```bash
 git add hardware/word-clock.kicad_pcb
@@ -274,11 +274,11 @@ git push
 
 ---
 
-# Phase C: Component placement
+# Phase 3: Component placement
 
 This is the longest phase. We place 35 LEDs on the front side at computed coordinates matching the letter grid, and all other components on the back side.
 
-## C.1: LED placement on the front side (F.Cu)
+## 3.1: LED placement on the front side (F.Cu)
 
 The 13×13 letter grid maps to LED positions. For word `WordId` with span `(row, col_start, length)`, the LED center is:
 
@@ -287,7 +287,7 @@ X_mm = (col_start + length/2) × 13.68
 Y_mm = (row + 0.5) × 13.68
 ```
 
-Coordinates are relative to the top-left corner of the PCB (which we set as the grid origin in B.5).
+Coordinates are relative to the top-left corner of the PCB (which we set as the grid origin in 2.5).
 
 Complete table (derived from `firmware/lib/core/src/grid.cpp` spans, Emory layout; Nora differs only in NAME position):
 
@@ -335,13 +335,13 @@ Complete table (derived from `firmware/lib/core/src/grid.cpp` spans, Emory layou
 2. Press **E** (edit properties).
 3. In the properties dialog, set **Position X** and **Position Y** to the values from the table.
 4. Set **Layer** to `F.Cu` (front copper) — the LED must mount on the top side.
-5. Set **Rotation** to `0°` (all LEDs should face the same way; we'll verify orientation matters in D.1).
+5. Set **Rotation** to `0°` (all LEDs should face the same way; we'll verify orientation matters in 4.1).
 
 Or use the "move to position" command: select LED, press **M**, type the coordinates directly.
 
-**Alternate: script it.** A short Python script using KiCad's scripting interface can place all 35 LEDs from the table in ~1 second. If you're comfortable with that, it saves 30 minutes. See `hardware/scripts/place_leds.py` (to be written — ask me to generate it if you want this).
+**Alternate: script it.** A short Python script using KiCad's scripting interface can place all 35 LEDs from the table programmatically. See `hardware/scripts/place_leds.py` (to be written — ask me to generate it if you want this).
 
-## C.1a: Mounting holes
+## 3.1a: Mounting holes
 
 Add four M3 screw mounting holes, one near each corner of the PCB, 5mm in from each edge. These let you screw the PCB into the 3D-printed enclosure internals.
 
@@ -353,7 +353,7 @@ Use **Place → Footprint**, search `MountingHole_3.2mm`, place at:
 
 Each hole is 3.2mm clearance for M3 screw + annular ring.
 
-## C.2: Backside component placement
+## 3.2: Backside component placement
 
 All other components go on `B.Cu` (back side). Select each footprint, press **E**, set Layer to `B.Cu` (it'll flip automatically — footprint mirrors as expected).
 
@@ -379,7 +379,7 @@ Exact placement is flexible — whatever makes routing easier. Considerations:
 - **74HC245:** near the ESP32 and near where its output routes up to the LED chain on the front.
 - **Bulk cap C7:** near the USB-C power entry point.
 
-## C.3: Commit placement
+## 3.3: Commit placement
 
 ```bash
 git add hardware/word-clock.kicad_pcb
@@ -389,25 +389,25 @@ git push
 
 ---
 
-# Phase D: Routing traces
+# Phase 4: Routing traces
 
-## D.1: Verify LED orientation before routing
+## 4.1: Verify LED orientation before routing
 
 WS2812B chips have a specific pin orientation. Look at the footprint — pin 1 (VDD) should be in a consistent corner for all 35 LEDs. If they're rotated inconsistently, the data chain routing becomes much harder.
 
 Best practice: rotate all LEDs so pin 1 is in the same corner (e.g., top-left). The **R** key rotates a selected component 90° at a time.
 
-## D.2: Power rails
+## 4.2: Power rails
 
 Start with the high-current paths.
 
 - **+5V rail:** from USB-C VBUS entry point, through bulk cap C7, splitting to feed: (a) the 74HC245, microSD breakout, MAX98357A breakout; (b) all 35 LEDs on the front side. Use **1.0mm traces** for this.
 - **+3V3 rail:** from ESP32's 3V3 pin to DS3231 VCC. **0.5mm traces.**
-- **GND:** don't manually route. See D.4 (copper pour) — we'll fill empty space with ground planes on both sides, which carries the return current for everything.
+- **GND:** don't manually route. See 4.4 (copper pour) — we'll fill empty space with ground planes on both sides, which carries the return current for everything.
 
 Press **X** (route single track). Click on a pad, drag to another pad, click to complete. **V** adds a via if you need to change layers.
 
-## D.3: Signal routing
+## 4.3: Signal routing
 
 Route each signal net with **0.25mm traces**:
 - I²C: SDA and SCL from ESP32 D21/D22 pins to DS3231 SDA/SCL.
@@ -416,7 +416,7 @@ Route each signal net with **0.25mm traces**:
 - Buttons: BTN_HOUR/MINUTE/AUDIO from ESP32 to the three switches, with other side of each switch to GND.
 - LED data chain: 74HC245 B0 → R1 (300Ω) → LED1.DIN → LED1.DOUT → LED2.DIN → ... → LED35.DIN. **This is the most error-prone route.** Go slow. Each LED connects to the NEXT one in sequence. Use the schematic as the reference.
 
-## D.4: Copper pour for ground
+## 4.4: Copper pour for ground
 
 Fill empty PCB area with GND copper to reduce ground impedance and improve noise immunity.
 
@@ -428,7 +428,7 @@ Press **B** to refill all zones — KiCad calculates the fill pattern, avoiding 
 
 Both sides now have GND fill. Vias through non-fill regions tie the two pours together — add a few "stitching vias" along the board edges if desired (not critical for this frequency range).
 
-## D.5: Commit routing
+## 4.5: Commit routing
 
 ```bash
 git add hardware/word-clock.kicad_pcb
@@ -438,9 +438,9 @@ git push
 
 ---
 
-# Phase E: Design Rules Check (DRC)
+# Phase 5: Design Rules Check (DRC)
 
-## E.1: Configure design rules
+## 5.1: Configure design rules
 
 **File → Board Setup → Design Rules → Constraints**. Set:
 - Minimum clearance: **0.2mm**
@@ -456,7 +456,7 @@ git push
 
 Assign each net to the right class via **Custom Rules** or the net class list.
 
-## E.2: Run DRC
+## 5.2: Run DRC
 
 **Inspect → Design Rules Checker** (or the ladybug icon). Click **Run DRC**.
 
@@ -471,17 +471,17 @@ Expect a list of violations. Common ones and fixes:
 
 Fix iteratively. Re-run DRC after each fix.
 
-## E.3: Target state: DRC clean
+## 5.3: Target state: DRC clean
 
 "0 errors, 0 warnings" in the DRC output. May have a handful of warnings you've consciously decided to ignore (mark them dismissed).
 
 ---
 
-# Phase F: Print LED placement for physical verification
+# Phase 6: Print LED placement for physical verification
 
 Before sending to fab, print the LED layout at 1:1 scale and overlay it on the wood face to confirm the LEDs align with the cut-through letters.
 
-## F.1: Plot the front side to PDF
+## 6.1: Plot the front side to PDF
 
 **File → Plot**. In the dialog:
 - **Plot format:** PDF
@@ -493,25 +493,25 @@ Before sending to fab, print the LED layout at 1:1 scale and overlay it on the w
 
 Result: `hardware/plots/word-clock-F_Cu.pdf` or similar.
 
-## F.2: Print at 1:1
+## 6.2: Print at 1:1
 
 Open the PDF. Print with **"Actual size"** or **"100% scaling"** selected — NOT "fit to page" (which scales down). Use tiled printing across multiple 8.5×11" sheets if needed.
 
-## F.3: Overlay on the wood face
+## 6.3: Overlay on the wood face
 
 Once the Ponoko laser-cut face arrives (or on a cardboard test cut), tape the printed sheet over the face with letter grid lines aligned to the cut-through letters. Each LED position should land under a letter or word group — not between letters.
 
-**If misaligned:** fix the LED placement in the PCB editor (Phase C) and re-plot. Iterate until alignment is tight.
+**If misaligned:** fix the LED placement in the PCB editor (Phase 3) and re-plot. Iterate until alignment is tight.
 
 **Tolerance:** ±1mm is fine — the 3D-printed light channel will widen the illumination spot.
 
 ---
 
-# Phase G: Export gerbers for JLCPCB
+# Phase 7: Export gerbers for JLCPCB
 
 Once DRC is clean and LED placement is verified by the overlay check, export the files JLCPCB needs.
 
-## G.1: Generate gerbers
+## 7.1: Generate gerbers
 
 **File → Fabrication Outputs → Gerbers**. In the dialog:
 - **Output directory:** `plots/gerbers/`
@@ -524,21 +524,21 @@ Once DRC is clean and LED placement is verified by the overlay check, export the
   - Edge.Cuts (board outline)
 - Click **Plot**.
 
-## G.2: Generate drill files
+## 7.2: Generate drill files
 
 Still in the Gerber dialog, click **Generate Drill Files**. Use defaults:
 - **Drill units:** Millimeters
 - **Zeros format:** Decimal
 - **PTH and NPTH in single file:** checked
 
-## G.3: Generate BOM and pick-and-place (for PCBA)
+## 7.3: Generate BOM and pick-and-place (for PCBA)
 
 For JLCPCB's assembly service, you need two additional files:
 
 - **BOM:** Tools → Generate Legacy BOM → CSV. Edit to include only parts JLCPCB needs to stock (their "Basic" or "Extended" parts catalog).
 - **Pick-and-place (CPL):** File → Fabrication Outputs → Component Placement. Export as CSV with columns `Designator, Val, Package, MidX, MidY, Rotation, Layer`.
 
-## G.4: Zip and upload to JLCPCB
+## 7.4: Zip and upload to JLCPCB
 
 ```bash
 cd hardware/plots/gerbers
@@ -555,7 +555,7 @@ Go to [jlcpcb.com](https://jlcpcb.com) → PCB → upload the zip. Review the Ge
 
 Review quote. Place order.
 
-## G.5: Commit production files
+## 7.5: Commit production files
 
 ```bash
 git add hardware/plots/ hardware/bom.csv hardware/cpl.csv
@@ -565,7 +565,7 @@ git push
 
 ---
 
-## Part H: Stop and request review
+## Phase 8: Stop and request review
 
 Before placing the JLCPCB order, send me the commit SHA. I'll review:
 

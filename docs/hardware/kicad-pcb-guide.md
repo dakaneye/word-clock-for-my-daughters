@@ -392,7 +392,24 @@ Exact placement is flexible — whatever makes routing easier. Considerations:
 - **MicroSD:** near an edge so you can swap cards without full disassembly.
 - **ESP32 header:** center-ish; it's the biggest component.
 - **74HC245:** near the ESP32 and near where its output routes up to the LED chain on the front.
-- **Bulk cap C7:** near the USB-C power entry point.
+
+### Decoupling caps — one per IC, within ~5mm
+
+Caps follow their ICs (flip to B.Cu with **F**, drop adjacent to the IC). The rule is "short trace between cap terminal and the IC's Vcc pin + adjacent GND."
+
+| Cap | Place within ~5mm of |
+|---|---|
+| C2 (100nF) | An ESP32 Vcc pin (`VIN` pin 19 or `3V3` pin 1) + adjacent `GND` pin (14 / 32 / 38) |
+| C3 (100nF) | 74HC245 `Vcc` (pin 20) + `GND` (pin 10) |
+| C4 (100nF) | microSD J_SD1 `VCC` + `GND` |
+| C5 (100nF) | DS3231 J_RTC1 `VCC` + `GND` |
+| C6 (100nF) | MAX98357A J_AMP1 `VIN` + `GND` |
+
+### Bulk cap C7 (1000µF polarized)
+
+- Place near where +5V enters the main board — practically, adjacent to the USB-C VBUS pad.
+- Polarity matters: `+` terminal to +5V, `−` terminal to GND. Silkscreen marks `+` — orient correctly.
+- C7 is physically tall (~10mm radial can). Make sure the enclosure has clearance behind the PCB for its height.
 
 ## 3.3: Commit placement
 

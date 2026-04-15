@@ -33,7 +33,9 @@
 - **Why 1m when we only need 30:** You'll cut some, solder some wrong, and bring-up testing wants extras. $8 for a meter vs $6 for a cut length — not worth the hassle.
 - **Sourcing:** Amazon — "WS2812B 60 LEDs/m 1m 5V strip". BTF-Lighting is a reliable brand.
 
-### DS3231 RTC breakout board — **$3-5** × 1
+### DS3231 RTC breakout board — ~~**$3-5** × 1~~ **Already owned**
+
+> **Status:** Spare from Chelsea's clock restock (new 2-pack, one used for Chelsea, one spare). No need to order.
 
 - **What it is:** A small module with the DS3231 real-time-clock chip, an AT24C32 EEPROM, a CR2032 battery holder, and I²C headers.
 - **Why this clock needs it:** WiFi + NTP is the primary time source, but when WiFi is down (during setup, at grandma's house, after a router outage) the clock must keep ticking. The DS3231 is the industry's most accurate temperature-compensated crystal RTC — drifts only a few seconds per week. Spec calls it out explicitly as the offline fallback.
@@ -104,7 +106,29 @@
 
 ## Total
 
-Low estimate: ~$60. High estimate: ~$85. Ships in 1-2 days from Amazon Prime, 2-4 weeks from AliExpress (don't bother saving $10-15 on 3 weeks of waiting).
+Low estimate: ~$57. High estimate: ~$80. (DS3231 removed — already owned.)
+
+## Wishlist (2026-04-15)
+
+Amazon wishlist `4Q4NKIFBMW56` pulled together on 2026-04-15. Every parts-doc line above is covered. Multi-packs on most items (ESP32 3-pack, speaker 4-pack, MAX98357A 2-pack, breadboard 4-pack, tact switch 20-pack) — the right call for a first-time hardware order where spares save a re-order on a dev mistake.
+
+| Doc line | Wishlist item | Note |
+|---|---|---|
+| ESP32 DevKit | AITRIP ESP-WROOM-32 3-pack, $16.79 | Multi-pack is smart |
+| WS2812B strip | SEZO 5m / 300 LEDs, $13.99 | 5m vs my 1m suggestion — fine, same 60 LED/m density |
+| DS3231 | — (already owned) | |
+| MAX98357A | GODIYMODULES 2-pack, $6.88 | Spare amp included |
+| 8Ω speaker | DWEII 4-pack 3W 8Ω **with JST-PH2.0 pre-attached**, $9.99 | Matches the final-PCB 2-pin JST connector — zero crimping needed |
+| microSD breakout | Stemedu 2-pack, $5.99 | |
+| microSD card | SanDisk 4GB, $18.95 | ⚠️ **Overpriced.** Swap for a 32GB Class 10 (~$8-10). Retro low-capacity cards cost more than current-gen. |
+| USB-C breakout | Cermant 10-pack with coupon, $8.99 | |
+| Tact switches | QTEATAK 20-pack, $6.99 | |
+| Breadboard | BOJACK 3-value kit (4× 830-tie + 400-tie + bonus jumpers), $9.99 | Extras useful for parallel experiments |
+| Jumper wires | EDGELEC 120pc M-M/M-F/F-F, $7.49 | |
+| USB-C cable | Anker Nano 240W 6ft, $16.99 | Solid — the CC-resistor breakout needs a real USB-C cable, this is one. |
+| 5V 2A charger | TCKN 2-pack, $11.99 | |
+
+**Wishlist total: ~$135.** Higher than the doc's $57-80 estimate because of multi-packs (worth it) and the overpriced SanDisk 4GB (swap it). Ships in 1-2 days from Amazon Prime, 2-4 weeks from AliExpress (don't bother saving $10-15 on 3 weeks of waiting).
 
 ## After the order arrives
 

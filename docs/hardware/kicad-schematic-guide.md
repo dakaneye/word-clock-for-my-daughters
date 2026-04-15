@@ -139,19 +139,56 @@ Select the symbol, press **E** (Edit Properties). Set:
 - **Reference:** `U1` (auto-assigned, leave as-is or rename to `ESP32`)
 - **Value:** `ESP32 DevKit V1`
 
-### Step 3.2 — Label each ESP32 pin with its signal
+### Step 3.2 — Rename the ESP32 pin names to match the silkscreen
 
-Our ESP32 dev board is 38-pin. The specific pinout depends on the board brand. **AITRIP ESP-WROOM-32 3-pack** uses the standard "DOIT ESP32 DEVKIT V1" 30-pin or 38-pin layout. Assume **38-pin** for the 3-pack; confirm against the board when it arrives.
+The AITRIP ESP-WROOM-32 3-pack follows the **DOIT ESP32 DEVKIT V1 38-pin layout**. Before wiring, rename each pin of the connector symbol from the default `1, 2, 3...` to the silkscreen label printed on the physical board. This makes the schematic self-documenting.
 
-For now, we'll label pins with the signal names from `docs/hardware/pinout.md`. This is tedious but essential.
+Select the ESP32 connector, press **E** (edit properties). Find the pin list (labeled "Pins" or "Edit Pin Properties" depending on KiCad version). Rename pins in this order (1 through 38, matching the DOIT DEVKIT V1 layout):
 
-**Method A (fastest):** hover near a pin end, press **L** (add label). Type the net name, place it. Repeat for each active pin.
+| Pin # | New name | GPIO | Our use |
+|---:|---|---|---|
+| 1 | `3V3` | power output | +3V3 rail source |
+| 2 | `EN` | reset | unused |
+| 3 | `VP` | GPIO36 (input-only) | unused |
+| 4 | `VN` | GPIO39 (input-only) | unused |
+| 5 | `D34` | GPIO34 (input-only) | unused |
+| 6 | `D35` | GPIO35 (input-only) | unused |
+| 7 | `D32` | GPIO32 | BTN_HOUR |
+| 8 | `D33` | GPIO33 | BTN_MINUTE |
+| 9 | `D25` | GPIO25 | I2S_LRC |
+| 10 | `D26` | GPIO26 | I2S_BCLK |
+| 11 | `D27` | GPIO27 | I2S_DIN |
+| 12 | `D14` | GPIO14 | BTN_AUDIO |
+| 13 | `D12` | GPIO12 (strapping) | reserved |
+| 14 | `GND` | ground | GND rail |
+| 15 | `D13` | GPIO13 | LED_DATA_3V3 |
+| 16 | `D9` | GPIO9 (flash — don't use) | — |
+| 17 | `D10` | GPIO10 (flash — don't use) | — |
+| 18 | `D11` | GPIO11 (flash — don't use) | — |
+| 19 | `VIN` | 5V input | (optional 5V path) |
+| 20 | `GND` | ground | GND rail |
+| 21 | `D23` | GPIO23 | SD_MOSI |
+| 22 | `D22` | GPIO22 | I2C_SCL |
+| 23 | `TX0` | GPIO1 | UART debug (reserved) |
+| 24 | `RX0` | GPIO3 | UART debug (reserved) |
+| 25 | `D21` | GPIO21 | I2C_SDA |
+| 26 | `GND` | ground | GND rail |
+| 27 | `D19` | GPIO19 | SD_MISO |
+| 28 | `D18` | GPIO18 | SD_SCK |
+| 29 | `D5` | GPIO5 | SD_CS |
+| 30 | `TX2` | GPIO17 | unused |
+| 31 | `RX2` | GPIO16 | unused |
+| 32 | `D4` | GPIO4 | unused |
+| 33 | `D0` | GPIO0 (strapping) | unused |
+| 34 | `D2` | GPIO2 (strapping + LED) | unused |
+| 35 | `D15` | GPIO15 (strapping) | unused |
+| 36 | `D8` | GPIO8 (flash — don't use) | — |
+| 37 | `D7` | GPIO7 (flash — don't use) | — |
+| 38 | `D6` | GPIO6 (flash — don't use) | — |
 
-**Method B (cleaner):** Pre-place all symbols first (Part 3.2–3.9), then wire them up in Part 4 using labels on buses.
+After this rename, each pin shows its silkscreen name in the schematic. You can then attach net labels in Part 4 by matching signal name to pin name (e.g., `LED_DATA_3V3` goes on the pin named `D13`).
 
-Use Method B. We'll come back and label after all symbols are placed.
-
-For now, just leave the ESP32 connector placed, un-labeled.
+**Verify when the board arrives:** confirm the silkscreen labels match this table. AITRIP is a DOIT clone but occasional batches vary — if physical pin 15 says "D13" you're good.
 
 ### Step 3.3 — Place MAX98357A breakout
 

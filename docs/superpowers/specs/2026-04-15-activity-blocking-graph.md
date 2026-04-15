@@ -25,7 +25,7 @@ Every activity from here through delivery, classified by what actually blocks it
 |---|---|---|
 | A | Pinout spreadsheet (ESP32 GPIO assignments, bus allocation) | nothing |
 | B | KiCad schematic v0 (all IC blocks from datasheets + refs) | A |
-| C | KiCad footprint/symbol verification against actual parts | parts in hand (partially) |
+| C | KiCad footprint/symbol verification | datasheets alone sufficient; caliper check when parts arrive |
 | D | KiCad PCB layout v0 | B, C |
 | E | Laser-cut face SVG — Emory (birch, EMORY row + fillers) | nothing (grid locked in spec) |
 | F | Laser-cut face SVG — Nora (walnut, NORA row + fillers) | nothing |
@@ -80,8 +80,8 @@ Phase 1 ✅
 
 **Track 1 — KiCad (highest leverage; unblocks 5 downstream activities)**
 - A: Pinout spreadsheet
-- B: Schematic v0 (crib from Adafruit ESP32 Audio BFF for audio subsystem)
-- C: Footprint verification (partial now, finalize when parts arrive)
+- B: Schematic v0 (crib from Adafruit ESP32 Feather + MAX98357A reference for audio subsystem)
+- C: Footprint verification (datasheets sufficient for most parts; final calipers check when parts arrive)
 - D: PCB layout v0
 - **Output:** fab-ready gerbers + BOM, ready to submit to JLCPCB
 
@@ -101,42 +101,49 @@ Phase 1 ✅
 - M: HTML form for WiFi provisioning; test in a browser with mock data
 
 **Track 5 — Diffuser + enclosure polish (blocked on parts + PCB)**
-- Q: Diffuser material test (paper vs frosted PETG) once LEDs arrive
+- Q: Diffuser material test (paper vs frosted PETG) once LEDs arrive. **Do this before I (light-channel CAD)** — diffuser thickness/diffusivity determines the channel depth needed.
 - H, I, J, K, L: 3D CAD and back-panel SVG, once PCB layout D is done
 
 ## Decision: sequencing
 
-**Weeks 1-2 (2026-04-15 through parts/printer arrival)**
+**Assumption on availability:** ~5-10 evening hours per week, occasional weekend block. Senior IC with a demanding day job. Timeline below scales linearly — halve the hours, double the weeks.
 
-Interim work before parts arrive (~2-5 days away):
+**Days 1-5 (2026-04-15 through parts/printer arrival on 4/17-4/20)**
+
+Interim work before parts arrive:
 - Start Track 1 with A (pinout spreadsheet), then B (schematic v0)
 - Start Track 2 with E + F (clock face SVGs) in parallel
 - Optional: Track 4 (captive portal) on a low-brain evening
 - Optional: Track 3 (audio recording) if inspired
+- Parts ETA has ±2 day slip risk from Amazon; plan adjusts accordingly.
 
-**Week 3 (parts + printer in hand)**
+**Week 2 (parts + printer in hand)**
 - Audio-only breadboard bring-up (R) — highest-risk subsystem first, 1 evening
 - Finish Track 1 B/D using any learnings from R
-- Ponoko order for cardboard face test (U)
+- **Diffuser material test (Q) ASAP once LEDs arrive** — informs light-channel CAD depth in Track 5
+- Ponoko order for cardboard face test (U) — **Ponoko lead time: 7-14 days international + 5-7 days shipping = ~3 weeks to delivered test parts**
 - 3D printer setup + calibration prints
-- Track 5 starts: D informs H/I/J/K/L
 
-**Weeks 4-6**
-- Submit PCB v1 to JLCPCB (S) — 2-week fab + ship
-- 3D-print internals (T) in parallel
+**Weeks 3-5**
+- Track 5 starts: D (PCB layout) informs H/I/J/K/L (3D + back panel). **Diffuser choice from Q locks light-channel depth in I.**
+- Submit PCB v1 to JLCPCB (S) — **fabrication 5-10 business days, DHL shipping 3-7 days, total 2-3 weeks realistic (add 1-week slip buffer)**
+- 3D-print internals (T) in parallel, assuming printer is calibrated
 - Ponoko order for real wood faces + sides (after cardboard test passes)
+
+**Weeks 6-7**
 - PCB arrives → assemble Emory unit (V)
+- Wood and 3D parts should be in-hand or arriving during assembly
 
-**Weeks 7-10**
-- 30-day burn-in test (W) on Emory unit on the user's desk
-- Any PCB v2 spin if bugs found
+**Weeks 8-11**
+- 30-day burn-in test (W) on Emory unit. Real-time calendar task — cannot compress.
+- Any PCB v2 spin if bugs found would add 3-4 weeks here.
 
-**Weeks 11-12**
+**Weeks 12-13**
 - Nora unit assembly (X)
 - Final audio recordings go on SD cards
 - Both clocks boxed for storage until delivery (2030 / 2032)
 
-**Total realistic timeline:** ~12 weeks to both units assembled and validated. Original plan estimated "2027-2029" prototype iteration; the more aggressive schedule is feasible because most activities parallelize.
+**Total realistic timeline:** ~13 weeks to both units assembled and validated, **assuming no PCB respin and no vendor delays**. Original plan estimated "2027-2029" prototype iteration; the more aggressive schedule is feasible because most activities parallelize — but a single failure mode (PCB v2 needed, Ponoko delay, audio subsystem surprise) easily adds 4 weeks.
 
 ## Why this changed
 

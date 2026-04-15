@@ -74,6 +74,8 @@ mkdir -p hardware
 
 In KiCad: **File → New Project**. Browse to `/Users/samueldacanay/dev/personal/word-clock-for-my-daughters/hardware/`. Name the project `word-clock`. Leave "Create a new folder for the project" UNCHECKED (we already made `hardware/`).
 
+**Template selection:** if KiCad prompts you to pick a template (Arduino shield, Raspberry Pi HAT, etc.), choose **"Empty Project"** or skip the template. Our clock is a standalone board — not a daughter card for another system — so we want a blank starting point. Template-based projects pre-populate the schematic with the host's connector, which we don't need.
+
 This creates `hardware/word-clock.kicad_pro` and empty `.kicad_sch` / `.kicad_pcb` files.
 
 ### Step 1.3 — Commit the project skeleton

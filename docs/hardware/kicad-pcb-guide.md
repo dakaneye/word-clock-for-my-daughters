@@ -138,21 +138,41 @@ For 35 LEDs, Approach 1 is faster to execute. Do that.
 
 The data chain is: **R1 (300Ω) → D1.DIN → D1.DOUT → D2.DIN → D2.DOUT → ... → D35.DIN**
 
-Net labels to wire:
+Two equivalent approaches — pick whichever feels cleaner.
+
+### Option A: Wires (recommended if LEDs are arranged in a tight grid)
+
+If you placed the 35 LEDs sequentially on the sheet (e.g., D1 top-left, D2 next to D1, D3 next, ... row-major), each data connection is a short neighbor-to-neighbor wire.
+
+Press **W**, click `D1.DOUT`, drag to `D2.DIN`, click to finish. Repeat for each pair. ~34 wires.
+
+The entry point: wire from `R1`'s output terminal to `D1.DIN` (matches the existing `LED_DATA_OUT` label on R1's right side from the earlier schematic).
+
+The exit point: `D35.DOUT` is unused — press **Q** on it to add a no-connect marker.
+
+Wires are the most explicit representation — anyone reviewing the schematic can literally trace the chain with their eyes.
+
+### Option B: Labels (cleaner if LEDs are scattered)
+
+Each pair shares a uniquely-named label:
 
 | Net label | Pins on this net |
 |---|---|
 | `LED_DATA_OUT` | R1 (300Ω) output side, **D1.DIN** |
 | `LED_D1_OUT` | D1.DOUT, D2.DIN |
 | `LED_D2_OUT` | D2.DOUT, D3.DIN |
-| `LED_D3_OUT` | D3.DOUT, D4.DIN |
 | ... | ... (continue sequentially) |
 | `LED_D34_OUT` | D34.DOUT, D35.DIN |
-| *(D35.DOUT is unused — end of chain — add a no-connect marker with **Q**)* | |
+| *(D35.DOUT — no-connect with **Q**)* | |
 
-Yes, this means 34 distinct `LED_Dn_OUT` labels. Tedious but mechanical. Each label connects exactly two pins (previous LED's output, next LED's input).
+34 distinct labels. **Shortcut:** place one label, press **M** then **Ctrl+D** to duplicate, edit the number, place on the next pin.
 
-**Shortcut:** draw a short wire from D1.DOUT, place label `LED_D1_OUT` at the end. Then **M** the label, use **Ctrl+D** to duplicate it, edit the text to `LED_D2_OUT`, place on D2.DOUT, etc.
+### Which to pick
+
+- Tight grid layout of LEDs on the schematic → wires.
+- Scattered layout or split across sheets → labels.
+
+Electrically identical.
 
 ## 1.6: Add decoupling caps (optional but recommended)
 

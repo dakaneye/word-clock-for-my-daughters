@@ -1,0 +1,8 @@
+.DS_Store
+.superpowers/
+build/
+*.hex
+*.elf
+.pio/
+.vscode/
+node_modules/

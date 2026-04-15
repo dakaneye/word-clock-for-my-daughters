@@ -6,3 +6,9 @@ build/
 .pio/
 .vscode/
 node_modules/
+
+# KiCad auto-generated
+hardware/.history/
+hardware/~*.lck
+hardware/*-backups/
+hardware/fp-info-cache

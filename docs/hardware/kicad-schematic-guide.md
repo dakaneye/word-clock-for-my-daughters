@@ -1,5 +1,7 @@
 # KiCad Schematic Build Guide — v0
 
+**Target version:** KiCad 10.x (released 2026; current stable at time of writing).
+
 **Audience:** Software engineer with zero KiCad experience. Comfortable with technical tools generally. Needs to know where to click.
 
 **Goal of this session:** Produce `hardware/word-clock.kicad_sch` — an electrical schematic that KiCad can run ERC (Electrical Rules Check) on, with no errors. This is activity B in `docs/superpowers/specs/2026-04-15-activity-blocking-graph.md`. It does NOT include PCB layout — that's a later session.
@@ -43,9 +45,9 @@ All of these are plain-text (S-expression format). Git-friendly. Commit as you g
 
 ## Part 1: Install KiCad and create the project
 
-### Step 1.1 — Install KiCad (stable, 8.x or newer)
+### Step 1.1 — Install KiCad 10.x
 
-macOS: download from https://www.kicad.org/download/macos/ — get the **stable** build (8.x at time of writing; 9.x may be out). If you land on 9.x the symbol library paths in this guide may be reorganized — searches (step 3.1 onward) should still find the same symbols by name.
+macOS: download from https://www.kicad.org/download/macos/ — get the **stable** build (10.x at time of writing).
 
 Alternative with Homebrew:
 
@@ -53,7 +55,14 @@ Alternative with Homebrew:
 brew install --cask kicad
 ```
 
-Verify: open KiCad.app. You should see the project manager window with a sidebar of programs (Schematic Editor, PCB Editor, etc.).
+Verify: open KiCad.app. The project manager window opens with a sidebar of editors (Schematic Editor, PCB Editor, etc.).
+
+**KiCad 10 notes relevant to this guide:**
+- Keyboard shortcuts referenced below (A, L, P, W, E, M, R, Q, Escape) are stable and unchanged from KiCad 6–9.
+- Symbol library names (`Connector_Generic`, `Device`, `74xx`, `Switch`) are unchanged.
+- File format (`.kicad_sch`, `.kicad_pcb` — S-expression) is unchanged since KiCad 6.
+- KiCad 10 added a lasso selection tool, dark mode on Windows, and importers for Allegro/PADS/gEDA — none affect this guide.
+- Menu paths (File, Inspect, etc.) are the same as KiCad 8/9. If a specific menu item seems to have moved, use the command palette: **? key** or **Ctrl/Cmd-K** (if available in KiCad 10) to search.
 
 ### Step 1.2 — Create the project
 

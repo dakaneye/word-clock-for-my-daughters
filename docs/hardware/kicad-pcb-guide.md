@@ -103,26 +103,9 @@ Order for clarity (matches firmware enum order):
 | D34 | LED_DAY | DAY |
 | D35 | LED_NAME | NAME |
 
-**Important: D-numbering follows physical row-major grid order, NOT the firmware WordId enum order.** Row-major placement (left-to-right, top-to-bottom) lets the data chain zig-zag across rows with minimal trace backtracking — routing-friendly.
+**D-numbering follows WordId enum order.** D1 = WordId::IT (enum 0), D2 = IS (1), ... D35 = NAME (34). This means firmware can directly index `leds[static_cast<uint8_t>(WordId::IT)]` to address the correct physical LED — no mapping table needed.
 
-The firmware will need a `WordId → chain_index` mapping table (added in Phase 2 when we wire up the display module). Something like:
-
-```cpp
-// firmware/lib/core/include/led_mapping.h (Phase 2)
-constexpr uint8_t word_to_led[static_cast<uint8_t>(WordId::COUNT)] = {
-    0,  // IT      -> D1
-    1,  // IS      -> D2
-    2,  // TEN_MIN -> D3
-    3,  // HALF    -> D4
-    4,  // QUARTER -> D5
-    // ...
-    8,  // HAPPY   -> D9 (row 3, col 1 — between IS and PAST physically)
-    12, // BIRTH   -> D13 (row 4)
-    // ...
-};
-```
-
-For now, just assign D-numbers by physical order below. We'll reconcile with firmware in Phase 2.
+Tradeoff: some PCB routing will zig-zag (e.g., D32 LED_HAPPY is on row 3 of the grid, but D31 LED_NIGHT is on row 12 — the data trace jumps). Slightly longer traces; one-time cost at PCB layout. The firmware clarity win is worth it.
 
 ## 1.4: Wire power rails to all LEDs
 
@@ -309,7 +292,7 @@ Y_mm = (row + 0.5) × 13.68
 
 Coordinates are relative to the top-left corner of the PCB (which we set as the grid origin in 2.5).
 
-Complete table (derived from `firmware/lib/core/src/grid.cpp` spans, Emory layout; Nora differs only in NAME position):
+Complete table (derived from `firmware/lib/core/src/grid.cpp` spans, Emory layout; Nora differs only in NAME position). D-numbers are in WordId enum order.
 
 | D# | WordId | row | col_start | length | X (mm) | Y (mm) |
 |---|---|---:|---:|---:|---:|---:|
@@ -321,33 +304,33 @@ Complete table (derived from `firmware/lib/core/src/grid.cpp` spans, Emory layou
 | D6 | TWENTY | 1 | 7 | 6 | 136.80 | 20.52 |
 | D7 | FIVE_MIN | 2 | 0 | 4 | 27.36 | 34.20 |
 | D8 | MINUTES | 2 | 5 | 7 | 116.28 | 34.20 |
-| D9 | HAPPY | 3 | 1 | 5 | 47.88 | 47.88 |
-| D10 | PAST | 3 | 6 | 4 | 109.44 | 47.88 |
-| D11 | TO | 3 | 10 | 2 | 150.48 | 47.88 |
-| D12 | ONE | 4 | 0 | 3 | 20.52 | 61.56 |
-| D13 | BIRTH | 4 | 3 | 5 | 75.24 | 61.56 |
-| D14 | THREE | 4 | 8 | 5 | 143.64 | 61.56 |
-| D15 | ELEVEN | 5 | 0 | 6 | 41.04 | 75.24 |
-| D16 | FOUR | 5 | 6 | 4 | 109.44 | 75.24 |
-| D17 | DAY | 5 | 10 | 3 | 157.32 | 75.24 |
-| D18 | TWO | 6 | 0 | 3 | 20.52 | 88.92 |
-| D19 | EIGHT | 6 | 3 | 5 | 75.24 | 88.92 |
-| D20 | SEVEN | 6 | 8 | 5 | 143.64 | 88.92 |
-| D21 | NINE | 7 | 0 | 4 | 27.36 | 102.60 |
-| D22 | SIX | 7 | 4 | 3 | 75.24 | 102.60 |
-| D23 | TWELVE | 7 | 7 | 6 | 136.80 | 102.60 |
-| D24 | NAME | 8 | 0 | 5 | 34.20 | 116.28 |
-| D25 | AT | 8 | 6 | 2 | 95.76 | 116.28 |
-| D26 | FIVE_HR | 8 | 8 | 4 | 136.80 | 116.28 |
-| D27 | TEN_HR | 9 | 0 | 3 | 20.52 | 129.96 |
-| D28 | OCLOCK | 9 | 3 | 6 | 82.08 | 129.96 |
-| D29 | NOON | 9 | 9 | 4 | 150.48 | 129.96 |
-| D30 | IN | 10 | 1 | 2 | 27.36 | 143.64 |
-| D31 | THE | 10 | 3 | 3 | 61.56 | 143.64 |
-| D32 | MORNING | 10 | 6 | 7 | 129.96 | 143.64 |
-| D33 | AFTERNOON | 11 | 0 | 9 | 61.56 | 157.32 |
-| D34 | EVENING | 12 | 0 | 7 | 47.88 | 171.00 |
-| D35 | NIGHT | 12 | 8 | 5 | 143.64 | 171.00 |
+| D9 | PAST | 3 | 6 | 4 | 109.44 | 47.88 |
+| D10 | TO | 3 | 10 | 2 | 150.48 | 47.88 |
+| D11 | ONE | 4 | 0 | 3 | 20.52 | 61.56 |
+| D12 | TWO | 6 | 0 | 3 | 20.52 | 88.92 |
+| D13 | THREE | 4 | 8 | 5 | 143.64 | 61.56 |
+| D14 | FOUR | 5 | 6 | 4 | 109.44 | 75.24 |
+| D15 | FIVE_HR | 8 | 8 | 4 | 136.80 | 116.28 |
+| D16 | SIX | 7 | 4 | 3 | 75.24 | 102.60 |
+| D17 | SEVEN | 6 | 8 | 5 | 143.64 | 88.92 |
+| D18 | EIGHT | 6 | 3 | 5 | 75.24 | 88.92 |
+| D19 | NINE | 7 | 0 | 4 | 27.36 | 102.60 |
+| D20 | TEN_HR | 9 | 0 | 3 | 20.52 | 129.96 |
+| D21 | ELEVEN | 5 | 0 | 6 | 41.04 | 75.24 |
+| D22 | TWELVE | 7 | 7 | 6 | 136.80 | 102.60 |
+| D23 | OCLOCK | 9 | 3 | 6 | 82.08 | 129.96 |
+| D24 | NOON | 9 | 9 | 4 | 150.48 | 129.96 |
+| D25 | IN | 10 | 1 | 2 | 27.36 | 143.64 |
+| D26 | THE | 10 | 3 | 3 | 61.56 | 143.64 |
+| D27 | AT | 8 | 6 | 2 | 95.76 | 116.28 |
+| D28 | MORNING | 10 | 6 | 7 | 129.96 | 143.64 |
+| D29 | AFTERNOON | 11 | 0 | 9 | 61.56 | 157.32 |
+| D30 | EVENING | 12 | 0 | 7 | 47.88 | 171.00 |
+| D31 | NIGHT | 12 | 8 | 5 | 143.64 | 171.00 |
+| D32 | HAPPY | 3 | 1 | 5 | 47.88 | 47.88 |
+| D33 | BIRTH | 4 | 3 | 5 | 75.24 | 61.56 |
+| D34 | DAY | 5 | 10 | 3 | 157.32 | 75.24 |
+| D35 | NAME | 8 | 0 | 5 | 34.20 | 116.28 |
 
 **To place each LED at its computed position:**
 

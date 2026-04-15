@@ -98,6 +98,21 @@ Ordered by leverage-per-hour:
 - Filament storage — dry box vs. ambient. Revisit after 30 days based on humidity observations.
 - Slicer choice — Bambu Studio (default, proprietary) vs. OrcaSlicer (open-source fork, Bambu-compatible). Start with Bambu Studio; switch to OrcaSlicer if I hit a wall.
 
+## Fallback: No Printer Available
+
+If the Bambu A1 purchase is delayed, fails, or is otherwise unavailable when the clock project needs internals, outsource the ~4 internal parts per clock. They are all white PLA, small, non-structural, and hidden inside the enclosure — a perfect fit for online FDM services.
+
+| Vendor | Fit | Est. cost (4 parts × 2 clocks) | Lead time |
+|---|---|---|---|
+| **SendCutSend** | Yes — now offers FDM print service alongside laser cut, already in use for the face | ~$60-80 per clock | 1-2 weeks |
+| **Craftcloud** (hub / aggregator) | Yes — quote-comparison across multiple FDM services | ~$40-70 per clock | 1-3 weeks |
+| **Shapeways / JLC3DP** | Yes | ~$50-90 per clock | 2-3 weeks |
+| **Local maker-space** (e.g., Dallas Makerspace) | Possible if a membership makes sense by then | Membership cost | Variable |
+
+The firmware and PCB design assume nothing about the origin of the printed parts. As long as the CAD files in `enclosure/` are vendor-neutral STEP + STL, any of the above will work. Budget impact: +$60-80 per clock vs. printing in-house. Still well under the $150-180/clock spec target (the per-clock budget has headroom).
+
+**Decision deferral:** Revisit when Phase 4 (enclosure) starts — whichever delivers the parts on time wins.
+
 ## Non-Goals
 
 - Print farm operation.

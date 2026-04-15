@@ -308,27 +308,43 @@ Keep wires short — the labels do the heavy lifting, not the wire geometry.
 
 ### Step 4.2 — Label signal nets
 
-For each non-power signal, add a **local label** (press **L**, type the name) on the symbol's pin. Same label on two pins = connected.
+For each non-power signal, add a **local label** (press **L**, type the name) at the tip of the symbol's pin. Same label on two pins = electrically connected. No wires needed.
 
-Nets to create (copy from pinout.md):
+**Mechanics:**
+1. Hover at the open (outer) end of a pin.
+2. Press **L**. Dialog opens.
+3. Type the label name (case-sensitive, no spaces — e.g., `LED_DATA_3V3`).
+4. Click to place. The label attaches to the pin.
+5. Repeat at the other end — any other pin you want on the same net. The label text must match **exactly**.
 
-| Net label | Pins on this net |
-|---|---|
-| `LED_DATA_3V3` | ESP32 GPIO13 pin, 74HCT245 A0 |
-| `LED_DATA_5V` | 74HCT245 B0, 300Ω resistor one side |
-| `LED_DATA_OUT` | 300Ω resistor other side, WS2812B strip DATA |
-| `I2C_SDA` | ESP32 GPIO21, DS3231 SDA, 4.7kΩ pullup (if needed) |
-| `I2C_SCL` | ESP32 GPIO22, DS3231 SCL, 4.7kΩ pullup (if needed) |
-| `I2S_BCLK` | ESP32 GPIO26, MAX98357A BCLK |
-| `I2S_LRC` | ESP32 GPIO25, MAX98357A LRC |
-| `I2S_DIN` | ESP32 GPIO27, MAX98357A DIN |
-| `SD_CS` | ESP32 GPIO5, microSD CS |
-| `SD_MOSI` | ESP32 GPIO23, microSD MOSI |
-| `SD_MISO` | ESP32 GPIO19, microSD MISO |
-| `SD_SCK` | ESP32 GPIO18, microSD SCK |
-| `BTN_HOUR` | ESP32 GPIO32, SW1 one side (other side to GND) |
-| `BTN_MINUTE` | ESP32 GPIO33, SW2 one side (other side to GND) |
-| `BTN_AUDIO` | ESP32 GPIO14, SW3 one side (other side to GND) |
+The table below assumes you completed Step 3.2 (renaming ESP32 pins to silkscreen names like `D13`, `D22`). Every row tells you the exact pin name on each symbol to attach the label to.
+
+| Net label | ESP32 pin | Breakout / IC pin | Other pins on net |
+|---|---|---|---|
+| `LED_DATA_3V3` | `D13` on ESP32 | `A0` on U1 (74HCT245) | — |
+| `LED_DATA_5V` | — | `B0` on U1 (74HCT245) | one side of R (300Ω) |
+| `LED_DATA_OUT` | — | `DATA` on J_LED (WS2812B strip) | other side of R (300Ω) |
+| `I2C_SDA` | `D21` on ESP32 | `SDA` on J_RTC (DS3231) | one side of R (4.7kΩ pullup to +3V3 — **only if DS3231 breakout lacks onboard pullups**; verify with a multimeter) |
+| `I2C_SCL` | `D22` on ESP32 | `SCL` on J_RTC (DS3231) | one side of R (4.7kΩ pullup to +3V3 — same caveat as SDA) |
+| `I2S_BCLK` | `D26` on ESP32 | `BCLK` on J_AMP (MAX98357A) | — |
+| `I2S_LRC` | `D25` on ESP32 | `LRC` on J_AMP (MAX98357A) | — |
+| `I2S_DIN` | `D27` on ESP32 | `DIN` on J_AMP (MAX98357A) | — |
+| `SD_CS` | `D5` on ESP32 | `CS` on J_SD (microSD) | — |
+| `SD_MOSI` | `D23` on ESP32 | `MOSI` on J_SD (microSD) | — |
+| `SD_MISO` | `D19` on ESP32 | `MISO` on J_SD (microSD) | — |
+| `SD_SCK` | `D18` on ESP32 | `SCK` on J_SD (microSD) | — |
+| `BTN_HOUR` | `D32` on ESP32 | — | one side of SW1 (other side → `GND` port) |
+| `BTN_MINUTE` | `D33` on ESP32 | — | one side of SW2 (other side → `GND` port) |
+| `BTN_AUDIO` | `D14` on ESP32 | — | one side of SW3 (other side → `GND` port) |
+
+**ESP32 power + ground pins (use power ports, not labels):**
+- Pin `3V3` → attach a `+3V3` power port directly (this is the ESP32's 3.3V output — it drives the +3V3 rail)
+- Pin `VIN` → attach `+5V` power port (ESP32 is tolerant of 5V in here; becomes a 5V tap if needed)
+- All pins named `GND` (pins 14, 20, 26) → each gets a `GND` power port
+
+**Pins on the ESP32 that stay unconnected:** VP, VN, D34, D35, D12, D9, D10, D11, D8, D7, D6, TX0, RX0, TX2, RX2, D4, D0, D2, D15, EN. Add a **no-connect marker** (press **Q**) on each — this silences ERC's "pin not connected" warning for pins we intentionally leave unused.
+
+**Sanity check after this step:** every wired ESP32 pin should have either a net label (`D13` has `LED_DATA_3V3`, etc.) or a power port (`3V3` has `+3V3`, `GND` has `GND`). Every non-wired pin should have a no-connect marker. No ESP32 pin is bare.
 
 ### Step 4.3 — Wire the level shifter correctly
 

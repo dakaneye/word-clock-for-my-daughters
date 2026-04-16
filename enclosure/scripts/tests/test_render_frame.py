@@ -38,3 +38,16 @@ def test_finger_path_inverted_differs():
     a = finger_path_for_edge(invert=False)
     b = finger_path_for_edge(invert=True)
     assert a != b, "Inverted finger pattern should differ from default"
+
+
+from enclosure.scripts.render_frame import frame_strip_path
+
+
+def test_frame_strip_path_starts_with_M():
+    path = frame_strip_path(invert_left=False, invert_right=True)
+    assert path.startswith("M")
+
+
+def test_frame_strip_path_closes():
+    path = frame_strip_path(invert_left=False, invert_right=True)
+    assert path.rstrip().endswith("Z") or path.rstrip().endswith("z")

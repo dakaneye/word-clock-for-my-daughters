@@ -49,3 +49,49 @@ def finger_path_for_edge(invert: bool) -> str:
                 parts.append(f"l {finger_depth},0")
 
     return " ".join(parts)
+
+
+def _left_edge_path(invert: bool) -> str:
+    """Path along the left edge from current cursor (typically (0, FRAME_DEPTH_MM))
+    back UP to (0, 0), with fingers extending in negative X direction.
+
+    Iterates fingers in reverse order so the visual pattern matches the right edge
+    when viewed in the assembled box.
+    """
+    parts = []
+    finger_depth = MATERIAL_THICKNESS_MM
+    for i in reversed(range(FINGER_COUNT)):
+        is_finger = (i % 2 == 0) ^ invert
+        if is_finger:
+            pitch = FINGER_PITCH_MM + KERF_COMPENSATION_MM
+            if i == FINGER_COUNT - 1:
+                parts.append(f"l {-finger_depth},0")
+            parts.append(f"l 0,{-pitch}")
+            prev_in_range = i - 1 >= 0
+            prev_is_finger = ((i - 1) % 2 == 0) ^ invert if prev_in_range else None
+            if prev_is_finger is False:
+                parts.append(f"l {finger_depth},0")
+        else:
+            pitch = FINGER_PITCH_MM - KERF_COMPENSATION_MM
+            parts.append(f"l 0,{-pitch}")
+            prev_in_range = i - 1 >= 0
+            prev_is_finger = ((i - 1) % 2 == 0) ^ invert if prev_in_range else None
+            if prev_is_finger is True:
+                parts.append(f"l {-finger_depth},0")
+    return " ".join(parts)
+
+
+def frame_strip_path(invert_left: bool, invert_right: bool) -> str:
+    """Generate the full SVG path-data string for one frame strip.
+
+    Strip is FRAME_LENGTH_MM long (X) × FRAME_DEPTH_MM tall (Y), with finger-joint
+    cuts on the two short edges. Path traverses: top edge → right finger edge →
+    bottom edge → left finger edge → close.
+    """
+    parts = ["M 0,0"]
+    parts.append(f"L {FRAME_LENGTH_MM},0")
+    parts.append(finger_path_for_edge(invert=invert_right))
+    parts.append(f"L 0,{FRAME_DEPTH_MM}")
+    parts.append(_left_edge_path(invert=invert_left))
+    parts.append("Z")
+    return " ".join(parts)

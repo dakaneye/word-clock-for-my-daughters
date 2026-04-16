@@ -35,7 +35,11 @@ Do these before submitting to JLCPCB — any of them can force a respin.
 
 Blocked on: nothing structurally, but better to confirm the alignment check above doesn't demand a PCB respin first.
 
-- [ ] **Pick back-panel attachment method** — options: recessed magnets (cleanest, serviceable), wood screws (visible heads unless plugged), rabbet groove in frame (too late, frames are ordered bare), glue (permanent, kills serviceability for a 40-year gift). Recommend magnets — 4× N52 neodymium discs recessed in panel, steel plates glued inside frame interior post-assembly.
+- [ ] **Pick back-panel attachment method** — *requirement: the back panel must be fully removable without damaging the wood, many times over the clock's life.* Forcing function: the DS3231 CR2032 coin cell (~5-10 year life × 40+ year clock = 4-8 battery replacements per unit, minimum). Glue and one-way fasteners are out. Contenders:
+  - **Threaded brass inserts + M3 brass machine screws** (*recommended*): 4 inserts pressed into the inner bottom edge of each frame strip once during assembly, M3 × 12 mm countersunk brass screws through the back panel. Unlimited removal cycles. Brass blends into wood aesthetics. No failure modes over 40 years. Cost: ~$10 for inserts + screws.
+  - **Recessed N52 magnets + steel plates**: 4× 5 mm discs recessed in panel, steel plates glued inside frame interior. Clean look (no visible fasteners) but has alignment tolerance during assembly, adhesive fatigue over decades, and a yanked panel releases suddenly.
+  - **Direct wood screws (no insert)**: works but strips after ~20 removal cycles — marginal.
+  - **Rabbet / glue**: ruled out (frames ordered as bare shells; glue is non-serviceable).
 - [ ] **Design back panel SVG** — 192×192mm (matches face), per-kid file since dedication is engraved. Features:
   - USB-C cutout for the panel-mount pigtail (location chosen for cable reach and dedication layout — not PCB-constrained)
   - 3 button holes at X=168.5, Y=-19.5/-29.5/-39.5 (sized for button caps or direct tact access)

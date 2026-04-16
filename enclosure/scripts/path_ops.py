@@ -57,9 +57,10 @@ BRIDGE_RULES = {
 # Match either a single command letter or a signed decimal number.
 _TOKEN_RE = re.compile(r"[MLHVQCZmlhvqcz]|-?\d+\.?\d*(?:[eE]-?\d+)?")
 
-# How many line segments to flatten a Bezier curve into. 16 is more than
-# enough for 10mm-tall letters at laser-cut precision (<0.1mm chord error).
-_CURVE_STEPS = 16
+# How many line segments to flatten a Bezier curve into. 64 keeps chord
+# error well under laser-cut precision for Fraunces' curved serifs — 16
+# was too coarse and produced visible angular artifacts at serif junctions.
+_CURVE_STEPS = 64
 
 
 def _parse_svg_path(path_data: str) -> List[List[Tuple[float, float]]]:
@@ -250,6 +251,14 @@ def _apply_bridges(geom, char: str, bridge_width_units: float):
         # Skip tiny slivers (CFF polygon-op artifacts) that aren't real counters.
         if min(counter_w, counter_h) < bridge_width_units:
             continue
+        # Skip elongated slivers — real letter counters are close to
+        # square/roundish (aspect 1.0-1.5), while artifact slivers from
+        # polygon-op noise between overlapping primitives are highly
+        # elongated (aspect > 2). E.g., Jost B's crossbar region produces
+        # a 278×118 (aspect 2.4) spurious hole.
+        aspect = max(counter_w, counter_h) / min(counter_w, counter_h)
+        if aspect > 2.0:
+            continue
         for orientation, x_frac, y_frac in rules:
             cx = x0 + x_frac * counter_w
             cy = y0 + y_frac * counter_h
@@ -347,6 +356,21 @@ def union_glyph_path(
     polys = _extract_polygons(outer)
     if polys:
         outer = unary_union(polys)
+
+    # Clean up tiny artifacts: buffer(0) fixes self-intersections,
+    # then simplify() smooths sub-laser-precision spikes from bezier
+    # flattening. Size is well under 0.1mm at both fonts' scales so
+    # it doesn't distort letter shapes.
+    try:
+        outer = outer.buffer(0)
+        # simplify tolerance in font units: ~0.02mm at Jost/Fraunces scales
+        _tol = bridge_width_units * 0.05 if bridge_width_units > 0 else 1.0
+        outer = outer.simplify(_tol, preserve_topology=True)
+        polys = _extract_polygons(outer)
+        if polys:
+            outer = unary_union(polys)
+    except Exception:
+        pass
 
     if char and bridge_width_units > 0:
         outer = _apply_bridges(outer, char, bridge_width_units)

@@ -313,10 +313,25 @@ def union_glyph_path(
     if not path_data.strip():
         return path_data
 
+    # Fast path: if the raw glyph is a single subpath with no strut to apply,
+    # emit the original Bezier path untouched. Skipping the flatten → polygon
+    # union → reserialize pipeline preserves Fraunces's delicate serif curves
+    # and ball terminals that otherwise get turned into zigzag polylines.
+    # Union is only load-bearing when multiple subpaths would cut as fragments.
+    if char not in BRIDGE_RULES:
+        if path_data.count("M") + path_data.count("m") <= 1:
+            return path_data
+
     subpaths = _parse_svg_path(path_data)
-    # Filter to valid polygons + record signed area. Self-intersecting
-    # subpaths (e.g. Jost Bold B's single combined path) turn into
-    # GeometryCollection after make_valid — extract the Polygon(s) from it.
+    # Build shapely polygons from each subpath. Jost Bold packs several letters
+    # (B, 8) into one self-intersecting path that combines outer + counters via
+    # TrueType winding rules; Polygon(points) on such a path is invalid.
+    #  - buffer(0): fast-path resolver that correctly produces a Polygon with
+    #    interior rings for the counters (the shapely-idiomatic self-intersect
+    #    cleanup). This is what we want for B.
+    #  - make_valid: more general but for our case returns a GeometryCollection
+    #    that collapses the counters into the outer, destroying holes. Only use
+    #    as a fallback when buffer(0) yields nothing usable.
     raw_polys = []
     for sub in subpaths:
         if len(sub) < 4:
@@ -325,7 +340,10 @@ def union_glyph_path(
         try:
             poly = Polygon(sub)
             if not poly.is_valid:
-                poly = make_valid(poly)
+                repaired = poly.buffer(0)
+                if repaired.is_empty or not _extract_polygons(repaired):
+                    repaired = make_valid(poly)
+                poly = repaired
             for p in _extract_polygons(poly):
                 if not p.is_empty:
                     raw_polys.append((area, p))

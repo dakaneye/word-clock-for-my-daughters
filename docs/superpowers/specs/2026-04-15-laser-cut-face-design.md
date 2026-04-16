@@ -257,8 +257,9 @@ Spec-level budget for laser-cut wood was ~$80 for both clocks (original spec); h
 
 - Implementation plan: `docs/superpowers/plans/2026-04-15-laser-cut-face-implementation.md`
 - Generator: `enclosure/scripts/build.py` (run from repo root via `python enclosure/scripts/build.py`)
-- Output SVGs: `enclosure/{emory,nora}-{face,frame}.svg` + `enclosure/cardboard-test-face.svg`
+- Output SVGs: `enclosure/{emory,nora}-face.svg` + `enclosure/frame.svg` (frame is kid-agnostic — same file, different wood material per clock)
 - Tests: `pytest enclosure/scripts/tests/`
+- Cardboard test step was considered but skipped — it wouldn't catch the risks we actually care about (grain, hardwood kerf, scorching) since cardboard laser behavior differs from hardwood. Ponoko's design checker validates geometry; ordering cardboard first adds $20 + 3 week delay without de-risking the real failure modes.
 
 ## References
 

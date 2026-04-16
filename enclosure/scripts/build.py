@@ -20,22 +20,18 @@ ENCLOSURE_DIR = REPO_ROOT / "enclosure"
 def main() -> None:
     ENCLOSURE_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Frame geometry is kid-agnostic — one file, used for both clocks
+    # (different wood material selected per clock when uploading to Ponoko).
     outputs = {
         "emory-face.svg": lambda: render_face_svg(kid="emory"),
         "nora-face.svg": lambda: render_face_svg(kid="nora"),
-        "emory-frame.svg": lambda: render_frame_svg(),
-        "nora-frame.svg": lambda: render_frame_svg(),
+        "frame.svg": lambda: render_frame_svg(),
     }
 
     for filename, generator in outputs.items():
         target = ENCLOSURE_DIR / filename
         target.write_text(generator())
         print(f"  wrote {target.relative_to(REPO_ROOT)} ({target.stat().st_size} bytes)")
-
-    # Cardboard test variant: identical to Emory face for the validation cut.
-    cardboard = ENCLOSURE_DIR / "cardboard-test-face.svg"
-    cardboard.write_text(render_face_svg(kid="emory"))
-    print(f"  wrote {cardboard.relative_to(REPO_ROOT)} (cardboard test, identical to emory-face.svg)")
 
 
 if __name__ == "__main__":

@@ -23,3 +23,9 @@ hardware/word-clock.csv
 hardware/ERC.rpt
 hardware/DRC.rpt
 report.txt
+
+# Enclosure generator
+enclosure/scripts/fonts/
+enclosure/scripts/__pycache__/
+**/.pytest_cache/
+**/__pycache__/

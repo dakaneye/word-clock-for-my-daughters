@@ -69,6 +69,43 @@
 - **LED data line:** 300Ω series resistor in-line with DIN recommended (protects the first LED from voltage spikes on startup).
 - **I²C pullups:** 4.7kΩ SDA + SCL — **verify the DS3231 breakout doesn't already have pullups** before adding them on the PCB. Stacking pullups drives the bus too hard. Adafruit DS3231 boards include pullups; cheaper clones vary.
 
+## Mechanical — bottom-side component heights
+
+Measured from the bottom face of the PCB outward. Drives the back-panel standoff
+height (≥ tallest feature) and the total enclosure-depth budget.
+
+| Ref | Part | Package | Est. height (mm) | Source |
+|---|---|---|---:|---|
+| C2 | 1000µF / 10V electrolytic | `CP_Radial_D10.0mm_P5.00mm` | **16** | common D10 radial cap spec; spec already cites this |
+| U1 | ESP32-WROOM-32 dev module | `ESP32_38Pin` on 2.54 mm headers | **~13** | 8.5 mm header + 1.6 mm module PCB + ~3 mm shielding can |
+| J_AMP1 | 1×7 header + Adafruit MAX98357A breakout | `PinHeader_1x07_P2.54mm_Vertical` + daughter | **~12** (terminal) / **~19** (screw-terminal) | 8.5 mm header + 1.6 mm breakout + 2 mm chip side; **+8 mm if using screw-terminal variant** |
+| J_RTC1 | 1×6 header + DS3231 ZS-042 | `PinHeader_1x06_P2.54mm_Vertical` + daughter | **~15** | 8.5 mm header + 1.6 mm module + 5 mm CR2032 coin-cell holder |
+| J_SD1 | 1×6 header + HW-125 microSD breakout | `PinHeader_1x06_P2.54mm_Vertical` + daughter | **~13** | 8.5 mm header + 1.6 mm module + 3 mm card slot |
+| SW1-3 | 6 mm tact switches | `SW_PUSH_6mm` | **~8** | 5 mm body + 3 mm plunger |
+| C1, C3-C6 | 100 nF ceramic disc | `C_Disc_D5.0mm_W2.5mm_P5.00mm` | **~7** | 5 mm disc + leads |
+| U2 | 74HC245 DIP-20 | `DIP-20_W7.62mm` | **~4** | direct solder; add ~5 mm if using a socket |
+| R1 | 300Ω 0207 axial (horizontal) | `R_Axial_DIN0207` | **~3** | horizontal orientation |
+
+**Tallest feature:** the MAX98357A breakout's screw-terminal block, at ~19 mm if using that variant. Otherwise ESP32 module + DS3231 coin-cell holder tie at ~13-15 mm.
+
+**Confidence:** [MED] for the daughterboard stacks — heights inferred from datasheet + header standards, not yet caliper-verified. Re-measure once parts arrive and update the table; any discrepancy > 2 mm should re-trigger the back-panel standoff + light-channel depth decision.
+
+**Back-panel standoff recommendation:** **20 mm** (off-the-shelf brass M3 standoff size; clears the MAX98357A screw-terminal variant with ~1 mm margin; clears all other components with 5+ mm margin).
+
+**Enclosure-depth budget** (48 mm frame, per `enclosure/scripts/render_frame.py`):
+
+| Layer | Thickness (mm) |
+|---|---:|
+| Face (wood, glued to top of frame) | 3.2 |
+| Diffuser (paper or frosted PETG) | ~0.5 |
+| Light channel | ~18 (remainder — see below) |
+| PCB | 1.6 |
+| Standoff (air gap for bottom-side components) | 20 |
+| Back panel (wood) | 3.2 |
+| Sum + ~1.5 mm assembly slack | 48 |
+
+Light-channel depth of ~18 mm is well above the minimum for WS2812B diffusion (roughly 1× LED spacing ≈ 14 mm), so pockets will mix to uniform light before reaching the diffuser. If the MAX98357A variant turns out to be the 12 mm non-screw-terminal kind, the standoff can drop to 15 mm and the light channel can grow to ~23 mm for even better diffusion — decide after caliper pass.
+
 ## Firmware constants
 
 When Phase 2 firmware modules land, these macros should be defined in a shared header (e.g., `firmware/configs/pinmap.h`) and imported by every module that touches hardware:

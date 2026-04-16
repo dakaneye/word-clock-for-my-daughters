@@ -51,3 +51,21 @@ def test_frame_strip_path_starts_with_M():
 def test_frame_strip_path_closes():
     path = frame_strip_path(invert_left=False, invert_right=True)
     assert path.rstrip().endswith("Z") or path.rstrip().endswith("z")
+
+
+from enclosure.scripts.render_frame import render_frame_svg
+
+
+def test_render_frame_svg_has_4_strip_paths():
+    svg_text = render_frame_svg()
+    path_count = svg_text.count("<path")
+    assert path_count == 4, f"Expected 4 strip paths, got {path_count}"
+
+
+def test_render_frame_svg_outer_dimensions_fit_4_strips():
+    """4 strips at 192mm long × 48mm tall, stacked vertically with 5mm gap,
+    should fit in a sheet of width 192mm and height 4*48 + 3*5 = 207mm.
+    """
+    svg_text = render_frame_svg()
+    assert 'width="192.0mm"' in svg_text
+    assert 'height="207.0mm"' in svg_text

@@ -95,3 +95,38 @@ def frame_strip_path(invert_left: bool, invert_right: bool) -> str:
     parts.append(_left_edge_path(invert=invert_left))
     parts.append("Z")
     return " ".join(parts)
+
+
+STRIP_GAP_MM = 5.0  # spacing between stacked strips on the Ponoko sheet
+
+
+def render_frame_svg() -> str:
+    """Generate the SVG containing all 4 frame strips for one clock.
+
+    Strips stacked vertically with STRIP_GAP_MM gap. Total sheet:
+    192 mm wide × (4*48 + 3*5) = 207 mm tall.
+
+    Inversion pattern alternates so adjacent strips at a corner have mating
+    (inverse) finger patterns:
+      strip 0: invert_left=False, invert_right=True
+      strip 1: invert_left=True,  invert_right=False
+      strip 2: invert_left=False, invert_right=True
+      strip 3: invert_left=True,  invert_right=False
+    """
+    sheet_width = FRAME_LENGTH_MM
+    sheet_height = 4 * FRAME_DEPTH_MM + 3 * STRIP_GAP_MM
+
+    dwg = new_svg_document(width_mm=sheet_width, height_mm=sheet_height)
+
+    inversion_patterns = [
+        (False, True),
+        (True, False),
+        (False, True),
+        (True, False),
+    ]
+    for i, (inv_l, inv_r) in enumerate(inversion_patterns):
+        path_data = frame_strip_path(invert_left=inv_l, invert_right=inv_r)
+        y_offset = i * (FRAME_DEPTH_MM + STRIP_GAP_MM)
+        add_cut_path(dwg, path_data, transform=f"translate(0,{y_offset})")
+
+    return dwg.tostring()

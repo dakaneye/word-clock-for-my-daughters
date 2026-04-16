@@ -16,6 +16,10 @@ hardware/fp-info-cache
 # KiCad plot / fabrication outputs — regenerated each time
 hardware/*.gbr
 hardware/*.gbrjob
+hardware/*.drl
 hardware/word-clock-*.pdf
+hardware/word-clock-*.csv
+hardware/word-clock.csv
 hardware/ERC.rpt
+hardware/DRC.rpt
 report.txt

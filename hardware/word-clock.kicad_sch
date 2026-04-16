@@ -4075,6 +4075,16 @@
 	)
 	(wire
 		(pts
+			(xy 158.75 55.88) (xy 158.75 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "08cf6e28-5205-4dd8-8562-694cdf4c2eda")
+	)
+	(wire
+		(pts
 			(xy 74.93 113.03) (xy 74.93 111.76)
 		)
 		(stroke
@@ -4082,16 +4092,6 @@
 			(type default)
 		)
 		(uuid "099fe85d-295a-458c-9a58-64967e3af503")
-	)
-	(wire
-		(pts
-			(xy 200.66 68.58) (xy 207.01 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0e60b69a-c09c-495c-b132-3f58983a8bb3")
 	)
 	(wire
 		(pts
@@ -4315,6 +4315,16 @@
 	)
 	(wire
 		(pts
+			(xy 199.39 68.58) (xy 207.01 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "341a6f82-9073-4e5e-a3ed-9ece24675cce")
+	)
+	(wire
+		(pts
 			(xy 102.87 160.02) (xy 105.41 160.02)
 		)
 		(stroke
@@ -4405,6 +4415,16 @@
 	)
 	(wire
 		(pts
+			(xy 177.8 68.58) (xy 184.15 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4311de66-8caf-4e77-a3af-97c9c01838be")
+	)
+	(wire
+		(pts
 			(xy 90.17 68.58) (xy 91.44 68.58)
 		)
 		(stroke
@@ -4472,16 +4492,6 @@
 			(type default)
 		)
 		(uuid "55a1bfb7-1739-48a8-a40a-cf696d392220")
-	)
-	(wire
-		(pts
-			(xy 266.7 45.72) (xy 266.7 57.15)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "55a9a192-fcde-4ed3-bb89-1b5c5f948610")
 	)
 	(wire
 		(pts
@@ -4652,6 +4662,16 @@
 			(type default)
 		)
 		(uuid "837272ef-16f9-4415-ade3-3a7d368efc5d")
+	)
+	(wire
+		(pts
+			(xy 266.7 55.88) (xy 158.75 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "844a119f-37ee-4b35-b30b-49f57f6fb2fc")
 	)
 	(wire
 		(pts
@@ -4955,6 +4975,16 @@
 	)
 	(wire
 		(pts
+			(xy 266.7 45.72) (xy 266.7 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b92c4334-ea7b-4237-8a90-00e9affd3ed4")
+	)
+	(wire
+		(pts
 			(xy 160.02 96.52) (xy 160.02 107.95)
 		)
 		(stroke
@@ -5065,16 +5095,6 @@
 	)
 	(wire
 		(pts
-			(xy 158.75 57.15) (xy 158.75 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c42cb618-6ffe-4cb1-907a-27bd5351df5f")
-	)
-	(wire
-		(pts
 			(xy 74.93 113.03) (xy 74.93 124.46)
 		)
 		(stroke
@@ -5145,16 +5165,6 @@
 	)
 	(wire
 		(pts
-			(xy 177.8 68.58) (xy 185.42 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d2581497-7360-449f-959b-8a1d7f18309f")
-	)
-	(wire
-		(pts
 			(xy 148.59 22.86) (xy 162.56 22.86)
 		)
 		(stroke
@@ -5182,16 +5192,6 @@
 			(type default)
 		)
 		(uuid "d82624b8-a45c-4c04-8a39-d70f3b90f1bb")
-	)
-	(wire
-		(pts
-			(xy 266.7 57.15) (xy 158.75 57.15)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "dafb2db7-bcb0-4d27-9d5f-7f1158207719")
 	)
 	(wire
 		(pts
@@ -5761,7 +5761,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "05c5f902-9e27-40d2-920c-8d4a35f94b7b")
-		(property "Reference" "#PWR069"
+		(property "Reference" "#PWR037"
 			(at 170.18 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -5821,7 +5821,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR069")
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -5917,7 +5917,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0a303c6e-6eb6-4dde-b36f-eca7c29eaffb")
-		(property "Reference" "#PWR053"
+		(property "Reference" "#PWR082"
 			(at 171.45 153.67 0)
 			(hide yes)
 			(show_name no)
@@ -5977,7 +5977,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR053")
+					(reference "#PWR082")
 					(unit 1)
 				)
 			)
@@ -5994,7 +5994,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0b2ac4c2-8130-4e68-895f-0ba8e420a5d5")
-		(property "Reference" "#PWR030"
+		(property "Reference" "#PWR015"
 			(at 214.63 41.91 0)
 			(hide yes)
 			(show_name no)
@@ -6054,7 +6054,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR030")
+					(reference "#PWR015")
 					(unit 1)
 				)
 			)
@@ -6140,7 +6140,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 257.81 68.58 0)
+		(at 259.08 107.95 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6150,8 +6150,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "12356eb7-9631-4b01-90dd-6f53e10efcc5")
-		(property "Reference" "D19"
-			(at 270.51 62.1598 0)
+		(property "Reference" "D25"
+			(at 271.78 101.5298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6161,7 +6161,7 @@
 			)
 		)
 		(property "Value" "LED_FIVE_HR"
-			(at 270.51 64.6998 0)
+			(at 271.78 104.0698 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6171,7 +6171,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 259.08 76.2 0)
+			(at 260.35 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6183,7 +6183,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 260.35 78.105 0)
+			(at 261.62 117.475 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6195,7 +6195,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 257.81 68.58 0)
+			(at 259.08 107.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6220,7 +6220,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D19")
+					(reference "D25")
 					(unit 1)
 				)
 			)
@@ -6238,7 +6238,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1536ffe5-d575-4ca7-ab63-5111d9a06be2")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR01"
 			(at 191.77 19.05 0)
 			(hide yes)
 			(show_name no)
@@ -6298,7 +6298,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR024")
+					(reference "#PWR01")
 					(unit 1)
 				)
 			)
@@ -6315,7 +6315,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "16cfe30a-76ab-49c6-b50c-7f40856da0e3")
-		(property "Reference" "D13"
+		(property "Reference" "D7"
 			(at 219.964 38.354 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6385,7 +6385,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D13")
+					(reference "D7")
 					(unit 1)
 				)
 			)
@@ -6393,7 +6393,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 193.04 107.95 0)
+		(at 214.63 107.95 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6403,8 +6403,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "17a1511a-8588-48c3-a467-0f9309480926")
-		(property "Reference" "D24"
-			(at 205.74 101.5298 0)
+		(property "Reference" "D23"
+			(at 227.33 101.5298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6414,7 +6414,7 @@
 			)
 		)
 		(property "Value" "LED_TWELVE"
-			(at 205.74 104.0698 0)
+			(at 227.33 104.0698 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6424,7 +6424,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 194.31 115.57 0)
+			(at 215.9 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6436,7 +6436,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 195.58 117.475 0)
+			(at 217.17 117.475 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6448,7 +6448,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 193.04 107.95 0)
+			(at 214.63 107.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6473,7 +6473,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D24")
+					(reference "D23")
 					(unit 1)
 				)
 			)
@@ -6491,7 +6491,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "187fbddf-3c2d-4a7c-9d97-e86905ce11ff")
-		(property "Reference" "#PWR018"
+		(property "Reference" "#PWR036"
 			(at 15.24 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -6551,7 +6551,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR018")
+					(reference "#PWR036")
 					(unit 1)
 				)
 			)
@@ -6569,7 +6569,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "19677442-4423-42b1-870f-fa8d5ca5915c")
-		(property "Reference" "#PWR07"
+		(property "Reference" "#PWR019"
 			(at 95.25 44.45 0)
 			(hide yes)
 			(show_name no)
@@ -6629,7 +6629,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR07")
+					(reference "#PWR019")
 					(unit 1)
 				)
 			)
@@ -6646,7 +6646,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "1a5f6ebe-6a9e-48ad-be2c-1a07ae93bfc9")
-		(property "Reference" "#PWR036"
+		(property "Reference" "#PWR032"
 			(at 236.22 64.77 0)
 			(hide yes)
 			(show_name no)
@@ -6706,7 +6706,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR036")
+					(reference "#PWR032")
 					(unit 1)
 				)
 			)
@@ -6724,7 +6724,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1d1ee827-38f1-41ad-b8ac-a30ee0718357")
-		(property "Reference" "#PWR049"
+		(property "Reference" "#PWR067"
 			(at 191.77 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -6784,7 +6784,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR049")
+					(reference "#PWR067")
 					(unit 1)
 				)
 			)
@@ -6792,7 +6792,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 236.22 107.95 0)
+		(at 214.63 132.08 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6802,8 +6802,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "20df12b8-1e62-4330-b873-14333c3486a0")
-		(property "Reference" "D26"
-			(at 247.65 101.5298 0)
+		(property "Reference" "D28"
+			(at 226.06 125.6598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6813,7 +6813,7 @@
 			)
 		)
 		(property "Value" "LED_NOON"
-			(at 247.65 104.0698 0)
+			(at 226.06 128.1998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6823,7 +6823,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 237.49 115.57 0)
+			(at 215.9 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6835,7 +6835,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 238.76 117.475 0)
+			(at 217.17 141.605 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6847,7 +6847,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 236.22 107.95 0)
+			(at 214.63 132.08 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6872,7 +6872,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D26")
+					(reference "D28")
 					(unit 1)
 				)
 			)
@@ -6890,7 +6890,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2212c7ee-3ecb-4ab6-930c-b92c04198909")
-		(property "Reference" "#PWR02"
+		(property "Reference" "#PWR06"
 			(at 15.24 30.48 0)
 			(hide yes)
 			(show_name no)
@@ -6950,7 +6950,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR02")
+					(reference "#PWR06")
 					(unit 1)
 				)
 			)
@@ -7062,7 +7062,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "24205f44-a7e3-4712-8b47-9767f76e4c28")
-		(property "Reference" "#PWR083"
+		(property "Reference" "#PWR061"
 			(at 170.18 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -7122,7 +7122,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR083")
+					(reference "#PWR061")
 					(unit 1)
 				)
 			)
@@ -7140,7 +7140,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "289cd656-152f-4582-9a4a-cae4346492d1")
-		(property "Reference" "#PWR087"
+		(property "Reference" "#PWR076"
 			(at 236.22 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -7200,7 +7200,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR087")
+					(reference "#PWR076")
 					(unit 1)
 				)
 			)
@@ -7218,7 +7218,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "28c8e42d-dc4b-4eed-ad0d-e15503212932")
-		(property "Reference" "#PWR062"
+		(property "Reference" "#PWR011"
 			(at 236.22 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -7278,7 +7278,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR062")
+					(reference "#PWR011")
 					(unit 1)
 				)
 			)
@@ -7295,7 +7295,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2934b9f4-363d-4c4e-b2af-a5266a36bceb")
-		(property "Reference" "D12"
+		(property "Reference" "D6"
 			(at 198.12 38.354 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7365,7 +7365,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D12")
+					(reference "D6")
 					(unit 1)
 				)
 			)
@@ -7383,7 +7383,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2a8191f3-9fdd-471c-90a2-3890fe730330")
-		(property "Reference" "C7"
+		(property "Reference" "C2"
 			(at 147.32 20.7009 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7447,7 +7447,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "C7")
+					(reference "C2")
 					(unit 1)
 				)
 			)
@@ -7465,7 +7465,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2aa7581d-80ce-41d7-8f2f-591a621b5079")
-		(property "Reference" "SW3"
+		(property "Reference" "SW2"
 			(at 44.45 153.67 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7527,7 +7527,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "SW3")
+					(reference "SW2")
 					(unit 1)
 				)
 			)
@@ -7545,7 +7545,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2ac3e0bf-c33e-4020-a273-42e6dc7a6a25")
-		(property "Reference" "#PWR088"
+		(property "Reference" "#PWR077"
 			(at 259.08 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -7605,7 +7605,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR088")
+					(reference "#PWR077")
 					(unit 1)
 				)
 			)
@@ -7622,7 +7622,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "2b34884a-225f-4603-b509-3331f23236ae")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR041"
 			(at 170.18 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -7682,7 +7682,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR038")
+					(reference "#PWR041")
 					(unit 1)
 				)
 			)
@@ -7690,7 +7690,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 214.63 68.58 0)
+		(at 236.22 67.31 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7700,8 +7700,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2b8fc740-9b9e-4a69-958d-f3ae4c18ba1c")
-		(property "Reference" "D17"
-			(at 226.06 62.1598 0)
+		(property "Reference" "D11"
+			(at 247.65 60.8898 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7711,7 +7711,7 @@
 			)
 		)
 		(property "Value" "LED_THREE"
-			(at 226.06 64.6998 0)
+			(at 247.65 63.4298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7721,7 +7721,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 215.9 76.2 0)
+			(at 237.49 74.93 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7733,7 +7733,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 217.17 78.105 0)
+			(at 238.76 76.835 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7745,7 +7745,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 214.63 68.58 0)
+			(at 236.22 67.31 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7770,7 +7770,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D17")
+					(reference "D11")
 					(unit 1)
 				)
 			)
@@ -7788,7 +7788,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2b8ffce7-ded5-4c3f-8698-37428da1476d")
-		(property "Reference" "#PWR01"
+		(property "Reference" "#PWR078"
 			(at 87.63 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -7848,7 +7848,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR01")
+					(reference "#PWR078")
 					(unit 1)
 				)
 			)
@@ -7856,7 +7856,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 234.95 45.72 0)
+		(at 259.08 45.72 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7866,8 +7866,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3103f7c5-5f04-497f-9baf-c87070b3093c")
-		(property "Reference" "D14"
-			(at 246.38 39.2998 0)
+		(property "Reference" "D9"
+			(at 270.51 39.2998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7877,7 +7877,7 @@
 			)
 		)
 		(property "Value" "LED_PAST"
-			(at 246.38 41.8398 0)
+			(at 270.51 41.8398 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7887,7 +7887,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 236.22 53.34 0)
+			(at 260.35 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7899,7 +7899,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 237.49 55.245 0)
+			(at 261.62 55.245 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7911,7 +7911,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 234.95 45.72 0)
+			(at 259.08 45.72 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7936,7 +7936,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D14")
+					(reference "D9")
 					(unit 1)
 				)
 			)
@@ -7953,7 +7953,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "36c14704-b02a-47fb-97fa-1ae48a9b3bd4")
-		(property "Reference" "#PWR039"
+		(property "Reference" "#PWR042"
 			(at 193.04 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -8013,7 +8013,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR039")
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)
@@ -8031,7 +8031,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "37ce1e95-50ac-43b5-b4c1-6cae265177b0")
-		(property "Reference" "#PWR044"
+		(property "Reference" "#PWR055"
 			(at 193.04 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -8091,7 +8091,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR044")
+					(reference "#PWR055")
 					(unit 1)
 				)
 			)
@@ -8109,7 +8109,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "39ba5f50-8917-43e8-89d3-c6572d42a020")
-		(property "Reference" "#PWR051"
+		(property "Reference" "#PWR069"
 			(at 236.22 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -8169,7 +8169,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR051")
+					(reference "#PWR069")
 					(unit 1)
 				)
 			)
@@ -8186,7 +8186,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "3a677760-0c9e-4d69-aed2-1c3b9bdc7c0c")
-		(property "Reference" "#PWR042"
+		(property "Reference" "#PWR045"
 			(at 259.08 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -8246,7 +8246,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR042")
+					(reference "#PWR045")
 					(unit 1)
 				)
 			)
@@ -8254,7 +8254,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 237.49 156.21 0)
+		(at 193.04 87.63 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8264,8 +8264,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3ba01788-78a6-4756-bce5-ec577ef33a67")
-		(property "Reference" "D34"
-			(at 247.65 149.7898 0)
+		(property "Reference" "D17"
+			(at 203.2 81.2098 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8275,7 +8275,7 @@
 			)
 		)
 		(property "Value" "LED_DAY"
-			(at 247.65 152.3298 0)
+			(at 203.2 83.7498 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8285,7 +8285,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 238.76 163.83 0)
+			(at 194.31 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8297,7 +8297,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 240.03 165.735 0)
+			(at 195.58 97.155 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8309,7 +8309,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 237.49 156.21 0)
+			(at 193.04 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8334,7 +8334,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D34")
+					(reference "D17")
 					(unit 1)
 				)
 			)
@@ -8352,7 +8352,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3c525a68-0227-480b-9747-079080cd815b")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR02"
 			(at 214.63 19.05 0)
 			(hide yes)
 			(show_name no)
@@ -8412,7 +8412,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR025")
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -8523,7 +8523,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "44526db6-3170-46e4-bbe1-18c4d11ec4a8")
-		(property "Reference" "#PWR043"
+		(property "Reference" "#PWR054"
 			(at 170.18 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -8583,7 +8583,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR043")
+					(reference "#PWR054")
 					(unit 1)
 				)
 			)
@@ -8689,7 +8689,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5003ba69-50dc-429b-ae99-90ef6e1072e7")
-		(property "Reference" "C2"
+		(property "Reference" "C1"
 			(at 40.64 15.2399 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8753,7 +8753,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "C2")
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -8771,7 +8771,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "51245fe5-4517-472b-b393-94d491b0add3")
-		(property "Reference" "#PWR080"
+		(property "Reference" "#PWR064"
 			(at 236.22 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -8831,7 +8831,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR080")
+					(reference "#PWR064")
 					(unit 1)
 				)
 			)
@@ -8839,7 +8839,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 193.04 60.96 0)
+		(at 191.77 60.96 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8848,8 +8848,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "51ea6cfa-90a1-4828-bbc1-af947ae93767")
-		(property "Reference" "#PWR034"
-			(at 193.04 64.77 0)
+		(property "Reference" "#PWR030"
+			(at 191.77 64.77 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8860,7 +8860,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 193.04 50.8 0)
+			(at 191.77 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8870,7 +8870,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 193.04 60.96 0)
+			(at 191.77 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8881,7 +8881,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 193.04 60.96 0)
+			(at 191.77 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8892,7 +8892,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 193.04 60.96 0)
+			(at 191.77 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8908,7 +8908,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR034")
+					(reference "#PWR030")
 					(unit 1)
 				)
 			)
@@ -8925,7 +8925,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "528b6e06-6ba5-46fc-ac7c-c41ab099dc23")
-		(property "Reference" "#PWR029"
+		(property "Reference" "#PWR014"
 			(at 191.77 41.91 0)
 			(hide yes)
 			(show_name no)
@@ -8985,7 +8985,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR029")
+					(reference "#PWR014")
 					(unit 1)
 				)
 			)
@@ -9003,7 +9003,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "52c2ca7b-9ee0-4e3c-8780-01419c96b965")
-		(property "Reference" "#PWR022"
+		(property "Reference" "#PWR072"
 			(at 64.77 140.97 0)
 			(hide yes)
 			(show_name no)
@@ -9063,7 +9063,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR022")
+					(reference "#PWR072")
 					(unit 1)
 				)
 			)
@@ -9081,7 +9081,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "53cffdcc-e490-41b0-b132-2e12f59d2796")
-		(property "Reference" "#PWR012"
+		(property "Reference" "#PWR053"
 			(at 87.63 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -9141,7 +9141,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR012")
+					(reference "#PWR053")
 					(unit 1)
 				)
 			)
@@ -9149,7 +9149,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 214.63 107.95 0)
+		(at 191.77 132.08 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9159,8 +9159,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "55155903-2fbe-4265-b9b1-291468e4ce55")
-		(property "Reference" "D25"
-			(at 227.33 101.5298 0)
+		(property "Reference" "D27"
+			(at 204.47 125.6598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9170,7 +9170,7 @@
 			)
 		)
 		(property "Value" "LED_OCLOCK"
-			(at 227.33 104.0698 0)
+			(at 204.47 128.1998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9180,7 +9180,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 215.9 115.57 0)
+			(at 193.04 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9192,7 +9192,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 217.17 117.475 0)
+			(at 194.31 141.605 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9204,7 +9204,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 214.63 107.95 0)
+			(at 191.77 132.08 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9229,7 +9229,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D25")
+					(reference "D27")
 					(unit 1)
 				)
 			)
@@ -9237,7 +9237,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 259.08 156.21 0)
+		(at 236.22 107.95 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9247,8 +9247,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "55449626-ac26-4483-98c5-bc128e12c4ec")
-		(property "Reference" "D35"
-			(at 270.51 149.7898 0)
+		(property "Reference" "D24"
+			(at 247.65 101.5298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9258,7 +9258,7 @@
 			)
 		)
 		(property "Value" "LED_NAME"
-			(at 270.51 152.3298 0)
+			(at 247.65 104.0698 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9268,7 +9268,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 260.35 163.83 0)
+			(at 237.49 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9280,7 +9280,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 261.62 165.735 0)
+			(at 238.76 117.475 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9292,7 +9292,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 259.08 156.21 0)
+			(at 236.22 107.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9317,7 +9317,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D35")
+					(reference "D24")
 					(unit 1)
 				)
 			)
@@ -9335,7 +9335,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "56e03a2a-7ad4-435d-afe3-f25d313e7701")
-		(property "Reference" "#PWR072"
+		(property "Reference" "#PWR035"
 			(at 236.22 81.28 0)
 			(hide yes)
 			(show_name no)
@@ -9395,7 +9395,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR072")
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)
@@ -9501,7 +9501,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "58a0565a-0c7f-400c-a959-83580e07e1c1")
-		(property "Reference" "#PWR061"
+		(property "Reference" "#PWR010"
 			(at 214.63 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -9561,7 +9561,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR061")
+					(reference "#PWR010")
 					(unit 1)
 				)
 			)
@@ -9569,7 +9569,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 236.22 132.08 0)
+		(at 193.04 156.21 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9579,8 +9579,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5967dce5-1886-4d07-846b-452699f96f2e")
-		(property "Reference" "D30"
-			(at 250.19 125.6598 0)
+		(property "Reference" "D31"
+			(at 207.01 149.7898 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9590,7 +9590,7 @@
 			)
 		)
 		(property "Value" "LED_AFTERNOON"
-			(at 250.19 128.1998 0)
+			(at 207.01 152.3298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9600,7 +9600,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 237.49 139.7 0)
+			(at 194.31 163.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9612,7 +9612,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 238.76 141.605 0)
+			(at 195.58 165.735 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9624,7 +9624,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 236.22 132.08 0)
+			(at 193.04 156.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9649,7 +9649,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D30")
+					(reference "D31")
 					(unit 1)
 				)
 			)
@@ -9667,7 +9667,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5972c42b-6e58-491e-81d0-57218cfbbb55")
-		(property "Reference" "#PWR086"
+		(property "Reference" "#PWR075"
 			(at 214.63 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -9727,7 +9727,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR086")
+					(reference "#PWR075")
 					(unit 1)
 				)
 			)
@@ -10020,7 +10020,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5df5285e-bf42-4785-8b84-beb0bc093571")
-		(property "Reference" "#PWR010"
+		(property "Reference" "#PWR046"
 			(at 93.98 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -10080,7 +10080,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR010")
+					(reference "#PWR046")
 					(unit 1)
 				)
 			)
@@ -10098,7 +10098,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5eaf4d66-e0f6-4ac1-8aae-32a6643afa63")
-		(property "Reference" "#PWR075"
+		(property "Reference" "#PWR049"
 			(at 193.04 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -10158,7 +10158,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR075")
+					(reference "#PWR049")
 					(unit 1)
 				)
 			)
@@ -10166,7 +10166,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 259.08 45.72 0)
+		(at 170.18 68.58 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10176,8 +10176,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5f9100de-a57e-43ff-9a89-8edcd57b3aa9")
-		(property "Reference" "D15"
-			(at 269.24 39.2998 0)
+		(property "Reference" "D12"
+			(at 180.34 62.1598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10187,7 +10187,7 @@
 			)
 		)
 		(property "Value" "LED_TO"
-			(at 269.24 41.8398 0)
+			(at 180.34 64.6998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10197,7 +10197,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 260.35 53.34 0)
+			(at 171.45 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10209,7 +10209,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 261.62 55.245 0)
+			(at 172.72 78.105 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10221,7 +10221,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 259.08 45.72 0)
+			(at 170.18 68.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10246,7 +10246,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D15")
+					(reference "D12")
 					(unit 1)
 				)
 			)
@@ -10264,7 +10264,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5fe195ba-22bc-4d55-bdd3-030c9120438f")
-		(property "Reference" "#PWR081"
+		(property "Reference" "#PWR063"
 			(at 214.63 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -10324,7 +10324,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR081")
+					(reference "#PWR063")
 					(unit 1)
 				)
 			)
@@ -10332,7 +10332,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 171.45 157.48 0)
+		(at 259.08 156.21 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10342,8 +10342,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "61050026-405e-4870-98b6-1c1b76b9e94d")
-		(property "Reference" "D11"
-			(at 182.88 151.0598 0)
+		(property "Reference" "D33"
+			(at 270.51 149.7898 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10353,7 +10353,7 @@
 			)
 		)
 		(property "Value" "LED_NIGHT"
-			(at 182.88 153.5998 0)
+			(at 270.51 152.3298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10363,7 +10363,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 172.72 165.1 0)
+			(at 260.35 163.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10375,7 +10375,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 173.99 167.005 0)
+			(at 261.62 165.735 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10387,7 +10387,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 171.45 157.48 0)
+			(at 259.08 156.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10412,7 +10412,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D11")
+					(reference "D33")
 					(unit 1)
 				)
 			)
@@ -10420,7 +10420,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 259.08 87.63 0)
+		(at 170.18 132.08 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10430,8 +10430,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6181f44c-c92a-40f6-bb19-6d2870be0086")
-		(property "Reference" "D23"
-			(at 271.78 81.2098 0)
+		(property "Reference" "D26"
+			(at 182.88 125.6598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10441,7 +10441,7 @@
 			)
 		)
 		(property "Value" "LED_TEN_HR"
-			(at 271.78 83.7498 0)
+			(at 182.88 128.1998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10451,7 +10451,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 260.35 95.25 0)
+			(at 171.45 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10463,7 +10463,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 261.62 97.155 0)
+			(at 172.72 141.605 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10475,7 +10475,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 259.08 87.63 0)
+			(at 170.18 132.08 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10500,7 +10500,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D23")
+					(reference "D26")
 					(unit 1)
 				)
 			)
@@ -10596,7 +10596,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "65f27c55-54c6-4a7e-8074-6c4ed6bc9599")
-		(property "Reference" "#PWR021"
+		(property "Reference" "#PWR071"
 			(at 64.77 135.89 0)
 			(hide yes)
 			(show_name no)
@@ -10656,7 +10656,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR021")
+					(reference "#PWR071")
 					(unit 1)
 				)
 			)
@@ -10673,7 +10673,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "68248b3f-a4ae-4b54-b6b2-e3747ac7b10c")
-		(property "Reference" "#PWR041"
+		(property "Reference" "#PWR044"
 			(at 234.95 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -10733,7 +10733,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR041")
+					(reference "#PWR044")
 					(unit 1)
 				)
 			)
@@ -10741,7 +10741,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 170.18 132.08 0)
+		(at 259.08 132.08 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10751,8 +10751,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "69774270-4866-4d30-badb-915c46c0d0bf")
-		(property "Reference" "D10"
-			(at 180.34 125.6598 0)
+		(property "Reference" "D30"
+			(at 269.24 125.6598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10762,7 +10762,7 @@
 			)
 		)
 		(property "Value" "LED_THE"
-			(at 180.34 128.1998 0)
+			(at 269.24 128.1998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10772,7 +10772,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 171.45 139.7 0)
+			(at 260.35 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10784,7 +10784,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 172.72 141.605 0)
+			(at 261.62 141.605 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10796,7 +10796,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 170.18 132.08 0)
+			(at 259.08 132.08 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10821,7 +10821,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D10")
+					(reference "D30")
 					(unit 1)
 				)
 			)
@@ -10838,7 +10838,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6c0278ea-5b87-465e-a72a-75f21382814f")
-		(property "Reference" "#PWR035"
+		(property "Reference" "#PWR031"
 			(at 214.63 64.77 0)
 			(hide yes)
 			(show_name no)
@@ -10898,7 +10898,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR035")
+					(reference "#PWR031")
 					(unit 1)
 				)
 			)
@@ -11052,7 +11052,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "70200e73-3283-4ed3-9011-8214c8ab0a4b")
-		(property "Reference" "#PWR08"
+		(property "Reference" "#PWR085"
 			(at 52.07 167.64 0)
 			(hide yes)
 			(show_name no)
@@ -11112,7 +11112,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR08")
+					(reference "#PWR085")
 					(unit 1)
 				)
 			)
@@ -11130,7 +11130,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7106c887-8e4d-4c19-9b60-7185f28c003d")
-		(property "Reference" "#PWR047"
+		(property "Reference" "#PWR058"
 			(at 259.08 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -11190,7 +11190,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR047")
+					(reference "#PWR058")
 					(unit 1)
 				)
 			)
@@ -11208,7 +11208,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7192fcd5-1178-432a-be6f-50181116b505")
-		(property "Reference" "#PWR068"
+		(property "Reference" "#PWR025"
 			(at 259.08 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -11268,7 +11268,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR068")
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
@@ -11286,7 +11286,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "72630dc8-8257-4a00-9e7b-12639bd348e7")
-		(property "Reference" "#PWR067"
+		(property "Reference" "#PWR024"
 			(at 234.95 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -11346,7 +11346,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR067")
+					(reference "#PWR024")
 					(unit 1)
 				)
 			)
@@ -11364,7 +11364,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "735a819e-27ae-473f-99b7-069762232857")
-		(property "Reference" "#PWR023"
+		(property "Reference" "#PWR060"
 			(at 60.96 119.38 0)
 			(hide yes)
 			(show_name no)
@@ -11424,7 +11424,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR023")
+					(reference "#PWR060")
 					(unit 1)
 				)
 			)
@@ -11442,7 +11442,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "75c656af-601a-4d7f-a527-9b685491b96a")
-		(property "Reference" "#PWR013"
+		(property "Reference" "#PWR059"
 			(at 15.24 106.68 0)
 			(hide yes)
 			(show_name no)
@@ -11502,7 +11502,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR013")
+					(reference "#PWR059")
 					(unit 1)
 				)
 			)
@@ -11520,7 +11520,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "810f452b-1490-4642-b6ec-3b48cc7bdbb0")
-		(property "Reference" "C5"
+		(property "Reference" "C4"
 			(at 85.09 54.6099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11584,7 +11584,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "C5")
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -11602,7 +11602,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "81652af4-fec6-4d2d-b82f-c9691500765d")
-		(property "Reference" "#PWR06"
+		(property "Reference" "#PWR013"
 			(at 91.44 38.1 0)
 			(hide yes)
 			(show_name no)
@@ -11662,7 +11662,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR06")
+					(reference "#PWR013")
 					(unit 1)
 				)
 			)
@@ -11680,7 +11680,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "827ef05c-accd-455e-bf18-7e9e45ce23e0")
-		(property "Reference" "#FLG02"
+		(property "Reference" "#FLG01"
 			(at 19.05 15.875 0)
 			(hide yes)
 			(show_name no)
@@ -11740,7 +11740,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#FLG02")
+					(reference "#FLG01")
 					(unit 1)
 				)
 			)
@@ -11758,7 +11758,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "83279025-28f5-4799-b33b-6639a08bcba5")
-		(property "Reference" "#PWR027"
+		(property "Reference" "#PWR04"
 			(at 257.81 19.05 0)
 			(hide yes)
 			(show_name no)
@@ -11818,7 +11818,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR027")
+					(reference "#PWR04")
 					(unit 1)
 				)
 			)
@@ -11836,7 +11836,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8543ff99-d1d3-4f31-bf6e-c467d534e28c")
-		(property "Reference" "#PWR046"
+		(property "Reference" "#PWR057"
 			(at 236.22 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -11896,7 +11896,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR046")
+					(reference "#PWR057")
 					(unit 1)
 				)
 			)
@@ -11914,7 +11914,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8b533055-1118-4527-bd33-a59054d5517e")
-		(property "Reference" "#PWR071"
+		(property "Reference" "#PWR039"
 			(at 214.63 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -11974,7 +11974,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR071")
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
@@ -11992,7 +11992,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8b622e9c-a0b7-4da2-8172-d0cd7cb50d6e")
-		(property "Reference" "C4"
+		(property "Reference" "C5"
 			(at 121.92 58.4199 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12056,7 +12056,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "C4")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -12074,7 +12074,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8d7c78ae-98ca-4b39-b767-7891d22bc911")
-		(property "Reference" "#PWR05"
+		(property "Reference" "#PWR027"
 			(at 90.17 62.23 0)
 			(hide yes)
 			(show_name no)
@@ -12134,7 +12134,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR05")
+					(reference "#PWR027")
 					(unit 1)
 				)
 			)
@@ -12152,7 +12152,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8e46a1d5-569f-4bbb-9d9d-095aaa31b957")
-		(property "Reference" "#PWR074"
+		(property "Reference" "#PWR048"
 			(at 170.18 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -12212,7 +12212,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR074")
+					(reference "#PWR048")
 					(unit 1)
 				)
 			)
@@ -12230,7 +12230,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8ebaea6f-4948-4390-ae5b-3c9f7128a417")
-		(property "Reference" "#PWR085"
+		(property "Reference" "#PWR074"
 			(at 191.77 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -12290,7 +12290,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR085")
+					(reference "#PWR074")
 					(unit 1)
 				)
 			)
@@ -12307,7 +12307,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "8f0f548d-5304-4d5b-8b45-744363a1ee65")
-		(property "Reference" "#PWR033"
+		(property "Reference" "#PWR029"
 			(at 170.18 64.77 0)
 			(hide yes)
 			(show_name no)
@@ -12367,7 +12367,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR033")
+					(reference "#PWR029")
 					(unit 1)
 				)
 			)
@@ -12385,7 +12385,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "91949e58-7d49-4bbd-aeb6-e724b265b11b")
-		(property "Reference" "#PWR019"
+		(property "Reference" "#PWR07"
 			(at 74.93 33.02 0)
 			(hide yes)
 			(show_name no)
@@ -12445,7 +12445,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR019")
+					(reference "#PWR07")
 					(unit 1)
 				)
 			)
@@ -12463,7 +12463,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "956d2cdd-3591-47ba-81ea-553e9370906b")
-		(property "Reference" "#PWR079"
+		(property "Reference" "#PWR065"
 			(at 259.08 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -12523,7 +12523,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR079")
+					(reference "#PWR065")
 					(unit 1)
 				)
 			)
@@ -12541,7 +12541,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "95f1339b-9d53-4102-bf7c-84ed903d2c36")
-		(property "Reference" "#PWR09"
+		(property "Reference" "#PWR034"
 			(at 90.17 72.39 0)
 			(hide yes)
 			(show_name no)
@@ -12601,7 +12601,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR09")
+					(reference "#PWR034")
 					(unit 1)
 				)
 			)
@@ -12619,7 +12619,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "961e3666-b383-4c25-b76e-f1de703ec4f8")
-		(property "Reference" "#PWR090"
+		(property "Reference" "#PWR088"
 			(at 237.49 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -12679,7 +12679,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR090")
+					(reference "#PWR088")
 					(unit 1)
 				)
 			)
@@ -12696,7 +12696,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9685a02f-4a57-4ed3-b290-83cc5565bb69")
-		(property "Reference" "#PWR032"
+		(property "Reference" "#PWR017"
 			(at 259.08 41.91 0)
 			(hide yes)
 			(show_name no)
@@ -12756,7 +12756,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR032")
+					(reference "#PWR017")
 					(unit 1)
 				)
 			)
@@ -12764,7 +12764,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 234.95 87.63 0)
+		(at 170.18 107.95 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12774,8 +12774,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "96d40985-cd24-46fb-b7a5-48956d274efc")
-		(property "Reference" "D22"
-			(at 246.38 81.2098 0)
+		(property "Reference" "D21"
+			(at 181.61 101.5298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12785,7 +12785,7 @@
 			)
 		)
 		(property "Value" "LED_NINE"
-			(at 246.38 83.7498 0)
+			(at 181.61 104.0698 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12795,7 +12795,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 236.22 95.25 0)
+			(at 171.45 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12807,7 +12807,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 237.49 97.155 0)
+			(at 172.72 117.475 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12819,7 +12819,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 234.95 87.63 0)
+			(at 170.18 107.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12844,7 +12844,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D22")
+					(reference "D21")
 					(unit 1)
 				)
 			)
@@ -12862,7 +12862,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "97eafee1-ec0d-436b-bc23-6bfffa8e48b1")
-		(property "Reference" "SW1"
+		(property "Reference" "SW3"
 			(at 73.66 153.67 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12924,7 +12924,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "SW1")
+					(reference "SW3")
 					(unit 1)
 				)
 			)
@@ -12942,7 +12942,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "98fbd9bf-354e-4bec-8192-1de9e314e6e2")
-		(property "Reference" "C6"
+		(property "Reference" "C3"
 			(at 82.55 35.5599 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13006,7 +13006,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "C6")
+					(reference "C3")
 					(unit 1)
 				)
 			)
@@ -13024,7 +13024,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9c7ca431-0fbb-4bdf-9337-92338a0536fb")
-		(property "Reference" "#PWR026"
+		(property "Reference" "#PWR03"
 			(at 236.22 19.05 0)
 			(hide yes)
 			(show_name no)
@@ -13084,7 +13084,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR026")
+					(reference "#PWR03")
 					(unit 1)
 				)
 			)
@@ -13102,7 +13102,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9e087bab-746a-454a-9ef7-491604dedba9")
-		(property "Reference" "C3"
+		(property "Reference" "C6"
 			(at 59.69 123.1899 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13166,7 +13166,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "C3")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -13174,7 +13174,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 214.63 132.08 0)
+		(at 171.45 157.48 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -13184,8 +13184,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9e7fadf0-efee-4734-9029-b01f6e1176a1")
-		(property "Reference" "D29"
-			(at 227.33 125.6598 0)
+		(property "Reference" "D34"
+			(at 184.15 151.0598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13195,7 +13195,7 @@
 			)
 		)
 		(property "Value" "LED_MORNING"
-			(at 227.33 128.1998 0)
+			(at 184.15 153.5998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13205,7 +13205,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 215.9 139.7 0)
+			(at 172.72 165.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13217,7 +13217,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 217.17 141.605 0)
+			(at 173.99 167.005 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13229,7 +13229,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 214.63 132.08 0)
+			(at 171.45 157.48 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13254,7 +13254,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D29")
+					(reference "D34")
 					(unit 1)
 				)
 			)
@@ -13359,7 +13359,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a09aed2f-6d5a-4c0d-ab21-f83740d30db9")
-		(property "Reference" "#PWR028"
+		(property "Reference" "#PWR018"
 			(at 170.18 43.18 0)
 			(hide yes)
 			(show_name no)
@@ -13419,7 +13419,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR028")
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
@@ -13437,7 +13437,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a0c9a9f0-3dae-4980-9693-dd86f3f5e739")
-		(property "Reference" "#PWR092"
+		(property "Reference" "#PWR087"
 			(at 193.04 170.18 0)
 			(hide yes)
 			(show_name no)
@@ -13497,7 +13497,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR092")
+					(reference "#PWR087")
 					(unit 1)
 				)
 			)
@@ -13505,7 +13505,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 259.08 107.95 0)
+		(at 236.22 132.08 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -13515,8 +13515,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a14539a8-ea7f-4626-99a0-38eca35cc3c6")
-		(property "Reference" "D27"
-			(at 269.24 101.5298 0)
+		(property "Reference" "D29"
+			(at 246.38 125.6598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13526,7 +13526,7 @@
 			)
 		)
 		(property "Value" "LED_IN"
-			(at 269.24 104.0698 0)
+			(at 246.38 128.1998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13536,7 +13536,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 260.35 115.57 0)
+			(at 237.49 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13548,7 +13548,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 261.62 117.475 0)
+			(at 238.76 141.605 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13560,7 +13560,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 259.08 107.95 0)
+			(at 236.22 132.08 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13585,7 +13585,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D27")
+					(reference "D29")
 					(unit 1)
 				)
 			)
@@ -13603,7 +13603,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a2372d83-f320-4cfa-83dd-3969b69bc216")
-		(property "Reference" "#PWR064"
+		(property "Reference" "#PWR026"
 			(at 170.18 60.96 0)
 			(hide yes)
 			(show_name no)
@@ -13663,7 +13663,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR064")
+					(reference "#PWR026")
 					(unit 1)
 				)
 			)
@@ -13681,7 +13681,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "aad01d64-e5fb-4cd5-ab0d-40cb3770d172")
-		(property "Reference" "#PWR045"
+		(property "Reference" "#PWR056"
 			(at 214.63 104.14 0)
 			(hide yes)
 			(show_name no)
@@ -13741,7 +13741,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR045")
+					(reference "#PWR056")
 					(unit 1)
 				)
 			)
@@ -13749,7 +13749,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 193.04 87.63 0)
+		(at 259.08 87.63 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -13760,7 +13760,7 @@
 		(fields_autoplaced yes)
 		(uuid "ae73387d-ff0e-413e-a12f-ab20dbde6b50")
 		(property "Reference" "D20"
-			(at 204.47 81.2098 0)
+			(at 270.51 81.2098 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13770,7 +13770,7 @@
 			)
 		)
 		(property "Value" "LED_SEVEN"
-			(at 204.47 83.7498 0)
+			(at 270.51 83.7498 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13780,7 +13780,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 194.31 95.25 0)
+			(at 260.35 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13792,7 +13792,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 195.58 97.155 0)
+			(at 261.62 97.155 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13804,7 +13804,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 193.04 87.63 0)
+			(at 259.08 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13847,7 +13847,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ae9a4644-1f97-402c-a79f-a9282a88a131")
-		(property "Reference" "#FLG01"
+		(property "Reference" "#FLG02"
 			(at 119.38 79.375 0)
 			(hide yes)
 			(show_name no)
@@ -13907,7 +13907,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#FLG01")
+					(reference "#FLG02")
 					(unit 1)
 				)
 			)
@@ -13925,7 +13925,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b0932516-28bf-496d-838d-5234a5214ff1")
-		(property "Reference" "#PWR073"
+		(property "Reference" "#PWR040"
 			(at 257.81 82.55 0)
 			(hide yes)
 			(show_name no)
@@ -13985,7 +13985,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR073")
+					(reference "#PWR040")
 					(unit 1)
 				)
 			)
@@ -14003,7 +14003,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b2ceed26-fb5a-4432-96a4-074d001a21b9")
-		(property "Reference" "#PWR078"
+		(property "Reference" "#PWR052"
 			(at 259.08 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -14063,7 +14063,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR078")
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -14081,7 +14081,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b8842ce6-ca36-40b2-a072-95df8134e86f")
-		(property "Reference" "#PWR084"
+		(property "Reference" "#PWR073"
 			(at 170.18 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -14141,7 +14141,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR084")
+					(reference "#PWR073")
 					(unit 1)
 				)
 			)
@@ -14158,7 +14158,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "baf533c6-1958-457a-8e5c-af282ddd714d")
-		(property "Reference" "#PWR060"
+		(property "Reference" "#PWR09"
 			(at 191.77 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -14218,7 +14218,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR060")
+					(reference "#PWR09")
 					(unit 1)
 				)
 			)
@@ -14226,7 +14226,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 193.04 68.58 0)
+		(at 214.63 87.63 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14236,8 +14236,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "be53e522-092a-4e5c-918e-856b6eb743ed")
-		(property "Reference" "D16"
-			(at 203.2 62.1598 0)
+		(property "Reference" "D18"
+			(at 224.79 81.2098 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14247,7 +14247,7 @@
 			)
 		)
 		(property "Value" "LED_TWO"
-			(at 203.2 64.6998 0)
+			(at 224.79 83.7498 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14257,7 +14257,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 194.31 76.2 0)
+			(at 215.9 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14269,7 +14269,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 195.58 78.105 0)
+			(at 217.17 97.155 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14281,7 +14281,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 193.04 68.58 0)
+			(at 214.63 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14306,7 +14306,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D16")
+					(reference "D18")
 					(unit 1)
 				)
 			)
@@ -14323,7 +14323,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c4c0ab92-5b0c-4c8d-af32-9c1b91015abe")
-		(property "Reference" "#PWR031"
+		(property "Reference" "#PWR016"
 			(at 234.95 41.91 0)
 			(hide yes)
 			(show_name no)
@@ -14383,7 +14383,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR031")
+					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -14391,7 +14391,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 193.04 76.2 0)
+		(at 191.77 76.2 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14401,8 +14401,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c5edfddc-f2b7-492a-995d-9d6538c80eb1")
-		(property "Reference" "#PWR070"
-			(at 193.04 82.55 0)
+		(property "Reference" "#PWR038"
+			(at 191.77 82.55 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14413,7 +14413,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 193.04 81.28 0)
+			(at 191.77 81.28 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14423,7 +14423,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 193.04 76.2 0)
+			(at 191.77 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14434,7 +14434,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 193.04 76.2 0)
+			(at 191.77 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14445,7 +14445,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 193.04 76.2 0)
+			(at 191.77 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14461,7 +14461,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR070")
+					(reference "#PWR038")
 					(unit 1)
 				)
 			)
@@ -14479,7 +14479,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c760900c-3a95-48f7-a02b-cc66f931562c")
-		(property "Reference" "#PWR058"
+		(property "Reference" "#PWR08"
 			(at 170.18 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -14539,7 +14539,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR058")
+					(reference "#PWR08")
 					(unit 1)
 				)
 			)
@@ -14547,7 +14547,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 170.18 86.36 0)
+		(at 193.04 107.95 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14557,8 +14557,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c783d161-e824-428a-bf02-e46653b99b3e")
-		(property "Reference" "D8"
-			(at 180.34 79.9398 0)
+		(property "Reference" "D22"
+			(at 203.2 101.5298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14568,7 +14568,7 @@
 			)
 		)
 		(property "Value" "LED_SIX"
-			(at 180.34 82.4798 0)
+			(at 203.2 104.0698 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14578,7 +14578,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 171.45 93.98 0)
+			(at 194.31 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14590,7 +14590,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 172.72 95.885 0)
+			(at 195.58 117.475 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14602,7 +14602,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 170.18 86.36 0)
+			(at 193.04 107.95 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14627,7 +14627,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D8")
+					(reference "D22")
 					(unit 1)
 				)
 			)
@@ -14645,7 +14645,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c907a199-f406-447e-a916-341db5eeb3e3")
-		(property "Reference" "#PWR066"
+		(property "Reference" "#PWR023"
 			(at 214.63 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -14705,7 +14705,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR066")
+					(reference "#PWR023")
 					(unit 1)
 				)
 			)
@@ -14723,7 +14723,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cbee54d1-3a14-4d68-81a8-f9cae380a741")
-		(property "Reference" "#PWR03"
+		(property "Reference" "#PWR047"
 			(at 91.44 93.98 0)
 			(hide yes)
 			(show_name no)
@@ -14783,7 +14783,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR03")
+					(reference "#PWR047")
 					(unit 1)
 				)
 			)
@@ -14791,7 +14791,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 193.04 156.21 0)
+		(at 234.95 45.72 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14801,8 +14801,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cc8f892e-b33b-4072-9453-aa38638e2020")
-		(property "Reference" "D32"
-			(at 204.47 149.7898 0)
+		(property "Reference" "D8"
+			(at 246.38 39.2998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14812,7 +14812,7 @@
 			)
 		)
 		(property "Value" "LED_HAPPY"
-			(at 204.47 152.3298 0)
+			(at 246.38 41.8398 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14822,7 +14822,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 194.31 163.83 0)
+			(at 236.22 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14834,7 +14834,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 195.58 165.735 0)
+			(at 237.49 55.245 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14846,7 +14846,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 193.04 156.21 0)
+			(at 234.95 45.72 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14871,7 +14871,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D32")
+					(reference "D8")
 					(unit 1)
 				)
 			)
@@ -14889,7 +14889,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ce53ffe1-c950-4a90-b210-15b1bcfbdb01")
-		(property "Reference" "#PWR093"
+		(property "Reference" "#PWR090"
 			(at 171.45 171.45 0)
 			(hide yes)
 			(show_name no)
@@ -14949,7 +14949,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR093")
+					(reference "#PWR090")
 					(unit 1)
 				)
 			)
@@ -14966,7 +14966,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "cf30b712-cfd4-44da-b3c9-6f66887fc8fb")
-		(property "Reference" "D6"
+		(property "Reference" "D10"
 			(at 182.88 40.5698 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15036,7 +15036,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D6")
+					(reference "D10")
 					(unit 1)
 				)
 			)
@@ -15054,7 +15054,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d20a909f-ced8-4115-b3f5-654482bd3c7d")
-		(property "Reference" "#PWR077"
+		(property "Reference" "#PWR051"
 			(at 234.95 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -15114,7 +15114,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR077")
+					(reference "#PWR051")
 					(unit 1)
 				)
 			)
@@ -15132,7 +15132,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d21d8fb1-7d8e-4362-ad18-abd18f960d4d")
-		(property "Reference" "#PWR050"
+		(property "Reference" "#PWR068"
 			(at 214.63 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -15192,7 +15192,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR050")
+					(reference "#PWR068")
 					(unit 1)
 				)
 			)
@@ -15200,7 +15200,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 214.63 87.63 0)
+		(at 234.95 87.63 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -15210,8 +15210,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d55866bc-e392-4d41-84f9-846b4ffda279")
-		(property "Reference" "D21"
-			(at 226.06 81.2098 0)
+		(property "Reference" "D19"
+			(at 246.38 81.2098 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15221,7 +15221,7 @@
 			)
 		)
 		(property "Value" "LED_EIGHT"
-			(at 226.06 83.7498 0)
+			(at 246.38 83.7498 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15231,7 +15231,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 215.9 95.25 0)
+			(at 236.22 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15243,7 +15243,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 217.17 97.155 0)
+			(at 237.49 97.155 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15255,7 +15255,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 214.63 87.63 0)
+			(at 234.95 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15280,7 +15280,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D21")
+					(reference "D19")
 					(unit 1)
 				)
 			)
@@ -15298,7 +15298,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d56bc0f9-49d2-4503-bacb-69e8195bc961")
-		(property "Reference" "#PWR056"
+		(property "Reference" "#PWR080"
 			(at 237.49 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -15358,7 +15358,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR056")
+					(reference "#PWR080")
 					(unit 1)
 				)
 			)
@@ -15366,7 +15366,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 170.18 107.95 0)
+		(at 257.81 68.58 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -15376,8 +15376,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d5e0f5cf-c681-47a6-9418-55900b25783b")
-		(property "Reference" "D9"
-			(at 182.88 101.5298 0)
+		(property "Reference" "D15"
+			(at 270.51 62.1598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15387,7 +15387,7 @@
 			)
 		)
 		(property "Value" "LED_ELEVEN"
-			(at 182.88 104.0698 0)
+			(at 270.51 64.6998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15397,7 +15397,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 171.45 115.57 0)
+			(at 259.08 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15409,7 +15409,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 172.72 117.475 0)
+			(at 260.35 78.105 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15421,7 +15421,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 170.18 107.95 0)
+			(at 257.81 68.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15446,7 +15446,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D9")
+					(reference "D15")
 					(unit 1)
 				)
 			)
@@ -15464,7 +15464,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d8579598-4e54-43eb-9d5f-cdf32f7a6167")
-		(property "Reference" "#PWR052"
+		(property "Reference" "#PWR070"
 			(at 259.08 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -15524,7 +15524,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR052")
+					(reference "#PWR070")
 					(unit 1)
 				)
 			)
@@ -15542,7 +15542,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "dc538d41-6af2-46a1-8da5-78547527dc9c")
-		(property "Reference" "#PWR082"
+		(property "Reference" "#PWR062"
 			(at 193.04 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -15602,7 +15602,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR082")
+					(reference "#PWR062")
 					(unit 1)
 				)
 			)
@@ -15620,7 +15620,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e06b7340-976c-4475-a576-f949622b1341")
-		(property "Reference" "#PWR011"
+		(property "Reference" "#PWR05"
 			(at 170.18 20.32 0)
 			(hide yes)
 			(show_name no)
@@ -15680,7 +15680,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR011")
+					(reference "#PWR05")
 					(unit 1)
 				)
 			)
@@ -15698,7 +15698,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e1ed7fa3-cfdc-42eb-be0b-0a850b678ced")
-		(property "Reference" "#PWR076"
+		(property "Reference" "#PWR050"
 			(at 214.63 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -15758,7 +15758,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR076")
+					(reference "#PWR050")
 					(unit 1)
 				)
 			)
@@ -15766,7 +15766,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 215.9 157.48 0)
+		(at 214.63 68.58 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -15776,8 +15776,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e39d0d15-2d63-4eb8-a4b3-bde5b6860dcd")
-		(property "Reference" "D33"
-			(at 227.33 151.0598 0)
+		(property "Reference" "D14"
+			(at 226.06 62.1598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15787,7 +15787,7 @@
 			)
 		)
 		(property "Value" "LED_BIRTH"
-			(at 227.33 153.5998 0)
+			(at 226.06 64.6998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -15797,7 +15797,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 217.17 165.1 0)
+			(at 215.9 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15809,7 +15809,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 218.44 167.005 0)
+			(at 217.17 78.105 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15821,7 +15821,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 215.9 157.48 0)
+			(at 214.63 68.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15846,7 +15846,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D33")
+					(reference "D14")
 					(unit 1)
 				)
 			)
@@ -15864,7 +15864,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e4754089-c48e-47d5-a992-c20294161ed6")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR021"
 			(at 86.36 57.15 0)
 			(hide yes)
 			(show_name no)
@@ -15924,7 +15924,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR014")
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -15941,7 +15941,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "e5e2faaa-6c0a-4e42-810c-51be745349be")
-		(property "Reference" "SW2"
+		(property "Reference" "SW1"
 			(at 97.79 157.48 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16003,7 +16003,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "SW2")
+					(reference "SW1")
 					(unit 1)
 				)
 			)
@@ -16021,7 +16021,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e61b9624-d600-4fea-a055-94f399fde2ca")
-		(property "Reference" "#PWR065"
+		(property "Reference" "#PWR022"
 			(at 191.77 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -16081,7 +16081,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR065")
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -16089,7 +16089,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 236.22 67.31 0)
+		(at 170.18 86.36 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -16099,8 +16099,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e88d4dda-e2bf-4326-b584-bf9900b1f82c")
-		(property "Reference" "D18"
-			(at 247.65 60.8898 0)
+		(property "Reference" "D16"
+			(at 181.61 79.9398 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -16110,7 +16110,7 @@
 			)
 		)
 		(property "Value" "LED_FOUR"
-			(at 247.65 63.4298 0)
+			(at 181.61 82.4798 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -16120,7 +16120,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 237.49 74.93 0)
+			(at 171.45 93.98 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16132,7 +16132,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 238.76 76.835 0)
+			(at 172.72 95.885 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16144,7 +16144,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 236.22 67.31 0)
+			(at 170.18 86.36 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16169,7 +16169,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D18")
+					(reference "D16")
 					(unit 1)
 				)
 			)
@@ -16352,7 +16352,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ee51c163-4269-48bf-a548-992b013f79e0")
-		(property "Reference" "#PWR054"
+		(property "Reference" "#PWR079"
 			(at 193.04 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -16412,7 +16412,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR054")
+					(reference "#PWR079")
 					(unit 1)
 				)
 			)
@@ -16420,7 +16420,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 170.18 68.58 0)
+		(at 191.77 68.58 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -16430,8 +16430,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ef67b7e3-60d2-4ced-b407-97c9b1e25994")
-		(property "Reference" "D7"
-			(at 180.34 62.1598 0)
+		(property "Reference" "D13"
+			(at 201.93 62.1598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -16441,7 +16441,7 @@
 			)
 		)
 		(property "Value" "LED_ONE"
-			(at 180.34 64.6998 0)
+			(at 201.93 64.6998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -16451,7 +16451,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 171.45 76.2 0)
+			(at 193.04 76.2 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16463,7 +16463,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 172.72 78.105 0)
+			(at 194.31 78.105 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16475,7 +16475,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 170.18 68.58 0)
+			(at 191.77 68.58 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16500,7 +16500,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D7")
+					(reference "D13")
 					(unit 1)
 				)
 			)
@@ -16517,7 +16517,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f00c0d1f-f5b4-46d4-b211-68ebc770cf8d")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR033"
 			(at 257.81 64.77 0)
 			(hide yes)
 			(show_name no)
@@ -16577,7 +16577,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR037")
+					(reference "#PWR033")
 					(unit 1)
 				)
 			)
@@ -16677,7 +16677,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f3f24202-1c85-4854-9dcd-64f0bbdd2223")
-		(property "Reference" "#PWR057"
+		(property "Reference" "#PWR081"
 			(at 259.08 152.4 0)
 			(hide yes)
 			(show_name no)
@@ -16737,7 +16737,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR057")
+					(reference "#PWR081")
 					(unit 1)
 				)
 			)
@@ -16754,7 +16754,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f464f4d6-799c-4d9b-b8ac-1cac42ef6e1a")
-		(property "Reference" "#PWR040"
+		(property "Reference" "#PWR043"
 			(at 214.63 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -16814,7 +16814,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR040")
+					(reference "#PWR043")
 					(unit 1)
 				)
 			)
@@ -16832,7 +16832,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f61243d7-870e-4243-9f1c-66642c083653")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR028"
 			(at 110.49 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -16892,7 +16892,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR04")
+					(reference "#PWR028")
 					(unit 1)
 				)
 			)
@@ -16900,7 +16900,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 259.08 132.08 0)
+		(at 237.49 156.21 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -16910,8 +16910,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f6161417-d71e-47fe-9638-2b6367eaa5ac")
-		(property "Reference" "D31"
-			(at 271.78 125.6598 0)
+		(property "Reference" "D32"
+			(at 250.19 149.7898 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -16921,7 +16921,7 @@
 			)
 		)
 		(property "Value" "LED_EVENING"
-			(at 271.78 128.1998 0)
+			(at 250.19 152.3298 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -16931,7 +16931,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 260.35 139.7 0)
+			(at 238.76 163.83 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16943,7 +16943,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 261.62 141.605 0)
+			(at 240.03 165.735 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16955,7 +16955,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 259.08 132.08 0)
+			(at 237.49 156.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -16980,7 +16980,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D31")
+					(reference "D32")
 					(unit 1)
 				)
 			)
@@ -16998,7 +16998,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f71bdf57-2b9d-4a7d-aaa9-8a671778518b")
-		(property "Reference" "#PWR055"
+		(property "Reference" "#PWR083"
 			(at 215.9 153.67 0)
 			(hide yes)
 			(show_name no)
@@ -17058,7 +17058,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR055")
+					(reference "#PWR083")
 					(unit 1)
 				)
 			)
@@ -17164,7 +17164,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f954d3cc-a87d-49b2-8c25-76b3041236b4")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR086"
 			(at 81.28 167.64 0)
 			(hide yes)
 			(show_name no)
@@ -17224,7 +17224,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR015")
+					(reference "#PWR086")
 					(unit 1)
 				)
 			)
@@ -17242,7 +17242,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f9a0c084-ad42-43ea-927d-618a3bb51a21")
-		(property "Reference" "#PWR016"
+		(property "Reference" "#PWR084"
 			(at 105.41 166.37 0)
 			(hide yes)
 			(show_name no)
@@ -17302,7 +17302,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR016")
+					(reference "#PWR084")
 					(unit 1)
 				)
 			)
@@ -17320,7 +17320,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fab146e1-6f1b-4035-bc46-aed25ccdae58")
-		(property "Reference" "#PWR048"
+		(property "Reference" "#PWR066"
 			(at 170.18 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -17380,7 +17380,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR048")
+					(reference "#PWR066")
 					(unit 1)
 				)
 			)
@@ -17388,7 +17388,7 @@
 	)
 	(symbol
 		(lib_id "LED:WS2812B")
-		(at 191.77 132.08 0)
+		(at 215.9 157.48 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -17398,8 +17398,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fb23357a-238b-438c-a12b-76995831c3e6")
-		(property "Reference" "D28"
-			(at 201.93 125.6598 0)
+		(property "Reference" "D35"
+			(at 226.06 151.0598 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -17409,7 +17409,7 @@
 			)
 		)
 		(property "Value" "LED_AT"
-			(at 201.93 128.1998 0)
+			(at 226.06 153.5998 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -17419,7 +17419,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm"
-			(at 193.04 139.7 0)
+			(at 217.17 165.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17431,7 +17431,7 @@
 			)
 		)
 		(property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
-			(at 194.31 141.605 0)
+			(at 218.44 167.005 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17443,7 +17443,7 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller"
-			(at 191.77 132.08 0)
+			(at 215.9 157.48 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -17468,7 +17468,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "D28")
+					(reference "D35")
 					(unit 1)
 				)
 			)
@@ -17486,7 +17486,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fbd44ff0-fccd-4eb7-8215-fa9c7fb53311")
-		(property "Reference" "#PWR063"
+		(property "Reference" "#PWR012"
 			(at 257.81 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -17546,7 +17546,7 @@
 		(instances
 			(project "word-clock"
 				(path "/1b398c0d-f082-4fb0-a32e-8b29a4f906d1"
-					(reference "#PWR063")
+					(reference "#PWR012")
 					(unit 1)
 				)
 			)

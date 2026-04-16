@@ -49,11 +49,30 @@ This pin is bidirectional on the AITRIP module: when the module's micro-USB is p
 
 The `VBUS` net was specific to the Cermant breakout. If KiCad shows `VBUS` as an orphaned net after the deletion (i.e., referenced nowhere), it goes away automatically on save. Nothing to do.
 
-## 1.5: Run ERC
+## 1.5: Re-attach the +5V `PWR_FLAG`
+
+The original schematic had a `PWR_FLAG` on `J_USB1`'s VBUS pin to tell KiCad that +5V is sourced externally. Deleting `J_USB1` also removed that flag, so ERC will now complain:
+
+> `power_pin_not_driven: D1 Pin 1 [VDD, Power input]` (where D1 is `LED_IT`, the first WS2812B — its VDD sits on the +5V net with no Power Output driving it)
+
+Fix:
+
+1. Press **P** (place power port).
+2. Select `PWR_FLAG` (it's under the `power` library).
+3. Place it on the `+5V` net — anywhere on the rail works. Good spots: adjacent to the ESP32 module's `5V` / `VIN` pin (which is the new logical source), or on `C2`'s +5V terminal (close to the LED strip).
+4. Wire it to the net if KiCad didn't auto-connect it.
+
+## 1.6: Run ERC
 
 **Inspect → Electrical Rules Checker → Run.**
 
-Expected result: clean, same baseline warnings as before the edit. If new "unconnected pin" warnings appear, they're the pins of `J_USB1` that lost their labels — should have been deleted in step 1.1. Re-check.
+Expected result: clean, same baseline warnings as before the edit. Known pre-existing warnings that are not related to this change:
+- `lib_symbol_mismatch` on `J_AMP1`, `J_RTC1`, `J_SD1` — connector symbols drifted from the library cache. Cosmetic; `Tools → Update Symbols from Library` fixes if desired.
+- `pin_to_pin: Tri-state + Power input` on `U2` (74HC245) A1-A7 — unused inputs tied to GND; correct behavior, KiCad just dislikes the combination.
+
+If the `D1 VDD not driven` error still appears after the PWR_FLAG, the flag isn't actually wired to the +5V net — zoom in, verify the junction dot, and re-wire.
+
+If new "unconnected pin" warnings appear on anything else, they're likely `J_USB1` remnants — should have been deleted in step 1.1. Re-check.
 
 ## 1.6: Save + regenerate PDF
 

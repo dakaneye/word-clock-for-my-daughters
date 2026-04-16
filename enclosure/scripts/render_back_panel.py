@@ -9,10 +9,13 @@ both parts share the frame's exterior footprint. Carries:
     brass inserts live in the frame; these are just pass-through holes.
   • 3 × button-access holes at the SW1/SW2/SW3 PCB positions (X=168.5 mm
     in PCB frame, translated by the 7.1 mm border into face coords).
-  • USB-C panel-mount cutout (rectangular + 2 M2.5 screw holes) — the
-    position is flexible because the internal pigtail is a cable, not a
-    rigid connector. Chosen to stay clear of the button column and the
-    dedication-engraving area.
+  • USB-C access cutout — a 10 × 4 mm slot + 2 × M2 screw holes (≈28 mm
+    spacing) for mounting a rigid USB-C-female / Micro-USB-male adapter
+    (aluminum-alloy type with integrated screw tabs) directly to the
+    inside of the panel. The adapter's Micro-USB male end points into
+    the case and connects to the ESP32 module's Micro-USB via a short
+    standard Micro-USB male-to-female extension cable. Dimensions are
+    placeholders — verify against the specific adapter when it arrives.
   • microSD access slot aligned to the HW-125 SD slot position. Flagged
     [LOW] confidence — exact slot location depends on which direction the
     breakout is oriented when plugged in. Verify during first fit-up.
@@ -69,14 +72,18 @@ SCREW_INSET_MM = FRAME_THICKNESS_MM / 2  # 3.2 — center of frame wall
 # actuator cap (separate task) can press through a slightly smaller hole.
 BUTTON_HOLE_DIA_MM = 5.0
 
-# USB-C panel-mount cutout — values from the Adafruit 4218 datasheet style
-# panel-mount jack (widely available part). These are load-bearing dimensions:
-# wrong width → connector doesn't seat; wrong screw spacing → can't attach.
-# If the purchased pigtail has different dimensions, re-measure and update.
-USBC_CUTOUT_W_MM = 9.0
-USBC_CUTOUT_H_MM = 13.0
-USBC_SCREW_SPACING_MM = 20.0
-USBC_SCREW_DIA_MM = 2.7             # M2.5 clearance
+# USB-C access cutout — the user-facing port is actually the USB-C receptacle
+# face of a rigid USB-C-female / Micro-USB-male adapter that mounts to the
+# inside of the back panel via its own screw tabs. Its Micro USB male end
+# points into the case and connects to the ESP32 module's Micro USB via a
+# short Micro USB male-to-female extension cable (standard part). Cutout
+# dimensions: USB-C receptacle face ~10 × 4 mm; tab screws are M2, typically
+# ~28 mm apart for this adapter style. Re-measure against the specific
+# adapter and tune if needed.
+USBC_CUTOUT_W_MM = 10.0
+USBC_CUTOUT_H_MM = 4.0
+USBC_SCREW_SPACING_MM = 28.0
+USBC_SCREW_DIA_MM = 2.2             # M2 clearance
 
 # microSD access slot. HW-125 SD slot opening is roughly 12 × 2 mm.
 SD_SLOT_W_MM = 14.0

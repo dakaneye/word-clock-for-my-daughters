@@ -18,8 +18,7 @@ original phase-by-phase roadmap; this file is the live working list.
 
 - Frame is a pure shell. All exterior features (buttons, USB, speaker vent, dedication) live on the **back panel**.
 - Buttons are pressed through the back panel, not the side — forced by the PCB (tact switches are bottom-side, vertical through-hole, at X=168.5).
-- USB-C port on the back panel is wired internally by a two-part assembly: (1) a standard **USB-C-female panel-mount pigtail to USB-C-male plug** (back panel → inside the box), and (2) a short **USB-C-female to micro-USB-male rigid adapter** (like the KUXIYAN part) that converts the USB-C male end into a micro-USB plug for the ESP32 module. One-piece USB-C-to-micro-USB panel pigtails don't appear to exist off the shelf. The back-panel USB-C position is free — currently placed upper-right to balance the button column upper-left. The Cermant USB-C breakout on the main PCB is **removed** (see `docs/hardware/usb-c-breakout-removal-guide.md`).
-- The internal USB-C-to-micro-USB adapter must be **physically anchored** inside the case so repeated plug-in events don't stress the ESP32 module's micro-USB solder joints. Candidate anchoring: 3D-printed cradle that captures the adapter + glue or snap-fits to the PCB standoff assembly. Tracked under the 3D internals task.
+- USB-C port on the back panel is provided by a **USB-C-female-to-micro-USB-male rigid adapter with built-in mounting tabs** (aluminum-alloy style like the Amazon 3-pack, with two M2 screw holes flanking a short body). The adapter screws directly to the inside of the back panel with its USB-C receptacle facing out through a slot cutout. Its Micro-USB male end points inward and connects to the ESP32 module's Micro-USB port via a short **Micro-USB male-to-female extension cable** (standard commodity part). No pigtail, no internal adapter cradle needed — the adapter itself IS the panel-mount hardware. The Cermant USB-C breakout on the main PCB is **removed** (see `docs/hardware/usb-c-breakout-removal-guide.md`).
 
 ---
 
@@ -63,7 +62,7 @@ Blocked on: parts arrival (for diffuser test + LED physical spec), PCB final (fo
 - [ ] **PCB standoffs** — hold PCB off back panel with clearance for tallest bottom-side component (C2 cap, 16mm). Could integrate with light channel as a single part, or separate for easier printing.
 - [ ] **Speaker mount** — holds driver against back-panel vent, accommodates JST connector to PCB.
 - [ ] **Button actuator caps** (conditional) — only needed if 6mm tact switches don't sit flush against the back-panel inner surface. Each cap is a short cylinder that translates back-panel press to switch actuation.
-- [ ] **USB-C-to-micro-USB adapter cradle** — 3D-printed holder that captures the rigid adapter and anchors it to the PCB or a standoff so cable insertions don't lever the ESP32 module's micro-USB port. Adapter body dimensions: measure from the specific adapter purchased (KUXIYAN or equivalent).
+- [ ] **Confirm adapter screw-hole spacing and USB-C slot dimensions** — back panel currently uses 10 × 4 mm slot + 2 × M2 screws at 28 mm spacing (assumed). Measure the actual adapter when it arrives; tighten the dimensions in `render_back_panel.py` if needed. Confidence [MED].
 
 ## PCB
 

@@ -31,3 +31,25 @@ def test_cell_center_for_bottom_right():
     x, y = cell_center_mm(row=12, col=12)
     assert x == pytest.approx(BORDER_MM + 12.5 * CELL_MM, abs=0.001)
     assert y == pytest.approx(BORDER_MM + 12.5 * CELL_MM, abs=0.001)
+
+
+from enclosure.scripts.render_face import letter_transform_for_cell
+from enclosure.scripts.fonts import load_font_instance, render_glyph
+
+
+def test_letter_transform_for_cell_returns_svg_string():
+    font = load_font_instance("Jost-Variable.ttf", weight=700)
+    _path_data, bbox = render_glyph(font, "E")
+    transform = letter_transform_for_cell(font, "E", row=0, col=0, bbox=bbox)
+    assert isinstance(transform, str)
+    assert "translate" in transform
+    assert "scale" in transform
+
+
+def test_letter_transform_centers_letter_in_cell():
+    """When applied, letter should be centered on cell (0, 0) center."""
+    font = load_font_instance("Jost-Variable.ttf", weight=700)
+    _path_data, bbox = render_glyph(font, "E")
+    transform = letter_transform_for_cell(font, "E", row=0, col=0, bbox=bbox)
+    expected_cx, expected_cy = cell_center_mm(0, 0)
+    assert transform.startswith(f"translate({expected_cx},{expected_cy})")

@@ -26,3 +26,24 @@ def cell_center_mm(row: int, col: int) -> Tuple[float, float]:
     x = BORDER_MM + (col + 0.5) * CELL_MM
     y = BORDER_MM + (row + 0.5) * CELL_MM
     return x, y
+
+
+def letter_transform_for_cell(font: TTFont, char: str, row: int, col: int,
+                              bbox: Tuple[float, float, float, float]) -> str:
+    """Compute an SVG transform that places the rendered glyph centered in cell (row, col)
+    at LETTER_CAP_MM cap height.
+
+    The font's coordinate system has Y up; SVG has Y down, so we apply a negative Y scale.
+    """
+    cap_height_units = font["OS/2"].sCapHeight
+    scale = LETTER_CAP_MM / cap_height_units  # mm per font unit
+
+    glyph_xmin, _glyph_ymin, glyph_xmax, _glyph_ymax = bbox
+    glyph_width_units = glyph_xmax - glyph_xmin
+    glyph_visual_center_y_units = cap_height_units / 2
+
+    cx, cy = cell_center_mm(row, col)
+    inner_dx = -(glyph_xmin + glyph_width_units / 2)
+    inner_dy = -glyph_visual_center_y_units
+
+    return f"translate({cx},{cy}) scale({scale},{-scale}) translate({inner_dx},{inner_dy})"

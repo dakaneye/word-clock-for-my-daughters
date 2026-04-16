@@ -19,6 +19,14 @@ BORDER_MM = 7.1
 CELL_MM = GRID_SIZE_MM / 13  # ≈ 13.6769
 LETTER_CAP_MM = 10.0
 
+# Strut geometry for closed-counter letters (see path_ops.BRIDGE_RULES for which
+# letters get struts and where). 3mm matches Ponoko's min-feature on solid
+# hardwood AND the user's observed strut width on Chelsea's clock. 20mm length
+# is generous — ensures the strut crosses the ring aperture with margin even
+# for the largest counters.
+BRIDGE_WIDTH_MM = 3.0
+BRIDGE_LENGTH_MM = 20.0
+
 
 def cell_center_mm(row: int, col: int) -> Tuple[float, float]:
     """Return (x, y) in mm for the center of the cell at (row, col),
@@ -76,6 +84,13 @@ def render_face_svg(kid: str, grid_cpp_path: Path = GRID_CPP) -> str:
         opsz=font_config["opsz"],
     )
 
+    # Convert strut dimensions from mm to font units (based on this font's
+    # cap-height scale).
+    cap_height_units = font["OS/2"].sCapHeight
+    units_per_mm = cap_height_units / LETTER_CAP_MM
+    bridge_width_units = BRIDGE_WIDTH_MM * units_per_mm
+    bridge_length_units = BRIDGE_LENGTH_MM * units_per_mm
+
     dwg = new_svg_document(width_mm=FACE_SIZE_MM, height_mm=FACE_SIZE_MM)
     add_cut_rect(dwg, x=0, y=0, width=FACE_SIZE_MM, height=FACE_SIZE_MM)
 
@@ -85,10 +100,14 @@ def render_face_svg(kid: str, grid_cpp_path: Path = GRID_CPP) -> str:
             path_data, bbox = render_glyph(font, char)
             if bbox is None:
                 continue
-            # Union overlapping sub-shapes (e.g., Jost E = stem + 3 bars) into
-            # a single clean outline so the laser cuts the letter as one piece
-            # rather than as separate fragments.
-            unioned = union_glyph_path(path_data)
+            # Union overlapping sub-shapes + add bridges for closed-counter
+            # letters so inner wood stays attached after cutting.
+            unioned = union_glyph_path(
+                path_data,
+                char=char,
+                bridge_width_units=bridge_width_units,
+                bridge_length_units=bridge_length_units,
+            )
             transform = letter_transform_for_cell(font, char, row, col, bbox)
             add_cut_path(dwg, unioned, transform=transform)
 

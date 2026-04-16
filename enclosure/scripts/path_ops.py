@@ -15,11 +15,33 @@ per hole.
 from __future__ import annotations
 
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 from shapely.validation import make_valid
+
+# Struts (bridges) keep the inner-counter wood connected to the main face for
+# letters with closed counters. Each rule is (orientation, x_frac, y_frac):
+#   orientation: 'V' = vertical strut (narrow X, long Y) — crosses top/bottom of hole
+#                'H' = horizontal strut (long X, narrow Y) — crosses left/right of hole
+#   x_frac, y_frac: center position as fraction of hole bbox (0..1, Y-up font coords)
+# Fractions < 0 or > 1 shift the strut OUTSIDE the hole center (e.g., x=0 aligns
+# the strut with the left edge of the hole, which is exactly where the R/P/D/B
+# struts sit — along the "left vertical line" of the letter).
+BRIDGE_RULES = {
+    'O': [('V', 0.5, 1.0), ('V', 0.5, 0.0)],   # 12 and 6 o'clock
+    '0': [('V', 0.5, 1.0), ('V', 0.5, 0.0)],
+    'Q': [('V', 0.5, 1.0), ('V', 0.5, 0.0)],
+    'R': [('H', 0.0, 0.75), ('H', 0.0, 0.25)], # left-side, two Y heights
+    'P': [('H', 0.0, 0.75), ('H', 0.0, 0.25)],
+    'D': [('H', 0.0, 0.75), ('H', 0.0, 0.25)],
+    'B': [('H', 0.0, 0.5)],                    # one per counter → 2 total (B has 2 holes)
+    'A': [('H', 0.3, 0.5), ('V', 0.5, 0.0)],   # diagonal-left + bottom of counter
+    'G': [('H', 0.5, 0.5)],
+    '6': [('V', 0.5, 0.0)],
+    '9': [('V', 0.5, 1.0)],
+}
 
 # Match either a single command letter or a signed decimal number.
 _TOKEN_RE = re.compile(r"[MLHVQCZmlhvqcz]|-?\d+\.?\d*(?:[eE]-?\d+)?")
@@ -164,16 +186,66 @@ def _signed_area(points: List[Tuple[float, float]]) -> float:
     return s / 2
 
 
-def union_glyph_path(path_data: str) -> str:
+def _apply_bridges(geom, char: str, bridge_width_units: float, bridge_length_units: float):
+    """Subtract strut rectangles from the letter polygon so the inner counter
+    stays connected to the main face after cutting.
+
+    Bridges are only applied to letters in BRIDGE_RULES. Each hole in the
+    polygon gets the same rule list applied to it, so letters with multiple
+    counters (e.g. B) get the rule applied once per counter.
+    """
+    if char not in BRIDGE_RULES or geom.is_empty:
+        return geom
+    if geom.geom_type == "Polygon":
+        interiors = list(geom.interiors)
+    elif geom.geom_type == "MultiPolygon":
+        interiors = [i for p in geom.geoms for i in p.interiors]
+    else:
+        return geom
+    if not interiors:
+        return geom
+
+    rules = BRIDGE_RULES[char]
+    result = geom
+    for interior in interiors:
+        x0, y0, x1, y1 = interior.bounds
+        for orientation, x_frac, y_frac in rules:
+            cx = x0 + x_frac * (x1 - x0)
+            cy = y0 + y_frac * (y1 - y0)
+            if orientation == "V":
+                bridge = box(
+                    cx - bridge_width_units / 2, cy - bridge_length_units / 2,
+                    cx + bridge_width_units / 2, cy + bridge_length_units / 2,
+                )
+            else:  # 'H'
+                bridge = box(
+                    cx - bridge_length_units / 2, cy - bridge_width_units / 2,
+                    cx + bridge_length_units / 2, cy + bridge_width_units / 2,
+                )
+            result = result.difference(bridge)
+    return result
+
+
+def union_glyph_path(
+    path_data: str,
+    char: Optional[str] = None,
+    bridge_width_units: float = 0,
+    bridge_length_units: float = 0,
+) -> str:
     """Union overlapping subpaths in glyph SVG path data, preserving holes.
 
     CCW subpaths are treated as filled regions (letter bodies); CW subpaths
     are treated as holes (inner counters). The result is
     (union of CCW regions) minus (union of CW regions).
 
-    Returns cleaned SVG path data with one subpath per exterior plus one per
-    interior hole. Original path_data is returned unchanged if parsing yields
-    no valid polygons.
+    If char is provided and matches a rule in BRIDGE_RULES, strut rectangles
+    are subtracted from each inner counter so the counter wood stays attached
+    to the main face after cutting. bridge_width_units and bridge_length_units
+    must be given in FONT UNITS (caller converts mm → font units via the
+    font's cap-height scale).
+
+    Returns cleaned SVG path data. Original path_data is returned unchanged
+    if parsing yields no valid polygons.
     """
     if not path_data.strip():
         return path_data
@@ -205,6 +277,9 @@ def union_glyph_path(path_data: str) -> str:
     if holes:
         hole_union = unary_union(holes)
         outer = outer.difference(hole_union)
+
+    if char and bridge_width_units > 0 and bridge_length_units > 0:
+        outer = _apply_bridges(outer, char, bridge_width_units, bridge_length_units)
 
     result = _shapely_to_svg(outer)
     return result if result else path_data

@@ -10,6 +10,7 @@ from fontTools.ttLib import TTFont
 
 from .fonts import load_font_instance, render_glyph
 from .parse_grid import parse_grid_cpp
+from .path_ops import union_glyph_path
 from .svg_utils import new_svg_document, add_cut_rect, add_cut_path
 
 FACE_SIZE_MM = 192.0
@@ -84,7 +85,11 @@ def render_face_svg(kid: str, grid_cpp_path: Path = GRID_CPP) -> str:
             path_data, bbox = render_glyph(font, char)
             if bbox is None:
                 continue
+            # Union overlapping sub-shapes (e.g., Jost E = stem + 3 bars) into
+            # a single clean outline so the laser cuts the letter as one piece
+            # rather than as separate fragments.
+            unioned = union_glyph_path(path_data)
             transform = letter_transform_for_cell(font, char, row, col, bbox)
-            add_cut_path(dwg, path_data, transform=transform)
+            add_cut_path(dwg, unioned, transform=transform)
 
     return dwg.tostring()

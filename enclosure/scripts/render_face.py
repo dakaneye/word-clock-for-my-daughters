@@ -20,10 +20,12 @@ CELL_MM = GRID_SIZE_MM / 13  # ≈ 13.6769
 LETTER_CAP_MM = 10.0
 
 # Strut width for closed-counter letters (see path_ops.BRIDGE_RULES for which
-# letters get struts and where). 3mm matches Ponoko's min-feature on solid
-# hardwood AND the user's observed strut width on Chelsea's clock. Strut
-# length is per-hole-derived inside path_ops so it crosses only the ring.
-BRIDGE_WIDTH_MM = 3.0
+# letters get struts and where). 1mm per Chelsea's clock experience —
+# Ponoko's published min-feature on solid hardwood is 3mm but the user
+# successfully cut 1mm struts on Chelsea's clock (different laser cutter).
+# Risk: Ponoko may reject the file at upload or the laser may cut imperfectly.
+# Mitigation: cardboard test cut is worthwhile here after all.
+BRIDGE_WIDTH_MM = 1.0
 
 
 def cell_center_mm(row: int, col: int) -> Tuple[float, float]:

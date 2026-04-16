@@ -63,7 +63,11 @@ GRID_CPP = REPO_ROOT / "firmware" / "lib" / "core" / "src" / "grid.cpp"
 
 KID_FONT_CONFIG = {
     "emory": {"filename": "Jost-Variable.ttf", "weight": 700, "opsz": None},
-    "nora": {"filename": "Fraunces-Variable.ttf", "weight": 500, "opsz": 14},
+    # Fraunces opsz=14 (book/text size) generated small optical features that
+    # showed as visible "splash" artifacts. Switched to opsz=72 (display
+    # size) — cleaner, less optical-size compensation, more suitable for
+    # a 10mm laser-cut letter where the fine book-size details aren't legible.
+    "nora": {"filename": "Fraunces-Variable.ttf", "weight": 500, "opsz": 72},
 }
 
 

@@ -45,8 +45,13 @@ BRIDGE_RULES = {
     # G: previous (0.5, 0.5) was interior — strut entirely inside counter,
     # no effect on cut. Moved to left boundary to actually bridge.
     'G': [('H', 0.0, 0.5)],
-    '6': [('V', 0.5, 0.0)],
-    '9': [('V', 0.5, 1.0)],
+    # 6 and 9: previously used V struts at bottom/top of counter. Those
+    # produced a long vertical "slot" from the counter to the letter edge
+    # because the counter sits close to the baseline (or cap-height for 9).
+    # Switched to H strut at left-of-counter — crosses the loop's side
+    # stroke, much shorter path with no visible slot.
+    '6': [('H', 0.0, 0.5)],
+    '9': [('H', 0.0, 0.5)],
 }
 
 # Match either a single command letter or a signed decimal number.
@@ -161,19 +166,30 @@ def _ring_to_svg(coords) -> str:
     return " ".join(out)
 
 
+def _extract_polygons(g):
+    """Flatten any shapely geometry to a list of Polygons, discarding
+    non-areal geometries (LineStrings from make_valid artifacts, etc.).
+    """
+    if g.is_empty:
+        return []
+    if g.geom_type == "Polygon":
+        return [g]
+    if g.geom_type == "MultiPolygon":
+        return list(g.geoms)
+    if g.geom_type == "GeometryCollection":
+        out = []
+        for sub in g.geoms:
+            out.extend(_extract_polygons(sub))
+        return out
+    return []
+
+
 def _shapely_to_svg(geom) -> str:
     parts: List[str] = []
-    if geom.is_empty:
-        return ""
-    if geom.geom_type == "Polygon":
-        parts.append(_ring_to_svg(geom.exterior.coords))
-        for interior in geom.interiors:
+    for poly in _extract_polygons(geom):
+        parts.append(_ring_to_svg(poly.exterior.coords))
+        for interior in poly.interiors:
             parts.append(_ring_to_svg(interior.coords))
-    elif geom.geom_type == "MultiPolygon":
-        for poly in geom.geoms:
-            parts.append(_ring_to_svg(poly.exterior.coords))
-            for interior in poly.interiors:
-                parts.append(_ring_to_svg(interior.coords))
     return " ".join(parts)
 
 
@@ -208,12 +224,8 @@ def _apply_bridges(geom, char: str, bridge_width_units: float):
     """
     if char not in BRIDGE_RULES or geom.is_empty:
         return geom
-    if geom.geom_type == "Polygon":
-        interiors = list(geom.interiors)
-    elif geom.geom_type == "MultiPolygon":
-        interiors = [i for p in geom.geoms for i in p.interiors]
-    else:
-        return geom
+    polys = _extract_polygons(geom)
+    interiors = [i for p in polys for i in p.interiors]
     if not interiors:
         return geom
 
@@ -293,7 +305,9 @@ def union_glyph_path(
         return path_data
 
     subpaths = _parse_svg_path(path_data)
-    # Filter to valid polygons + record signed area
+    # Filter to valid polygons + record signed area. Self-intersecting
+    # subpaths (e.g. Jost Bold B's single combined path) turn into
+    # GeometryCollection after make_valid — extract the Polygon(s) from it.
     raw_polys = []
     for sub in subpaths:
         if len(sub) < 4:
@@ -303,11 +317,11 @@ def union_glyph_path(
             poly = Polygon(sub)
             if not poly.is_valid:
                 poly = make_valid(poly)
-            if poly.is_empty or poly.geom_type not in ("Polygon", "MultiPolygon"):
-                continue
+            for p in _extract_polygons(poly):
+                if not p.is_empty:
+                    raw_polys.append((area, p))
         except Exception:
             continue
-        raw_polys.append((area, poly))
 
     if not raw_polys:
         return path_data
@@ -327,6 +341,12 @@ def union_glyph_path(
     outer = unary_union(exteriors)
     if holes:
         outer = outer.difference(unary_union(holes))
+
+    # Normalize to pure Polygon / MultiPolygon — discards MultiLineString
+    # cleanup artifacts that make_valid can leave behind (Jost B does this).
+    polys = _extract_polygons(outer)
+    if polys:
+        outer = unary_union(polys)
 
     if char and bridge_width_units > 0:
         outer = _apply_bridges(outer, char, bridge_width_units)

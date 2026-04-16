@@ -4,6 +4,17 @@
 
 **End state:** Data chain wired in physical row-major order (left-to-right, top-to-bottom on the clock face). AT on row 11. Power rails complete. All traces routed. DRC clean. Gerbers exportable.
 
+## Current progress — 2026-04-15
+
+- ✅ Part 1 (schematic) complete — chain re-wired by Value name, ERC clean
+- ✅ Part 2 (PCB) complete through step 2.11 — AT moved, data chain routed, all connections closed, GND pour on both sides, DRC clean (0 errors, 0 unconnected pads), gerbers + drill + BOM + CPL exported
+- ⏸️ **Step 2.10 deferred:** 1:1 print verification not yet done (printer in sleeping kid's room — do in the morning)
+- ⏸️ **Step 2.13 pending:** JLCPCB submission — waiting on 2.10 print check as final sanity gate before ordering
+
+Commit `405864a` has all PCB source files. Fabrication outputs regenerated locally as needed; gitignored.
+
+**Resume here after print check.**
+
 **Key principle:** Schematic layout is for human readability only — it does NOT affect the PCB. Don't rearrange symbols on the schematic sheet. The physical PCB positions come from the X,Y coordinate table. The chain order comes from how you wire DOUT→DIN. D-numbers are cosmetic silkscreen labels.
 
 ---

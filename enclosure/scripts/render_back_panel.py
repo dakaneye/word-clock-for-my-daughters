@@ -23,8 +23,16 @@ both parts share the frame's exterior footprint. Carries:
   • Dedication raster engraving — per-kid text rendered from the same
     variable font as the face (Jost Bold for Emory, Fraunces for Nora).
 
-Coordinate system: face/panel-frame mm, origin = top-left corner of the
-panel. PCB frame → panel frame: add BORDER (7.1 mm) on both axes.
+Coordinate system: the panel SVG is drawn as viewed **from outside the
+clock** — i.e., looking at the back of the finished clock with the
+dedication the right way up and readable. That means features tied to
+PCB positions (buttons, microSD) are mirrored horizontally: PCB X is
+reflected across the panel's vertical centerline. Without this mirror,
+the laser would cut a panel that, when flipped into place, would have
+the dedication on the inside surface and the buttons on the wrong side.
+
+PCB frame → panel frame: add BORDER (7.1 mm) on both axes, **then mirror X
+across the panel centerline**.
 """
 from __future__ import annotations
 
@@ -84,10 +92,15 @@ SPEAKER_VENT_PITCH_MM = 4.0
 DEDICATION_CAP_HEIGHT_MM = 5.0
 DEDICATION_LINE_SPACING_MM = 8.0
 
-# Placement centers (panel-frame mm).
-USBC_CENTER = (28.0, 30.0)
+# Placement centers (panel-frame mm, outside-view convention).
+# Button column lives upper-left (mirrored from PCB X=168.5), so the USB-C
+# goes upper-right to keep them far apart. Speaker vent is on the vertical
+# centerline because the speaker driver's mount location is a free design
+# choice — it attaches to the MAX98357A via a 2-wire cable, independent of
+# the amp's PCB position.
+USBC_CENTER = (164.0, 30.0)
 SPEAKER_VENT_CENTER = (96.0, 152.0)
-DEDICATION_CENTER = (96.0, 100.0)  # text block vertical midpoint
+DEDICATION_CENTER = (96.0, 100.0)
 
 KID_CONFIG = {
     "emory": {
@@ -113,11 +126,25 @@ KID_CONFIG = {
 }
 
 
-def _read_switch_positions(csv_path: Path = PCB_POS_CSV) -> list[Tuple[str, float, float]]:
-    """Return [(ref, x_panel_mm, y_panel_mm), ...] for SW1, SW2, SW3.
+def _pcb_to_panel_outside(pcb_x: float, pcb_y: float) -> Tuple[float, float]:
+    """Translate a PCB-frame position into panel-frame mm, **as viewed from
+    outside the clock** (mirror X across the panel centerline).
 
-    CSV Y is signed negative per KiCad CPL convention; normalize, then
-    translate by the 7.1 mm frame border into the back-panel frame.
+    Without the X mirror, the laser-cut panel would — after flipping to
+    attach — have the dedication reading backwards and the buttons on the
+    wrong side.
+    """
+    face_x = pcb_x + BORDER_MM
+    face_y = pcb_y + BORDER_MM
+    return PANEL_SIZE_MM - face_x, face_y
+
+
+def _read_switch_positions(csv_path: Path = PCB_POS_CSV) -> list[Tuple[str, float, float]]:
+    """Return [(ref, x_panel_mm, y_panel_mm), ...] for SW1, SW2, SW3 in the
+    outside-view panel frame.
+
+    CSV Y is signed negative per KiCad CPL convention; normalize first, then
+    translate + X-mirror.
     """
     out: list[Tuple[str, float, float]] = []
     with csv_path.open() as f:
@@ -125,18 +152,19 @@ def _read_switch_positions(csv_path: Path = PCB_POS_CSV) -> list[Tuple[str, floa
             if row["Ref"].strip('"') in ("SW1", "SW2", "SW3"):
                 pcb_x = float(row["PosX"])
                 pcb_y = -float(row["PosY"])
-                out.append((row["Ref"].strip('"'), pcb_x + BORDER_MM, pcb_y + BORDER_MM))
+                px, py = _pcb_to_panel_outside(pcb_x, pcb_y)
+                out.append((row["Ref"].strip('"'), px, py))
     return out
 
 
 def _read_sd_header_position(csv_path: Path = PCB_POS_CSV) -> Tuple[float, float]:
-    """Return (x, y) of the HW-125 microSD header in panel-frame mm."""
+    """Return (x, y) of the HW-125 microSD header in outside-view panel mm."""
     with csv_path.open() as f:
         for row in csv.DictReader(f):
             if "HW-125" in row["Val"] or row["Ref"].strip('"') == "J_SD1":
                 pcb_x = float(row["PosX"])
                 pcb_y = -float(row["PosY"])
-                return pcb_x + BORDER_MM, pcb_y + BORDER_MM
+                return _pcb_to_panel_outside(pcb_x, pcb_y)
     raise RuntimeError("Could not find J_SD1 / HW-125 header in CPL CSV")
 
 

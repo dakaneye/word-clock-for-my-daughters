@@ -64,18 +64,25 @@ def test_panel_outer_dimensions_match_face(kid):
     assert f'height="{PANEL_SIZE_MM}mm"' in svg
 
 
-def test_switch_positions_align_with_pcb():
+def test_switch_positions_align_with_pcb_mirrored():
+    """Buttons are at PCB X=168.5, which — after the outside-view X-mirror —
+    puts them on the LEFT side of the back panel. This is the correct
+    orientation: when the panel is installed (not flipped), the cutouts
+    align with the tact switches on the PCB's bottom side.
+    """
+    from enclosure.scripts.render_back_panel import PANEL_SIZE_MM
     switches = _read_switch_positions()
     refs = {s[0] for s in switches}
     assert refs == {"SW1", "SW2", "SW3"}
-    # All switches share PCB X = 168.5, so panel X = 175.6
-    expected_panel_x = 168.5 + BORDER_MM
+    # Mirror: panel X = PANEL_SIZE - (PCB X + BORDER)
+    expected_panel_x = PANEL_SIZE_MM - (168.5 + BORDER_MM)
     for _ref, x, _y in switches:
         assert x == pytest.approx(expected_panel_x, abs=0.01)
-    # All switch Y coordinates should be in the top portion of the panel
-    # (they're on the upper right of the PCB).
-    for _ref, _x, y in switches:
-        assert 20 <= y <= 55, f"switch Y {y} outside expected upper-right range"
+    # Switches are in the upper-LEFT region of the panel (outside view) —
+    # same Y as on the PCB, but mirrored to the left.
+    for _ref, x, y in switches:
+        assert x < PANEL_SIZE_MM / 2, f"switch X {x} should be on the left half"
+        assert 20 <= y <= 55, f"switch Y {y} outside expected vertical range"
 
 
 def test_edge_screws_land_inside_panel():

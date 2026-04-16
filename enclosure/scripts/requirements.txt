@@ -1,3 +1,4 @@
 fontTools>=4.60.0
 svgwrite>=1.4.0
+cairosvg>=2.7.0
 pytest>=7.0.0

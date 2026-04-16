@@ -69,3 +69,60 @@ def test_render_frame_svg_outer_dimensions_fit_4_strips():
     svg_text = render_frame_svg()
     assert 'width="192.0mm"' in svg_text
     assert 'height="207.0mm"' in svg_text
+
+
+def _trace_path_x_extents(path_data: str) -> tuple:
+    """Trace through a path-data string and return (min_x, max_x) reached.
+    Handles M/L/H/V/Z and lowercase relative variants. Returns (min_x, max_x)."""
+    import re
+    tokens = re.findall(r'[MLHVZmlhvz]|-?\d+\.?\d*', path_data)
+    x = y = 0.0
+    min_x = max_x = 0.0
+    i = 0
+    cmd = None
+    while i < len(tokens):
+        t = tokens[i]
+        if t in 'MLHVZmlhvz':
+            cmd = t
+            i += 1
+            if t in 'Zz':
+                continue
+        if cmd in 'M':
+            x = float(tokens[i]); y = float(tokens[i+1]); i += 2
+        elif cmd == 'm':
+            x += float(tokens[i]); y += float(tokens[i+1]); i += 2
+        elif cmd == 'L':
+            x = float(tokens[i]); y = float(tokens[i+1]); i += 2
+        elif cmd == 'l':
+            x += float(tokens[i]); y += float(tokens[i+1]); i += 2
+        elif cmd == 'H':
+            x = float(tokens[i]); i += 1
+        elif cmd == 'h':
+            x += float(tokens[i]); i += 1
+        elif cmd == 'V':
+            y = float(tokens[i]); i += 1
+        elif cmd == 'v':
+            y += float(tokens[i]); i += 1
+        min_x = min(min_x, x)
+        max_x = max(max_x, x)
+    return min_x, max_x
+
+
+def test_strip_path_stays_within_strip_body():
+    """Critical: fingers must NOT extend beyond the strip's nominal length.
+    Slots cut INWARD; fingers stay at the body edge.
+    """
+    path = frame_strip_path(invert_left=False, invert_right=True)
+    min_x, max_x = _trace_path_x_extents(path)
+    assert min_x >= 0, f"Path went to X={min_x}, should not go below 0 (left strip edge)"
+    assert max_x <= FRAME_LENGTH_MM, (
+        f"Path reached X={max_x}, must not exceed FRAME_LENGTH_MM={FRAME_LENGTH_MM}"
+    )
+
+
+def test_strip_path_uses_full_strip_length():
+    """Sanity: the path SHOULD reach both X=0 and X=FRAME_LENGTH_MM (strip edges)."""
+    path = frame_strip_path(invert_left=False, invert_right=True)
+    min_x, max_x = _trace_path_x_extents(path)
+    assert min_x == pytest.approx(0, abs=0.01)
+    assert max_x == pytest.approx(FRAME_LENGTH_MM, abs=0.01)

@@ -16,68 +16,52 @@ KERF_COMPENSATION_MM = 0.1  # +0.1 finger / -0.1 slot for press-fit
 
 
 def finger_path_for_edge(invert: bool) -> str:
-    """Generate an SVG path-data fragment for a single short edge with finger joints.
+    """SVG path fragment for the strip's RIGHT short edge, traversing DOWN
+    from (FRAME_LENGTH_MM, 0) to (FRAME_LENGTH_MM, FRAME_DEPTH_MM).
 
-    Path traverses from the top of the edge (at current cursor) downward
-    FRAME_DEPTH_MM along Y, with fingers sticking out in POSITIVE X direction
-    (use a horizontal flip for the left edge — see _left_edge_path).
+    Fingers stay at the strip edge (X = FRAME_LENGTH_MM); slots cut INWARD
+    (negative X by MATERIAL_THICKNESS_MM). The strip's outer extent never
+    exceeds FRAME_LENGTH_MM in X.
 
-    invert=False: starts as a finger sticking out
-    invert=True:  starts as a slot cut in
+    invert=False: starts with a finger (edge stays straight at the top)
+    invert=True:  starts with a slot (cut inward at the top)
 
     Uses lowercase 'l' (relative line) commands.
     """
     parts = []
-    finger_depth = MATERIAL_THICKNESS_MM
     for i in range(FINGER_COUNT):
         is_finger = (i % 2 == 0) ^ invert
         if is_finger:
             pitch = FINGER_PITCH_MM + KERF_COMPENSATION_MM
-            if i == 0:
-                parts.append(f"l {finger_depth},0")
             parts.append(f"l 0,{pitch}")
-            next_in_range = i + 1 < FINGER_COUNT
-            next_is_finger = ((i + 1) % 2 == 0) ^ invert if next_in_range else None
-            if next_is_finger is False:
-                parts.append(f"l {-finger_depth},0")
         else:
             pitch = FINGER_PITCH_MM - KERF_COMPENSATION_MM
+            parts.append(f"l -{MATERIAL_THICKNESS_MM},0")
             parts.append(f"l 0,{pitch}")
-            next_in_range = i + 1 < FINGER_COUNT
-            next_is_finger = ((i + 1) % 2 == 0) ^ invert if next_in_range else None
-            if next_is_finger is True:
-                parts.append(f"l {finger_depth},0")
-
+            parts.append(f"l {MATERIAL_THICKNESS_MM},0")
     return " ".join(parts)
 
 
 def _left_edge_path(invert: bool) -> str:
-    """Path along the left edge from current cursor (typically (0, FRAME_DEPTH_MM))
-    back UP to (0, 0), with fingers extending in negative X direction.
+    """SVG path fragment for the strip's LEFT short edge, traversing UP
+    from (0, FRAME_DEPTH_MM) to (0, 0).
 
-    Iterates fingers in reverse order so the visual pattern matches the right edge
-    when viewed in the assembled box.
+    Fingers stay at the strip edge (X = 0); slots cut INWARD (positive X
+    by MATERIAL_THICKNESS_MM). The strip's outer extent never goes
+    negative in X. Fingers are iterated in reverse so the assembled box
+    presents a visually consistent corner pattern.
     """
     parts = []
-    finger_depth = MATERIAL_THICKNESS_MM
     for i in reversed(range(FINGER_COUNT)):
         is_finger = (i % 2 == 0) ^ invert
         if is_finger:
             pitch = FINGER_PITCH_MM + KERF_COMPENSATION_MM
-            if i == FINGER_COUNT - 1:
-                parts.append(f"l {-finger_depth},0")
             parts.append(f"l 0,{-pitch}")
-            prev_in_range = i - 1 >= 0
-            prev_is_finger = ((i - 1) % 2 == 0) ^ invert if prev_in_range else None
-            if prev_is_finger is False:
-                parts.append(f"l {finger_depth},0")
         else:
             pitch = FINGER_PITCH_MM - KERF_COMPENSATION_MM
+            parts.append(f"l {MATERIAL_THICKNESS_MM},0")
             parts.append(f"l 0,{-pitch}")
-            prev_in_range = i - 1 >= 0
-            prev_is_finger = ((i - 1) % 2 == 0) ^ invert if prev_in_range else None
-            if prev_is_finger is True:
-                parts.append(f"l {-finger_depth},0")
+            parts.append(f"l -{MATERIAL_THICKNESS_MM},0")
     return " ".join(parts)
 
 

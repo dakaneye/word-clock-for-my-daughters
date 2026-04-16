@@ -10,6 +10,7 @@ import sys
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from enclosure.scripts.render_back_panel import render_back_panel_svg
 from enclosure.scripts.render_face import render_face_svg
 from enclosure.scripts.render_frame import render_frame_svg
 
@@ -26,6 +27,8 @@ def main() -> None:
         "emory-face.svg": lambda: render_face_svg(kid="emory"),
         "nora-face.svg": lambda: render_face_svg(kid="nora"),
         "frame.svg": lambda: render_frame_svg(),
+        "emory-back-panel.svg": lambda: render_back_panel_svg(kid="emory"),
+        "nora-back-panel.svg": lambda: render_back_panel_svg(kid="nora"),
     }
 
     for filename, generator in outputs.items():

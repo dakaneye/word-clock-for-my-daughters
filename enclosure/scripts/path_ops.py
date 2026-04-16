@@ -219,21 +219,23 @@ def _apply_bridges(geom, char: str, bridge_width_units: float):
 
     rules = BRIDGE_RULES[char]
     result = geom
-    # Outward crossing margin: just enough to cross the ring at the counter
-    # boundary. 2× strut width = 2mm at 1mm struts. Covers Fraunces' thin
-    # strokes (~0.6mm) and most of Jost Bold's crossbar (~1.5mm) without
-    # extending so far into the solid body that it distorts the letter
-    # (e.g., the A "arrow" effect when cross_margin was 4mm).
-    cross_margin = bridge_width_units * 2
+    # Bridge has two asymmetric extents from its center point:
+    #   body_margin:    how far the strut extends INTO the letter stroke/body.
+    #                   Must punch all the way through so the preserved wood
+    #                   reaches outside-letter face. Sized to exceed the
+    #                   thickest stroke (Jost Bold stems ≈ 1.5-2mm).
+    #   counter_margin: how far it extends INTO the counter. Just enough to
+    #                   reach the inner island wood — going deeper creates
+    #                   extra notches where the strut hits interior features
+    #                   (e.g., G's inward crossbar).
+    body_margin = bridge_width_units * 3     # 3mm at 1mm strut width
+    counter_margin = bridge_width_units * 1.5  # 1.5mm
 
     for interior in interiors:
         x0, y0, x1, y1 = interior.bounds
         counter_w = x1 - x0
         counter_h = y1 - y0
-        # Skip tiny slivers that aren't real counters. These arise from CFF-
-        # to-polygon conversion artifacts (small gaps between overlapping
-        # primitives become spurious holes). A "real" counter is always at
-        # least as large as the strut itself.
+        # Skip tiny slivers (CFF polygon-op artifacts) that aren't real counters.
         if min(counter_w, counter_h) < bridge_width_units:
             continue
         for orientation, x_frac, y_frac in rules:
@@ -241,31 +243,27 @@ def _apply_bridges(geom, char: str, bridge_width_units: float):
             cy = y0 + y_frac * counter_h
             half_w = bridge_width_units / 2
             if orientation == "V":
-                # Y is the long dimension for a vertical strut
                 if y_frac <= 0.15:
-                    # Bottom boundary — extend mostly UP into counter
-                    y_lo = cy - cross_margin
-                    y_hi = cy + counter_h * 0.7
+                    # Bottom boundary: body is BELOW (outward), counter ABOVE
+                    y_lo = cy - body_margin
+                    y_hi = cy + counter_margin
                 elif y_frac >= 0.85:
-                    # Top boundary — extend mostly DOWN into counter
-                    y_lo = cy - counter_h * 0.7
-                    y_hi = cy + cross_margin
+                    # Top boundary: body is ABOVE, counter BELOW
+                    y_lo = cy - counter_margin
+                    y_hi = cy + body_margin
                 else:
-                    # Interior — symmetric
                     y_lo = cy - counter_h / 4
                     y_hi = cy + counter_h / 4
                 bridge = box(cx - half_w, y_lo, cx + half_w, y_hi)
             else:  # 'H'
                 if x_frac <= 0.15:
-                    # Left boundary
-                    x_lo = cx - cross_margin
-                    x_hi = cx + counter_w * 0.7
+                    # Left boundary: body LEFT, counter RIGHT
+                    x_lo = cx - body_margin
+                    x_hi = cx + counter_margin
                 elif x_frac >= 0.85:
-                    # Right boundary
-                    x_lo = cx - counter_w * 0.7
-                    x_hi = cx + cross_margin
+                    x_lo = cx - counter_margin
+                    x_hi = cx + body_margin
                 else:
-                    # Interior
                     x_lo = cx - counter_w / 4
                     x_hi = cx + counter_w / 4
                 bridge = box(x_lo, cy - half_w, x_hi, cy + half_w)

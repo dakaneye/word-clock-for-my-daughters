@@ -77,7 +77,11 @@ inline void set_spans_common(Grid& g) {
     set(WordId::SIX, 7, 4, 3);
     set(WordId::TWELVE, 7, 7, 6);
     // Row 8: AT and FIVE_HR same position for both kids; NAME length set per-kid below.
-    set(WordId::AT, 8, 6, 2);
+    // AT lives on row 11 (cols 10-11 of "A F T E R N O O N 0 A T 2"), not row 8.
+    // Row-8 "AT" letters (cols 6-7) are now decorative-only. This placement keeps
+    // the "AT NIGHT" phrase in reading order for times like "ELEVEN OCLOCK AT NIGHT" —
+    // AT below OCLOCK (row 9) in reading order.
+    set(WordId::AT, 11, 10, 2);
     set(WordId::FIVE_HR, 8, 8, 4);
     // Row 9
     set(WordId::TEN_HR, 9, 0, 3);

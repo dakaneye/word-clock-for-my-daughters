@@ -34,12 +34,57 @@ Live working list of what's left. Original phase-by-phase roadmap is at
 
 ## Breadboard bring-up (after smoke test passes)
 
+Per-peripheral isolation tests first, then the Phase 2 firmware modules that
+wire everything together. See
+`docs/superpowers/plans/2026-04-14-daughters-clocks-implementation.md` §Phase 2.
+
 - [ ] **ESP32 alone** — blink sketch. Confirms power + flashing path work on the real module.
 - [ ] **I²C + DS3231** — scanner sketch finds address `0x68`.
 - [ ] **MicroSD** — SPI file-listing sketch.
 - [ ] **MAX98357A + speaker** — 440 Hz tone test.
 - [ ] **WS2812B chain (1-3 LEDs via 74HCT245 level shifter)** — FastLED rainbow. Tests the 3.3 V → 5 V level-shift path that the PCB uses.
-- [ ] **Full integration — all peripherals on one breadboard.** Run the firmware logic tests as actual code paths, not just the native pytest suite. This is the real de-risk before submitting the PCB.
+- [ ] **Full integration — all peripherals on one breadboard.** All Phase 2 modules (below) running together. Real de-risk before submitting the PCB.
+
+## Phase 2 firmware modules (built during breadboard bring-up)
+
+Phase 1 produced pure-logic modules that don't touch hardware (`time_to_words`,
+`dim_schedule`, holiday/birthday triggers, grid rendering). Phase 2 is
+everything that actually drives the hardware and WiFi. Modules to write:
+
+- [ ] **`display`** — FastLED driver + the Phase 1 renderer. Applies
+      `dim_schedule` multiplier, holiday palettes, birthday rainbow cycle.
+- [ ] **`rtc`** — DS3231 read/write via RTClib; remove the ZS-042 battery-
+      charging resistor before inserting CR2032.
+- [ ] **`ntp`** — NTPClient on boot + every 6 hours; falls back to RTC if
+      WiFi unreachable.
+- [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop
+      behavior: press once to play lullaby, press during playback to stop.
+      Volume is fixed in firmware and tuned during assembly.
+- [ ] **`buttons`** — debounced tact-switch input on GPIO 14 / 32 / 33
+      (hour / minute / audio).
+- [ ] **`wifi_provision` (captive portal)** — first-boot WiFi setup. Clock
+      creates a temporary open AP ("WordClock-Setup-XXXX"), serves an HTML
+      form where the user picks an SSID + enters password, stores
+      credentials in `Preferences` NVS, reboots onto the chosen network.
+      Captive portal library: pick between **WiFiManager** (battle-tested
+      but opinionated UI) and **custom + `DNSServer` + `WebServer`** (more
+      control, more code). Ship decision during module implementation.
+- [ ] **HTML/CSS for the captive portal form** — `firmware/data/index.html`
+      (served by SPIFFS or LittleFS). Simple form: SSID dropdown (populated
+      from `WiFi.scanNetworks()`), password field, submit button. Style to
+      match the clock's aesthetic (warm whites, serif font); the user will
+      see this once per clock during setup. Test against a mocked backend
+      in a desktop browser before wiring to firmware.
+- [ ] **`main.cpp` state machine** — boot → captive portal if no creds → NTP
+      sync → normal clock loop, with holiday / birthday / bedtime-dim modes
+      and audio button handling interleaved.
+- [ ] **SD-card filesystem layout** — pick flat root with `lullaby.mp3` +
+      `birth.mp3` (simplest) vs `emory/` + `nora/` subdirs (lets one card
+      serve both builds during dev). Flat root wins unless we need the
+      per-kid split during testing.
+- [ ] **Audio file format** — pick MP3 bitrate (128 kbps VBR is fine for
+      voice + a simple lullaby, tiny on a microSD). Confirm MAX98357A +
+      decoder library can handle the chosen format at I²S sample rate.
 
 ## PCB finalization + order
 
@@ -53,7 +98,7 @@ Live working list of what's left. Original phase-by-phase roadmap is at
 - [ ] **Install build123d** (Python CAD library) for parametric part authoring.
 - [ ] **PCB standoff posts (×4)** — 20 mm tall cylinders with a wider glue base, epoxied to the back panel interior at PCB corner positions. Compression-sandwich design: back-panel screws pull everything tight, PCB has no permanent fasteners. ~15 min part.
 - [ ] **Button actuator caps (×3)** — tiered cylinders that slide through the 6.5 mm panel holes, bridging the ~14 mm air gap to the tact switch plungers. ~30 min part.
-- [ ] **Speaker cradle** — cup with 2 mount-tab screw holes matching the speaker (~37 mm tab spacing, measure exactly from the physical part), glued to the back panel interior behind the vent. ~1-2 hrs.
+- [ ] **Speaker cradle** — cup with 2 mount-tab screw holes matching the speaker (~37 mm tab spacing, measure exactly from the physical part), glued to the back panel interior behind the vent. Worth printing vs gluing the speaker directly because the speakers are cheap ($2.50 each, 4-pack) while a replacement back panel is ~$50 — cradle keeps the speaker swappable without wasting wood. ~1-2 hrs to design.
 - [ ] **Diffuser material test** — compare paper vs 0.5 mm frosted PETG on a single LED. Locks the light-channel depth.
 - [ ] **Light channel honeycomb** — walls isolating each word's LED pocket, 35 LED pockets, snap fits to PCB, height ~18 mm. Substantial part; budget several hours of iteration. May be easier in Fusion/Onshape than scripted.
 
@@ -75,8 +120,7 @@ Live working list of what's left. Original phase-by-phase roadmap is at
 
 ## Parallel tracks (low-brain, re-doable, non-blocking)
 
-- [ ] **Captive portal HTML/CSS** — first-boot WiFi setup form. Test in a browser with mock data.
-- [ ] **Voice-memo recording** — Dad's voice at birth minute (6:10 PM Emory, 9:17 AM Nora). Re-recordable up to delivery.
+- [ ] **Voice-memo recording** — Dad's voice at birth minute (6:10 PM Emory, 9:17 AM Nora). Re-recordable up to delivery in 2030 / 2032, so v1 now is fine.
 - [ ] **Lullaby recording** — one song per kid. Same re-record window.
 
 ## Open questions (to resolve when the situation demands)

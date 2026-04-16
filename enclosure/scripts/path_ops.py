@@ -186,13 +186,15 @@ def _signed_area(points: List[Tuple[float, float]]) -> float:
     return s / 2
 
 
-def _apply_bridges(geom, char: str, bridge_width_units: float, bridge_length_units: float):
+def _apply_bridges(geom, char: str, bridge_width_units: float):
     """Subtract strut rectangles from the letter polygon so the inner counter
     stays connected to the main face after cutting.
 
-    Bridges are only applied to letters in BRIDGE_RULES. Each hole in the
-    polygon gets the same rule list applied to it, so letters with multiple
-    counters (e.g. B) get the rule applied once per counter.
+    Bridge length is derived PER-HOLE from the counter's bbox so the strut
+    exactly crosses the ring at the counter boundary — too-long bridges
+    would slice through the rest of the letter. Each hole gets each rule
+    applied to it, so letters with multiple counters (B) get 1 strut per
+    counter with the single rule.
     """
     if char not in BRIDGE_RULES or geom.is_empty:
         return geom
@@ -209,18 +211,25 @@ def _apply_bridges(geom, char: str, bridge_width_units: float, bridge_length_uni
     result = geom
     for interior in interiors:
         x0, y0, x1, y1 = interior.bounds
+        counter_w = x1 - x0
+        counter_h = y1 - y0
         for orientation, x_frac, y_frac in rules:
-            cx = x0 + x_frac * (x1 - x0)
-            cy = y0 + y_frac * (y1 - y0)
+            cx = x0 + x_frac * counter_w
+            cy = y0 + y_frac * counter_h
             if orientation == "V":
+                # Vertical bridge — narrow in X, spans in Y.
+                # Length = counter_h so it reaches from inside counter to just
+                # past the ring on the outside of the letter.
+                length = counter_h
                 bridge = box(
-                    cx - bridge_width_units / 2, cy - bridge_length_units / 2,
-                    cx + bridge_width_units / 2, cy + bridge_length_units / 2,
+                    cx - bridge_width_units / 2, cy - length / 2,
+                    cx + bridge_width_units / 2, cy + length / 2,
                 )
             else:  # 'H'
+                length = counter_w
                 bridge = box(
-                    cx - bridge_length_units / 2, cy - bridge_width_units / 2,
-                    cx + bridge_length_units / 2, cy + bridge_width_units / 2,
+                    cx - length / 2, cy - bridge_width_units / 2,
+                    cx + length / 2, cy + bridge_width_units / 2,
                 )
             result = result.difference(bridge)
     return result
@@ -230,31 +239,28 @@ def union_glyph_path(
     path_data: str,
     char: Optional[str] = None,
     bridge_width_units: float = 0,
-    bridge_length_units: float = 0,
 ) -> str:
     """Union overlapping subpaths in glyph SVG path data, preserving holes.
 
-    CCW subpaths are treated as filled regions (letter bodies); CW subpaths
-    are treated as holes (inner counters). The result is
-    (union of CCW regions) minus (union of CW regions).
+    Winding direction (CCW vs CW) that marks outer rings vs inner counters
+    differs between font formats: TrueType (e.g. Jost) uses CCW outer,
+    CFF/PostScript (e.g. Fraunces) uses CW outer. We detect the convention
+    per-glyph by looking at the LARGEST polygon's winding: it's always the
+    outer in our use case (no glyph has an inner counter larger than its own
+    outer outline). Polygons with the same winding as the largest are treated
+    as outers (unioned together); the others are holes (subtracted).
 
-    If char is provided and matches a rule in BRIDGE_RULES, strut rectangles
-    are subtracted from each inner counter so the counter wood stays attached
-    to the main face after cutting. bridge_width_units and bridge_length_units
-    must be given in FONT UNITS (caller converts mm → font units via the
-    font's cap-height scale).
-
-    Returns cleaned SVG path data. Original path_data is returned unchanged
-    if parsing yields no valid polygons.
+    If char matches a rule in BRIDGE_RULES, strut rectangles are subtracted
+    from each inner counter so counter wood stays attached after cutting.
     """
     if not path_data.strip():
         return path_data
 
     subpaths = _parse_svg_path(path_data)
-    exteriors = []
-    holes = []
+    # Filter to valid polygons + record signed area
+    raw_polys = []
     for sub in subpaths:
-        if len(sub) < 4:  # need at least 3 unique points + closing repeat
+        if len(sub) < 4:
             continue
         area = _signed_area(sub)
         try:
@@ -265,21 +271,29 @@ def union_glyph_path(
                 continue
         except Exception:
             continue
-        if area > 0:
+        raw_polys.append((area, poly))
+
+    if not raw_polys:
+        return path_data
+
+    # Determine this glyph's outer-winding convention from the largest polygon
+    largest = max(raw_polys, key=lambda ap: abs(ap[0]))
+    outer_sign = 1 if largest[0] > 0 else -1
+
+    exteriors = []
+    holes = []
+    for area, poly in raw_polys:
+        if (area > 0) == (outer_sign > 0):
             exteriors.append(poly)
         else:
             holes.append(poly)
 
-    if not exteriors:
-        return path_data
-
     outer = unary_union(exteriors)
     if holes:
-        hole_union = unary_union(holes)
-        outer = outer.difference(hole_union)
+        outer = outer.difference(unary_union(holes))
 
-    if char and bridge_width_units > 0 and bridge_length_units > 0:
-        outer = _apply_bridges(outer, char, bridge_width_units, bridge_length_units)
+    if char and bridge_width_units > 0:
+        outer = _apply_bridges(outer, char, bridge_width_units)
 
     result = _shapely_to_svg(outer)
     return result if result else path_data

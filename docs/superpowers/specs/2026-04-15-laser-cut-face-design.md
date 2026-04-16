@@ -253,6 +253,13 @@ Ponoko pricing varies by piece area and material. Rough estimate for both clocks
 
 Spec-level budget for laser-cut wood was ~$80 for both clocks (original spec); hardwood upgrade pushes this to $145–215. For a 40-year heirloom, this is the right line to spend on.
 
+## Implementation status
+
+- Implementation plan: `docs/superpowers/plans/2026-04-15-laser-cut-face-implementation.md`
+- Generator: `enclosure/scripts/build.py` (run from repo root via `python enclosure/scripts/build.py`)
+- Output SVGs: `enclosure/{emory,nora}-{face,frame}.svg` + `enclosure/cardboard-test-face.svg`
+- Tests: `pytest enclosure/scripts/tests/`
+
 ## References
 
 - Parent spec: `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md`

@@ -53,3 +53,28 @@ def test_letter_transform_centers_letter_in_cell():
     transform = letter_transform_for_cell(font, "E", row=0, col=0, bbox=bbox)
     expected_cx, expected_cy = cell_center_mm(0, 0)
     assert transform.startswith(f"translate({expected_cx},{expected_cy})")
+
+
+from enclosure.scripts.render_face import render_face_svg
+
+
+def test_render_emory_face_has_169_letter_paths():
+    svg_text = render_face_svg(kid="emory")
+    # 169 letter cells + 1 outer rect
+    path_count = svg_text.count("<path")
+    rect_count = svg_text.count("<rect")
+    assert path_count == 169, f"Expected 169 paths, got {path_count}"
+    assert rect_count == 1, f"Expected 1 outer rect, got {rect_count}"
+
+
+def test_render_emory_face_uses_jost_vs_nora_uses_fraunces():
+    """Emory and Nora SVGs should differ (different fonts + different row 8/fillers)."""
+    emory_svg = render_face_svg(kid="emory")
+    nora_svg = render_face_svg(kid="nora")
+    assert emory_svg != nora_svg, "Emory and Nora SVGs should differ"
+
+
+def test_render_face_outer_dimensions():
+    svg_text = render_face_svg(kid="emory")
+    assert 'width="192.0mm"' in svg_text
+    assert 'height="192.0mm"' in svg_text

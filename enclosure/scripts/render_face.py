@@ -47,3 +47,44 @@ def letter_transform_for_cell(font: TTFont, char: str, row: int, col: int,
     inner_dy = -glyph_visual_center_y_units
 
     return f"translate({cx},{cy}) scale({scale},{-scale}) translate({inner_dx},{inner_dy})"
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+GRID_CPP = REPO_ROOT / "firmware" / "lib" / "core" / "src" / "grid.cpp"
+
+KID_FONT_CONFIG = {
+    "emory": {"filename": "Jost-Variable.ttf", "weight": 700, "opsz": None},
+    "nora": {"filename": "Fraunces-Variable.ttf", "weight": 500, "opsz": 14},
+}
+
+
+def render_face_svg(kid: str, grid_cpp_path: Path = GRID_CPP) -> str:
+    """Render the face SVG for the given kid ("emory" or "nora").
+    Returns the full SVG document as a string.
+    """
+    if kid not in KID_FONT_CONFIG:
+        raise ValueError(f"Unknown kid {kid!r}; expected 'emory' or 'nora'")
+
+    grids = parse_grid_cpp(grid_cpp_path)
+    grid = grids[kid]
+
+    font_config = KID_FONT_CONFIG[kid]
+    font = load_font_instance(
+        filename=font_config["filename"],
+        weight=font_config["weight"],
+        opsz=font_config["opsz"],
+    )
+
+    dwg = new_svg_document(width_mm=FACE_SIZE_MM, height_mm=FACE_SIZE_MM)
+    add_cut_rect(dwg, x=0, y=0, width=FACE_SIZE_MM, height=FACE_SIZE_MM)
+
+    for row in range(13):
+        for col in range(13):
+            char = grid[row][col]
+            path_data, bbox = render_glyph(font, char)
+            if bbox is None:
+                continue
+            transform = letter_transform_for_cell(font, char, row, col, bbox)
+            add_cut_path(dwg, path_data, transform=transform)
+
+    return dwg.tostring()

@@ -70,12 +70,20 @@
 - **What to look for:** Class 10 or better (read speed ≥10 MB/s — overkill for audio but it's the baseline), FAT32 formatted (Windows default). SanDisk / Samsung / Kingston are all fine; avoid no-name brands (higher failure rate).
 - **Sourcing:** Literally anywhere — drugstore, Amazon, Best Buy.
 
-### USB-C breakout board — **$3-5** × 1
+### USB-C breakout board — **$3-5** × 1 — *no longer on the final PCB, still useful for breadboard bring-up*
 
 - **What it is:** A small board that breaks out a USB-C connector's pins to through-hole pads you can wire to.
-- **Why this clock needs it:** The final design takes power over USB-C only (no separate wall adapter). For the breadboard, we just need the 5V + GND pins; data lines aren't used yet. The breakout lets us plug a standard USB-C cable into the dev rig.
-- **What to look for:** Breakout for USB-C Power-Delivery is overkill — a simple "USB-C breakout 5.1k CC resistor" board is perfect and $3. The 5.1k resistors on the CC pins tell a USB-C power supply to deliver 5V at up to 3A (default profile).
+- **Status in the final design:** Superseded. The final PCB powers everything through the ESP32 module's native micro-USB (see `docs/hardware/usb-c-breakout-removal-guide.md`). The user-facing USB-C port on the back panel is provided by a panel-mount pigtail (see next entry), not this breakout.
+- **Why it's still on the buy list:** Handy for the Phase 2 breadboard bring-up — lets you feed 5V/GND to the rail without relying on the ESP32 module's micro-USB while you're still probing things. Also a generic USB-C dev tool worth having.
+- **What to look for:** "USB-C breakout 5.1k CC resistor" board — no PD chip needed. The 5.1k resistors on the CC pins request 5V default-profile power.
 - **Sourcing:** Amazon "USB-C breakout 5.1k" search. Adafruit has a fancy version for $5.
+
+### USB-C panel mount to micro-USB pigtail — **$6-10** × 2
+
+- **What it is:** A short cable (15-30 cm) with a USB-C female connector on one end (designed for panel mounting — has a nut and O-ring for fastening through a back-panel hole) and a micro-USB male plug on the other end.
+- **Why this clock needs it:** Provides the user-facing USB-C port on the back panel. Plugs internally into the ESP32 module's native micro-USB, so both power and firmware flashing flow through the module.
+- **What to look for:** Explicitly labeled USB 2.0 **data** (not charge-only). Internal conductors 22-24 AWG for power (thin cheap pigtails use 28 AWG and sag under current). CC resistor pull-downs on the USB-C side so the adapter enumerates as a USB-C device.
+- **Sourcing:** Adafruit (product "USB-C to Micro B Female Panel Mount"), Amazon, Digi-Key. Two needed — one per clock. Order one for the Emory build first; validate before ordering Nora's.
 
 ### Tactile switches (6×6mm) — **$3 for a pack of 20** × 1 pack
 

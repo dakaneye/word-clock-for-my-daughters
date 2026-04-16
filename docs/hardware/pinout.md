@@ -55,7 +55,7 @@
 
 ## Power
 
-- **Input:** USB-C 5V via USB-C breakout (5.1kΩ CC resistors only — no PD chip). Per USB-C spec without PD, this negotiates 5V @ 1.5A max from a compliant charger. Most consumer 5V/2A chargers ignore this and deliver the full 2A, but we can't rely on it.
+- **Input:** USB-C from the back panel via a panel-mount USB-C-female-to-micro-USB-male pigtail, plugged into the ESP32 module's on-board micro-USB port. The CP2102 bridge on the module handles enumeration for firmware flashing; the module's 5V pin feeds the main +5V rail. The original Cermant USB-C breakout (with 5.1kΩ CC resistors) has been removed — see `docs/hardware/usb-c-breakout-removal-guide.md`. Power negotiation is now whatever the module's micro-USB input does (no PD chip anywhere; relies on the 5V/2A charger delivering full rated current, same as before).
 - **Power budget (worst case):**
   - WS2812B 25 LEDs full white: 1.5A @ 5V = 7.5W
   - ESP32 WiFi active peak: ~500 mA @ 5V (after 3.3V reg) = 2.5W

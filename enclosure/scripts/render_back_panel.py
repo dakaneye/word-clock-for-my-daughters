@@ -112,15 +112,24 @@ BUTTON_LABELS = {
 }
 
 # Placement centers (panel-frame mm, outside-view convention).
-# Button column lives upper-left (mirrored from PCB X=168.5). The USB cable
-# exits upper-right, roughly above where the ESP32 module sits on the PCB
-# (PCB X=73 → mirrored panel X≈112; upper-right exit at 164 keeps it clear
-# of the buttons and gives the cable a short run from the module's micro-USB
-# port straight up to the grommet). Speaker vent is on the vertical
-# centerline — the speaker driver is mounted via a 3D-printed cradle
-# directly behind the vent, independent of the MAX98357A amp's PCB position.
-USB_CABLE_EXIT_CENTER = (164.0, 30.0)
-SPEAKER_VENT_CENTER = (96.0, 152.0)
+#
+# Button column: upper-left (mirrored from PCB X=168.5).
+#
+# USB cable exit: upper-center above the ESP32 module. The module is at PCB
+# (73, 72.5); its pin-1 end (USB end per the 38-pin dev-board convention)
+# sits at PCB (84, 73.5) with the micro-USB receptacle pointing toward
+# Y=0 (top of PCB). In outside-view panel coords that's X = 192 − (73+7.1)
+# ≈ 112. Grommet at Y=20 keeps the cable run short and lets the cable
+# flex 90° from horizontal-off-the-port up to the back panel.
+#
+# Speaker vent: lower-left, close to the MAX98357A amp header J_AMP1
+# (PCB 102.75, −87.25 → outside-view panel ≈ (82, 94)). Placing the
+# speaker driver toward the lower-left minimizes the 2-wire speaker cable
+# run to the amp. Speaker body is 28.2 × 31 mm + mounting tabs, so the
+# vent grid's center stays a comfortable distance from both the left
+# edge (at ~50) and the bottom edge (at ~150).
+USB_CABLE_EXIT_CENTER = (112.0, 20.0)
+SPEAKER_VENT_CENTER = (55.0, 150.0)
 DEDICATION_CENTER = (96.0, 100.0)
 
 KID_CONFIG = {

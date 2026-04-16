@@ -46,9 +46,35 @@ def test_panel_has_expected_cutouts(kid):
     assert circles == 4 + 3 + 2 + 25, (
         f"{kid}: expected 34 circles, got {circles}"
     )
-    # Outer panel + USB-C cutout + SD slot = 3 rects.
+    # Outer panel + stadium-rounded USB-C cutout = 2 rects. SD slot removed
+    # (user inserts the card once before closing the back panel).
     rects = _count_rects(svg)
-    assert rects == 3, f"{kid}: expected 3 rects, got {rects}"
+    assert rects == 2, f"{kid}: expected 2 rects, got {rects}"
+
+
+@pytest.mark.parametrize("kid", ["emory", "nora"])
+def test_usbc_cutout_is_stadium_shaped(kid):
+    svg = render_back_panel_svg(kid)
+    # The USB-C cutout is the only rect with rx/ry attributes (outer panel
+    # has none). Confirm it's drawn as a rounded rect matching the USB-C
+    # receptacle profile: rx == ry == height / 2 for a pill/stadium.
+    assert 'rx="2.0"' in svg, "USB-C cutout should have rx=2.0 (half of 4mm height)"
+    assert 'ry="2.0"' in svg
+
+
+@pytest.mark.parametrize("kid", ["emory", "nora"])
+def test_panel_has_button_labels(kid):
+    """Each button hole gets a raster-engraved text label ("Hour", "Min",
+    "Audio"). Labels rendered as filled paths — check the glyph count is
+    large enough to cover all three labels' letters.
+    """
+    svg = render_back_panel_svg(kid)
+    engrave_paths = re.findall(r'<path[^>]*fill="#000000"', svg)
+    # Dedication ~15 glyphs (two lines) + Hour/Min/Audio = 4 + 3 + 5 = 12 more.
+    assert len(engrave_paths) >= 25, (
+        f"{kid}: too few engraved glyphs ({len(engrave_paths)}) — "
+        "either dedication or button labels are missing"
+    )
 
 
 @pytest.mark.parametrize("kid", ["emory", "nora"])

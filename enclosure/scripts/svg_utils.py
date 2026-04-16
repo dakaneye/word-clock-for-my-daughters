@@ -25,15 +25,23 @@ def new_svg_document(width_mm: float, height_mm: float) -> svgwrite.Drawing:
 
 
 def add_cut_rect(dwg: svgwrite.Drawing, x: float, y: float,
-                 width: float, height: float) -> None:
-    """Add a rectangular cut path to the document."""
-    dwg.add(dwg.rect(
-        insert=(x, y),
-        size=(width, height),
-        fill="none",
-        stroke=PONOKO_CUT_COLOR,
-        stroke_width=PONOKO_STROKE_WIDTH_MM,
-    ))
+                 width: float, height: float,
+                 corner_radius: Optional[float] = None) -> None:
+    """Add a rectangular cut path to the document. Pass ``corner_radius``
+    (in mm) to round the corners — useful for panel-mount connector
+    cutouts that match stadium-shaped receptacles like USB-C.
+    """
+    kwargs = {
+        "insert": (x, y),
+        "size": (width, height),
+        "fill": "none",
+        "stroke": PONOKO_CUT_COLOR,
+        "stroke_width": PONOKO_STROKE_WIDTH_MM,
+    }
+    if corner_radius is not None:
+        kwargs["rx"] = corner_radius
+        kwargs["ry"] = corner_radius
+    dwg.add(dwg.rect(**kwargs))
 
 
 def add_cut_path(dwg: svgwrite.Drawing, path_data: str,

@@ -16,15 +16,19 @@ both parts share the frame's exterior footprint. Carries:
     the case and connects to the ESP32 module's Micro-USB via a short
     standard Micro-USB male-to-female extension cable. Dimensions are
     placeholders — verify against the specific adapter when it arrives.
-  • microSD access slot aligned to the HW-125 SD slot position. Flagged
-    [LOW] confidence — exact slot location depends on which direction the
-    breakout is oriented when plugged in. Verify during first fit-up.
   • Speaker vent — grid of small holes centered in the lower-middle
     region. Final diameter / count TBD once the speaker driver is chosen
     (affects acoustic behavior); current pattern is a reasonable
     placeholder that will not need the speaker spec to look right.
   • Dedication raster engraving — per-kid text rendered from the same
     variable font as the face (Jost Bold for Emory, Fraunces for Nora).
+  • Button labels ("Hour", "Min", "Audio") raster-engraved next to each
+    tact-switch cutout so the user can tell the buttons apart by touch
+    and by sight when reading the back of the clock.
+
+  SD card slot is intentionally **not** cut — the card is inserted once
+  before the back panel closes, and subsequent audio updates are rare
+  enough that removing the 4 corner screws is acceptable.
 
 Coordinate system: the panel SVG is drawn as viewed **from outside the
 clock** — i.e., looking at the back of the finished clock with the
@@ -90,10 +94,6 @@ USBC_CUTOUT_H_MM = 4.0
 USBC_SCREW_SPACING_MM = 28.0
 USBC_SCREW_DIA_MM = 2.2             # M2 clearance
 
-# microSD access slot. HW-125 SD slot opening is roughly 12 × 2 mm.
-SD_SLOT_W_MM = 14.0
-SD_SLOT_H_MM = 3.0
-
 # Speaker vent — 5×5 grid of 2 mm holes at 4 mm pitch ≈ 16 mm square vent.
 SPEAKER_VENT_ROWS = 5
 SPEAKER_VENT_COLS = 5
@@ -103,6 +103,17 @@ SPEAKER_VENT_PITCH_MM = 4.0
 # Dedication engraving.
 DEDICATION_CAP_HEIGHT_MM = 5.0
 DEDICATION_LINE_SPACING_MM = 8.0
+
+# Button labels — raster-engraved next to each switch hole.
+BUTTON_LABEL_CAP_HEIGHT_MM = 3.0
+BUTTON_LABEL_X_OFFSET_MM = 8.0   # label leading edge, right of button hole center
+BUTTON_LABEL_Y_OFFSET_MM = 1.0   # baseline nudge so text visually centers on hole
+
+BUTTON_LABELS = {
+    "SW3": "Hour",
+    "SW1": "Min",
+    "SW2": "Audio",
+}
 
 # Placement centers (panel-frame mm, outside-view convention).
 # Button column lives upper-left (mirrored from PCB X=168.5), so the USB-C
@@ -122,7 +133,6 @@ KID_CONFIG = {
         "dedication_lines": [
             "For Emory",
             "love Dad",
-            "2030",
         ],
     },
     "nora": {
@@ -132,7 +142,6 @@ KID_CONFIG = {
         "dedication_lines": [
             "For Nora",
             "love Dad",
-            "2032",
         ],
     },
 }
@@ -169,71 +178,89 @@ def _read_switch_positions(csv_path: Path = PCB_POS_CSV) -> list[Tuple[str, floa
     return out
 
 
-def _read_sd_header_position(csv_path: Path = PCB_POS_CSV) -> Tuple[float, float]:
-    """Return (x, y) of the HW-125 microSD header in outside-view panel mm."""
-    with csv_path.open() as f:
-        for row in csv.DictReader(f):
-            if "HW-125" in row["Val"] or row["Ref"].strip('"') == "J_SD1":
-                pcb_x = float(row["PosX"])
-                pcb_y = -float(row["PosY"])
-                return _pcb_to_panel_outside(pcb_x, pcb_y)
-    raise RuntimeError("Could not find J_SD1 / HW-125 header in CPL CSV")
+def _render_engraved_text(
+    dwg, font: TTFont, text: str, baseline_mm: Tuple[float, float],
+    cap_height_mm: float, *, align: str = "center",
+) -> None:
+    """Render a single line of text as raster-engrave paths.
+
+    ``align`` is one of "center" (text centered on baseline_mm X), "left"
+    (baseline_mm X is the left edge), "right" (baseline_mm X is the right edge).
+    Y is always the baseline.
+    """
+    cap_height_units = font["OS/2"].sCapHeight
+    scale = cap_height_mm / cap_height_units
+
+    line_width_units = 0.0
+    glyph_infos = []
+    for ch in text:
+        if ch == " ":
+            advance_units = cap_height_units * 0.3
+            glyph_infos.append((ch, None, None, advance_units))
+            line_width_units += advance_units
+            continue
+        path_data, bbox = render_glyph(font, ch)
+        if bbox is None:
+            continue
+        gxmin, _, gxmax, _ = bbox
+        advance_units = (gxmax - gxmin) + cap_height_units * 0.05
+        glyph_infos.append((ch, path_data, bbox, advance_units))
+        line_width_units += advance_units
+
+    line_width_mm = line_width_units * scale
+    if align == "center":
+        x = baseline_mm[0] - line_width_mm / 2
+    elif align == "left":
+        x = baseline_mm[0]
+    elif align == "right":
+        x = baseline_mm[0] - line_width_mm
+    else:
+        raise ValueError(f"invalid align: {align!r}")
+    line_y = baseline_mm[1]
+
+    for ch, path_data, bbox, advance_units in glyph_infos:
+        if path_data is None:
+            x += advance_units * scale
+            continue
+        gxmin, _, _, _ = bbox
+        inner_dx = -gxmin
+        transform = (
+            f"translate({x},{line_y}) "
+            f"scale({scale},{-scale}) "
+            f"translate({inner_dx},0)"
+        )
+        add_engrave_path(dwg, path_data, transform=transform)
+        x += advance_units * scale
 
 
 def _render_dedication(
     dwg, font: TTFont, lines: list[str], center: Tuple[float, float]
 ) -> None:
     """Render the dedication as raster-engrave paths centered at `center`."""
-    cap_height_units = font["OS/2"].sCapHeight
-    scale = DEDICATION_CAP_HEIGHT_MM / cap_height_units
-
     total_h = DEDICATION_LINE_SPACING_MM * (len(lines) - 1)
     y0 = center[1] - total_h / 2
-
     for i, text in enumerate(lines):
         line_y = y0 + i * DEDICATION_LINE_SPACING_MM
+        _render_engraved_text(
+            dwg, font, text, (center[0], line_y),
+            DEDICATION_CAP_HEIGHT_MM, align="center",
+        )
 
-        # Width pass first (to center the line horizontally).
-        line_width_units = 0.0
-        glyph_infos = []
-        for ch in text:
-            if ch == " ":
-                # Rough inter-word space — no glyph path, just advance by
-                # 0.3 × cap height which is a reasonable spacing for most
-                # Latin fonts.
-                advance_units = cap_height_units * 0.3
-                glyph_infos.append((ch, None, None, advance_units))
-                line_width_units += advance_units
-                continue
-            path_data, bbox = render_glyph(font, ch)
-            if bbox is None:
-                continue
-            gxmin, _, gxmax, _ = bbox
-            glyph_width = gxmax - gxmin
-            # Side-bearing gap matches the character's own left side-bearing
-            # for a basic fitted layout; skip kerning as over-engineering.
-            advance_units = glyph_width + cap_height_units * 0.05
-            glyph_infos.append((ch, path_data, bbox, advance_units))
-            line_width_units += advance_units
 
-        line_width_mm = line_width_units * scale
-        x = center[0] - line_width_mm / 2
-
-        for ch, path_data, bbox, advance_units in glyph_infos:
-            if path_data is None:
-                x += advance_units * scale
-                continue
-            gxmin, _, _, _ = bbox
-            # Each glyph is transformed from font-unit space to mm, with the
-            # baseline at line_y. Font Y-up → SVG Y-down via negative scale.
-            inner_dx = -gxmin
-            transform = (
-                f"translate({x},{line_y}) "
-                f"scale({scale},{-scale}) "
-                f"translate({inner_dx},0)"
-            )
-            add_engrave_path(dwg, path_data, transform=transform)
-            x += advance_units * scale
+def _render_button_labels(
+    dwg, font: TTFont, switches: list[Tuple[str, float, float]]
+) -> None:
+    """Engrave "Hour" / "Min" / "Audio" next to each tact-switch cutout."""
+    for ref, bx, by in switches:
+        label = BUTTON_LABELS.get(ref)
+        if not label:
+            continue
+        label_x = bx + BUTTON_LABEL_X_OFFSET_MM
+        label_y = by + BUTTON_LABEL_Y_OFFSET_MM
+        _render_engraved_text(
+            dwg, font, label, (label_x, label_y),
+            BUTTON_LABEL_CAP_HEIGHT_MM, align="left",
+        )
 
 
 def render_back_panel_svg(kid: str) -> str:
@@ -259,10 +286,12 @@ def render_back_panel_svg(kid: str) -> str:
         add_cut_circle(dwg, cx, cy, SCREW_CLEARANCE_MM)
 
     # 3. Button access holes (aligned to tact switches on PCB bottom side).
-    for _ref, x, y in _read_switch_positions():
+    switches = _read_switch_positions()
+    for _ref, x, y in switches:
         add_cut_circle(dwg, x, y, BUTTON_HOLE_DIA_MM)
 
-    # 4. USB-C panel-mount cutout.
+    # 4. USB-C access cutout — stadium/pill shape (rounded rect with
+    #    corner radius == height/2) so it matches the USB-C receptacle face.
     ux, uy = USBC_CENTER
     add_cut_rect(
         dwg,
@@ -270,28 +299,14 @@ def render_back_panel_svg(kid: str) -> str:
         y=uy - USBC_CUTOUT_H_MM / 2,
         width=USBC_CUTOUT_W_MM,
         height=USBC_CUTOUT_H_MM,
+        corner_radius=USBC_CUTOUT_H_MM / 2,
     )
     # Screw holes on either side of the USB-C cutout.
     half_span = USBC_SCREW_SPACING_MM / 2
     add_cut_circle(dwg, ux - half_span, uy, USBC_SCREW_DIA_MM)
     add_cut_circle(dwg, ux + half_span, uy, USBC_SCREW_DIA_MM)
 
-    # 5. microSD access slot — centered on the J_SD1 header X, placed at a
-    #    Y that assumes the HW-125 breakout orients with the SD slot pointing
-    #    away from the PCB top edge. Verify during Emory assembly.
-    sd_x, _sd_header_y = _read_sd_header_position()
-    # The SD slot opening sits ~20 mm from the header on a typical HW-125.
-    # Place the cutout at that offset in the +Y direction (toward PCB center).
-    sd_slot_y = _sd_header_y + 20.0
-    add_cut_rect(
-        dwg,
-        x=sd_x - SD_SLOT_W_MM / 2,
-        y=sd_slot_y - SD_SLOT_H_MM / 2,
-        width=SD_SLOT_W_MM,
-        height=SD_SLOT_H_MM,
-    )
-
-    # 6. Speaker vent grid.
+    # 5. Speaker vent grid.
     svx, svy = SPEAKER_VENT_CENTER
     total_w = (SPEAKER_VENT_COLS - 1) * SPEAKER_VENT_PITCH_MM
     total_h = (SPEAKER_VENT_ROWS - 1) * SPEAKER_VENT_PITCH_MM
@@ -306,12 +321,13 @@ def render_back_panel_svg(kid: str) -> str:
                 SPEAKER_VENT_HOLE_DIA_MM,
             )
 
-    # 7. Dedication engraving.
+    # 6. Dedication + button labels (both raster-engraved in the kid's font).
     font = load_font_instance(
         filename=cfg["font_filename"],
         weight=cfg["font_weight"],
         opsz=cfg["font_opsz"],
     )
     _render_dedication(dwg, font, cfg["dedication_lines"], DEDICATION_CENTER)
+    _render_button_labels(dwg, font, switches)
 
     return dwg.tostring()

@@ -13,7 +13,7 @@ from enclosure.scripts.render_back_panel import (
     FRAME_THICKNESS_MM,
     PANEL_SIZE_MM,
     SCREW_CLEARANCE_MM,
-    SCREW_INSET_MM,
+    SCREW_CORNER_INSET_MM,
     _read_switch_positions,
     render_back_panel_svg,
 )
@@ -27,9 +27,14 @@ def _count_rects(svg: str) -> int:
     return len(re.findall(r"<rect\b", svg))
 
 
-def test_panel_frame_inset_matches_frame_thickness():
-    """Screws must land in the center of the 6.4 mm frame-strip thickness."""
-    assert SCREW_INSET_MM == pytest.approx(FRAME_THICKNESS_MM / 2, abs=1e-9)
+def test_corner_screw_inset_sized_for_hex_spacer():
+    """Corner inset must leave room for a 5 mm AF brass hex spacer (half-width
+    2.5 mm) epoxied inside the frame corner, plus a small clearance so the
+    screw doesn't foul the spacer's outer edge.
+    """
+    hex_half_af = 2.5
+    clearance = 0.5
+    assert SCREW_CORNER_INSET_MM >= hex_half_af + clearance
 
 
 @pytest.mark.parametrize("kid", ["emory", "nora"])
@@ -85,7 +90,7 @@ def test_switch_positions_align_with_pcb_mirrored():
         assert 20 <= y <= 55, f"switch Y {y} outside expected vertical range"
 
 
-def test_edge_screws_land_inside_panel():
+def test_corner_screws_at_expected_inset():
     svg = render_back_panel_svg("emory")
     # svgwrite emits circle attributes alphabetically: cx, cy, fill, r, stroke.
     circle_re = re.compile(
@@ -93,16 +98,15 @@ def test_edge_screws_land_inside_panel():
         re.DOTALL,
     )
     screw_r = SCREW_CLEARANCE_MM / 2
-    edge_holes = [
+    holes = [
         (float(cx), float(cy))
         for cx, cy, r in circle_re.findall(svg)
         if abs(float(r) - screw_r) < 0.01
     ]
-    # 4 corner edge screws — they're the only circles using the M3 clearance
-    # radius (button holes, USB-C mount screws, speaker vent all have other
-    # radii).
-    assert len(edge_holes) == 4
-    for cx, cy in edge_holes:
-        # Each screw should be on an edge: distance to nearest edge == inset.
-        dists = [cx, cy, PANEL_SIZE_MM - cx, PANEL_SIZE_MM - cy]
-        assert min(dists) == pytest.approx(SCREW_INSET_MM, abs=0.01)
+    # 4 corner screws — the only circles with the M3 clearance radius.
+    assert len(holes) == 4
+    # Each screw must be `SCREW_CORNER_INSET_MM` in from BOTH adjacent edges
+    # (not a single-edge inset like the old mid-edge layout).
+    for cx, cy in holes:
+        assert min(cx, PANEL_SIZE_MM - cx) == pytest.approx(SCREW_CORNER_INSET_MM, abs=0.01)
+        assert min(cy, PANEL_SIZE_MM - cy) == pytest.approx(SCREW_CORNER_INSET_MM, abs=0.01)

@@ -62,9 +62,14 @@ PANEL_SIZE_MM = 192.0
 BORDER_MM = 7.1                     # PCB-frame → panel-frame translation
 FRAME_THICKNESS_MM = 6.4            # frame-strip wall thickness
 
-# Fastener geometry.
+# Fastener geometry. Machine screws go through the back panel at the 4
+# corners, into M3 brass hex spacers (5 mm across flats × 10 mm long,
+# female-female threaded) that are epoxied into each interior corner of
+# the frame. The spacer provides the machine thread, independent of the
+# frame's 6.4 mm wall thickness — no threaded insert needed.
 SCREW_CLEARANCE_MM = 3.3            # M3 clearance hole
-SCREW_INSET_MM = FRAME_THICKNESS_MM / 2  # 3.2 — center of frame wall
+SCREW_CORNER_INSET_MM = 4.0         # center of each corner screw hole,
+                                     # measured in from BOTH adjacent edges
 
 # User-pressed button access. 5 mm hole lets the 6mm-square tact switch's
 # ~3 mm plunger be reached with a finger without the hole wandering outside
@@ -241,15 +246,16 @@ def render_back_panel_svg(kid: str) -> str:
     # 1. Outer cut.
     add_cut_rect(dwg, x=0, y=0, width=PANEL_SIZE_MM, height=PANEL_SIZE_MM)
 
-    # 2. 4 × M3 screw-clearance holes (one per edge, centered).
-    mid = PANEL_SIZE_MM / 2
-    edge_holes = [
-        (mid, SCREW_INSET_MM),                        # top
-        (PANEL_SIZE_MM - SCREW_INSET_MM, mid),        # right
-        (mid, PANEL_SIZE_MM - SCREW_INSET_MM),        # bottom
-        (SCREW_INSET_MM, mid),                        # left
+    # 2. 4 × M3 corner screw-clearance holes, matching the corner-epoxied
+    # brass hex spacers inside the frame.
+    inset = SCREW_CORNER_INSET_MM
+    corner_holes = [
+        (inset, inset),                               # top-left
+        (PANEL_SIZE_MM - inset, inset),               # top-right
+        (inset, PANEL_SIZE_MM - inset),               # bottom-left
+        (PANEL_SIZE_MM - inset, PANEL_SIZE_MM - inset),  # bottom-right
     ]
-    for cx, cy in edge_holes:
+    for cx, cy in corner_holes:
         add_cut_circle(dwg, cx, cy, SCREW_CLEARANCE_MM)
 
     # 3. Button access holes (aligned to tact switches on PCB bottom side).

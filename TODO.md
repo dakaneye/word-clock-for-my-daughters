@@ -18,7 +18,7 @@ original phase-by-phase roadmap; this file is the live working list.
 
 - Frame is a pure shell. All exterior features (buttons, USB, speaker vent, dedication) live on the **back panel**.
 - Buttons are pressed through the back panel, not the side — forced by the PCB (tact switches are bottom-side, vertical through-hole, at X=168.5).
-- USB-C port on the back panel is provided by a **USB-C-female-to-micro-USB-male rigid adapter with built-in mounting tabs** (aluminum-alloy style like the Amazon 3-pack, with two M2 screw holes flanking a short body). The adapter screws directly to the inside of the back panel with its USB-C receptacle facing out through a slot cutout. Its Micro-USB male end points inward and connects to the ESP32 module's Micro-USB port via a short **Micro-USB male-to-female extension cable** (standard commodity part). No pigtail, no internal adapter cradle needed — the adapter itself IS the panel-mount hardware. The Cermant USB-C breakout on the main PCB is **removed** (see `docs/hardware/usb-c-breakout-removal-guide.md`).
+- USB cable is a single **Micro-USB-to-USB-C cable, 3-6 ft long**, plugged into the ESP32 module's native Micro USB port and routed out through a grommeted hole in the back panel. The USB-C end dangles outside the clock as the user-facing connector — plug it into any USB-C charger or laptop. No panel-mount adapter, no internal pigtail, no screw-aligned hardware. Cable replaces by removing the 4 corner screws + pulling the old cable + threading the new one. The Cermant USB-C breakout on the main PCB is **removed** (see `docs/hardware/usb-c-breakout-removal-guide.md`).
 
 ---
 
@@ -58,7 +58,7 @@ Blocked on: parts arrival (for diffuser test + LED physical spec), PCB final (fo
 - [ ] **PCB standoffs** — hold PCB off back panel with clearance for tallest bottom-side component (C2 cap, 16mm). Could integrate with light channel as a single part, or separate for easier printing.
 - [ ] **Speaker mount** — holds driver against back-panel vent, accommodates JST connector to PCB.
 - [ ] **Button actuator caps** (conditional) — only needed if 6mm tact switches don't sit flush against the back-panel inner surface. Each cap is a short cylinder that translates back-panel press to switch actuation.
-- [ ] **Confirm adapter screw-hole spacing and USB-C slot dimensions** — back panel currently uses 10 × 4 mm slot + 2 × M2 screws at 28 mm spacing (assumed). Measure the actual adapter when it arrives; tighten the dimensions in `render_back_panel.py` if needed. Confidence [MED].
+- [ ] **Source a Micro-USB-to-USB-C cable (3-6 ft) + matching rubber grommet** — grommet panel hole currently sized at 6 mm; tune to match the specific cable's OD (most slim cables are 3.5-4 mm, which wants a 5 mm grommet; thicker cables need 6-7 mm).
 
 ## PCB
 

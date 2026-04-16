@@ -40,26 +40,16 @@ def test_corner_screw_inset_sized_for_hex_spacer():
 @pytest.mark.parametrize("kid", ["emory", "nora"])
 def test_panel_has_expected_cutouts(kid):
     svg = render_back_panel_svg(kid)
-    # 4 corner screws + 3 buttons + 2 USB-C mount screws = 9 cut circles,
-    # plus the speaker vent grid (5×5 = 25) = 34 total.
+    # 4 corner screws + 3 buttons + 1 cable exit = 8 cut circles, plus the
+    # speaker vent grid (5×5 = 25) = 33 total.
     circles = _count_circles(svg)
-    assert circles == 4 + 3 + 2 + 25, (
-        f"{kid}: expected 34 circles, got {circles}"
+    assert circles == 4 + 3 + 1 + 25, (
+        f"{kid}: expected 33 circles, got {circles}"
     )
-    # Outer panel + stadium-rounded USB-C cutout = 2 rects. SD slot removed
-    # (user inserts the card once before closing the back panel).
+    # Outer panel only — USB-C slot, USB-C mount screws, and SD slot are
+    # all gone; the USB cable now exits via a simple round hole.
     rects = _count_rects(svg)
-    assert rects == 2, f"{kid}: expected 2 rects, got {rects}"
-
-
-@pytest.mark.parametrize("kid", ["emory", "nora"])
-def test_usbc_cutout_is_stadium_shaped(kid):
-    svg = render_back_panel_svg(kid)
-    # The USB-C cutout is the only rect with rx/ry attributes (outer panel
-    # has none). Confirm it's drawn as a rounded rect matching the USB-C
-    # receptacle profile: rx == ry == height / 2 for a pill/stadium.
-    assert 'rx="2.0"' in svg, "USB-C cutout should have rx=2.0 (half of 4mm height)"
-    assert 'ry="2.0"' in svg
+    assert rects == 1, f"{kid}: expected 1 rect, got {rects}"
 
 
 @pytest.mark.parametrize("kid", ["emory", "nora"])

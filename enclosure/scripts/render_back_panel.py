@@ -9,13 +9,13 @@ both parts share the frame's exterior footprint. Carries:
     brass inserts live in the frame; these are just pass-through holes.
   • 3 × button-access holes at the SW1/SW2/SW3 PCB positions (X=168.5 mm
     in PCB frame, translated by the 7.1 mm border into face coords).
-  • USB-C access cutout — a 10 × 4 mm slot + 2 × M2 screw holes (≈28 mm
-    spacing) for mounting a rigid USB-C-female / Micro-USB-male adapter
-    (aluminum-alloy type with integrated screw tabs) directly to the
-    inside of the panel. The adapter's Micro-USB male end points into
-    the case and connects to the ESP32 module's Micro-USB via a short
-    standard Micro-USB male-to-female extension cable. Dimensions are
-    placeholders — verify against the specific adapter when it arrives.
+  • One grommeted cable exit hole (~6 mm) — a single Micro-USB-to-USB-C
+    cable lives permanently inside the clock, plugged into the ESP32's
+    native Micro USB port, with the USB-C end sticking out through this
+    hole. A rubber grommet protects the cable at the wood edge and
+    provides strain relief. Simplest possible USB path: no panel-mount
+    adapter, no internal pigtail, no screw alignment. Cable replaces
+    via removing the 4 corner screws.
   • Speaker vent — grid of small holes centered in the lower-middle
     region. Final diameter / count TBD once the speaker driver is chosen
     (affects acoustic behavior); current pattern is a reasonable
@@ -75,24 +75,20 @@ SCREW_CLEARANCE_MM = 3.3            # M3 clearance hole
 SCREW_CORNER_INSET_MM = 4.0         # center of each corner screw hole,
                                      # measured in from BOTH adjacent edges
 
-# User-pressed button access. 5 mm hole lets the 6mm-square tact switch's
-# ~3 mm plunger be reached with a finger without the hole wandering outside
-# the switch body. If this turns out to be awkward in practice, a 3D-printed
-# actuator cap (separate task) can press through a slightly smaller hole.
-BUTTON_HOLE_DIA_MM = 5.0
+# User-pressed button access. QTEATAK tact switch spec:
+#   body 6 × 6 × 5 mm + plunger 1.1 mm above body = 6.1 mm above PCB.
+# With a 20 mm standoff there's ~14 mm of air above the plunger — too far
+# for a finger to press directly through a small panel hole. A 3D-printed
+# button actuator cap slides through this hole (~6 mm shaft OD) and
+# bridges the gap to the plunger.
+BUTTON_HOLE_DIA_MM = 6.5
 
-# USB-C access cutout — the user-facing port is actually the USB-C receptacle
-# face of a rigid USB-C-female / Micro-USB-male adapter that mounts to the
-# inside of the back panel via its own screw tabs. Its Micro USB male end
-# points into the case and connects to the ESP32 module's Micro USB via a
-# short Micro USB male-to-female extension cable (standard part). Cutout
-# dimensions: USB-C receptacle face ~10 × 4 mm; tab screws are M2, typically
-# ~28 mm apart for this adapter style. Re-measure against the specific
-# adapter and tune if needed.
-USBC_CUTOUT_W_MM = 10.0
-USBC_CUTOUT_H_MM = 4.0
-USBC_SCREW_SPACING_MM = 28.0
-USBC_SCREW_DIA_MM = 2.2             # M2 clearance
+# USB cable exit. Single Micro-USB-to-USB-C cable permanently resides
+# inside the clock, plugged into the ESP32 module's native Micro USB port,
+# with its USB-C end routed out through this grommeted hole. A standard
+# rubber grommet (~3 mm ID, 6 mm OD, for a ~5 mm panel hole) protects
+# the cable at the wood edge.
+USB_CABLE_EXIT_DIA_MM = 6.0
 
 # Speaker vent — 5×5 grid of 2 mm holes at 4 mm pitch ≈ 16 mm square vent.
 SPEAKER_VENT_ROWS = 5
@@ -116,12 +112,14 @@ BUTTON_LABELS = {
 }
 
 # Placement centers (panel-frame mm, outside-view convention).
-# Button column lives upper-left (mirrored from PCB X=168.5), so the USB-C
-# goes upper-right to keep them far apart. Speaker vent is on the vertical
-# centerline because the speaker driver's mount location is a free design
-# choice — it attaches to the MAX98357A via a 2-wire cable, independent of
-# the amp's PCB position.
-USBC_CENTER = (164.0, 30.0)
+# Button column lives upper-left (mirrored from PCB X=168.5). The USB cable
+# exits upper-right, roughly above where the ESP32 module sits on the PCB
+# (PCB X=73 → mirrored panel X≈112; upper-right exit at 164 keeps it clear
+# of the buttons and gives the cable a short run from the module's micro-USB
+# port straight up to the grommet). Speaker vent is on the vertical
+# centerline — the speaker driver is mounted via a 3D-printed cradle
+# directly behind the vent, independent of the MAX98357A amp's PCB position.
+USB_CABLE_EXIT_CENTER = (164.0, 30.0)
 SPEAKER_VENT_CENTER = (96.0, 152.0)
 DEDICATION_CENTER = (96.0, 100.0)
 
@@ -290,21 +288,10 @@ def render_back_panel_svg(kid: str) -> str:
     for _ref, x, y in switches:
         add_cut_circle(dwg, x, y, BUTTON_HOLE_DIA_MM)
 
-    # 4. USB-C access cutout — stadium/pill shape (rounded rect with
-    #    corner radius == height/2) so it matches the USB-C receptacle face.
-    ux, uy = USBC_CENTER
-    add_cut_rect(
-        dwg,
-        x=ux - USBC_CUTOUT_W_MM / 2,
-        y=uy - USBC_CUTOUT_H_MM / 2,
-        width=USBC_CUTOUT_W_MM,
-        height=USBC_CUTOUT_H_MM,
-        corner_radius=USBC_CUTOUT_H_MM / 2,
-    )
-    # Screw holes on either side of the USB-C cutout.
-    half_span = USBC_SCREW_SPACING_MM / 2
-    add_cut_circle(dwg, ux - half_span, uy, USBC_SCREW_DIA_MM)
-    add_cut_circle(dwg, ux + half_span, uy, USBC_SCREW_DIA_MM)
+    # 4. USB cable exit — single grommeted hole. Cable lives inside the case
+    #    plugged into the ESP32's micro-USB port; USB-C end exits here.
+    ux, uy = USB_CABLE_EXIT_CENTER
+    add_cut_circle(dwg, ux, uy, USB_CABLE_EXIT_DIA_MM)
 
     # 5. Speaker vent grid.
     svx, svy = SPEAKER_VENT_CENTER

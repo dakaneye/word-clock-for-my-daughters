@@ -3,13 +3,16 @@
 #include "buttons.h"
 #include "display.h"
 #include "display/renderer.h"
+#include "rtc.h"
 #include "wifi_provision.h"
 
 void setup() {
     Serial.begin(115200);
     Serial.printf("word-clock booting for target: %s\n", CLOCK_NAME);
 
-    wc::wifi_provision::begin();
+    wc::wifi_provision::begin();   // runs setenv/tzset on warm boot
+    wc::rtc::begin();              // AFTER wifi_provision — load-bearing
+                                   // so TZ is set before first now()
     wc::display::begin();
 
     wc::buttons::begin([](wc::buttons::Event e) {
@@ -17,10 +20,10 @@ void setup() {
         using WS = wc::wifi_provision::State;
         switch (e) {
             case BE::HourTick:
-                Serial.println("[buttons] HourTick (rtc module not yet wired)");
+                wc::rtc::advance_hour();
                 break;
             case BE::MinuteTick:
-                Serial.println("[buttons] MinuteTick (rtc module not yet wired)");
+                wc::rtc::advance_minute();
                 break;
             case BE::AudioPressed:
                 if (wc::wifi_provision::state() == WS::AwaitingConfirmation) {
@@ -41,17 +44,14 @@ void loop() {
     wc::wifi_provision::loop();
     wc::buttons::loop();
 
-    // Bring-up stub: once provisioning is Online, push a hardcoded
-    // 14:23 non-holiday non-birthday frame so the breadboard LED
-    // check has something to verify. This is replaced by the
-    // main.cpp integration spec with a real RTC-driven render.
     if (wc::wifi_provision::state() == wc::wifi_provision::State::Online) {
+        auto dt = wc::rtc::now();
         wc::display::RenderInput in{};
-        in.year   = 2027;   // non-holiday year window
-        in.month  = 5;
-        in.day    = 15;
-        in.hour   = 14;     // "IT IS ... PAST TWO IN THE AFTERNOON"
-        in.minute = 23;
+        in.year   = dt.year;
+        in.month  = dt.month;
+        in.day    = dt.day;
+        in.hour   = dt.hour;
+        in.minute = dt.minute;
         in.now_ms = millis();
         in.seconds_since_sync = wc::wifi_provision::seconds_since_last_sync();
         in.birthday = {CLOCK_BIRTH_MONTH, CLOCK_BIRTH_DAY,

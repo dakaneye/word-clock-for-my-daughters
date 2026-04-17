@@ -8,14 +8,15 @@ Live working list of what's left. Original phase-by-phase roadmap is at
 | Workstream | State |
 |---|---|
 | Firmware Phase 1 (pure logic) | **Done** — tagged `phase-1-complete` |
-| Firmware Phase 2 — `wifi_provision` + `buttons` | **Done native-side** — 79 tests green. Hardware-flash checks deferred to today's parts arrival. |
+| Firmware Phase 2 — `wifi_provision` + `buttons` | **Done native-side** — 89 native tests + 6 Python tests green, code-reviewed to A-grade (137/150). Awaiting hardware-flash verification. |
+| Bench / printer prep | Bambu Studio installed, build123d venv ready (`enclosure/3d/`), PCB standoff STL generated. See `docs/hardware/3d-printing-setup.md`. |
 | Face SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
 | Frame SVGs | **Ordered from Ponoko** — Emory Maple 6.4 mm, Nora Walnut 6.4 mm (bare shells, no cutouts) |
 | Back-panel SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
-| PCB layout | Cermant USB-C removed. Mounting holes verified. **Awaiting final review + JLCPCB submit.** |
-| Parts (ESP32, LEDs, MAX98357A, DS3231, speaker, USB breakout) | En route — **arriving 2026-04-17** |
-| Bambu Lab A1 3D printer | En route — same window |
-| 3D internals (standoffs, button caps, speaker cradle, light blocker) | Not started — blocked on printer + finalized parts |
+| PCB layout | Cermant USB-C removed. Mounting holes verified. **Awaiting final review + JLCPCB submit** (gated on breadboard bring-up). |
+| Parts (ESP32, LEDs, MAX98357A, DS3231, speaker, USB breakout) | **Arriving today (2026-04-17).** |
+| Bambu Lab A1 3D printer | **Arriving today.** Standoff STL pre-generated, waiting for printer + filament. |
+| 3D internals (button caps, speaker cradle, light blocker) | Not started — blocked on physical component measurements. |
 
 ## Architecture (decisions locked this session)
 

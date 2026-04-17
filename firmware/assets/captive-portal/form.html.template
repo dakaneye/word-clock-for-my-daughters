@@ -1,0 +1,66 @@
+<!-- firmware/assets/captive-portal/form.html.template -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setting up {{KID_NAME}}'s clock</title>
+  <style>{{INLINE_CSS}}</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Setting up {{KID_NAME}}'s clock</h1>
+
+    <form id="wifi-form" method="POST" action="/submit">
+      <input type="hidden" name="csrf" value="{{CSRF_TOKEN}}">
+
+      <label for="ssid">WiFi network</label>
+      <select name="ssid" id="ssid" required>
+        <option value="">Scanning for networks…</option>
+      </select>
+      <p class="help">
+        Your clock connects over 2.4 GHz WiFi. If you don't see your network,
+        make sure 2.4 GHz is enabled on your router.
+      </p>
+
+      <label for="pw">WiFi password</label>
+      <input type="password" name="pw" id="pw" autocomplete="off">
+
+      <label for="tz">Timezone</label>
+      <select name="tz" id="tz" required>
+        {{TZ_OPTIONS}}
+      </select>
+
+      <button type="submit">Continue</button>
+
+      <div class="error" id="error">{{ERROR_MESSAGE}}</div>
+    </form>
+  </div>
+
+  <script>
+    // Populate SSID dropdown from /scan once it arrives.
+    fetch('/scan').then(r => r.json()).then(nets => {
+      const sel = document.getElementById('ssid');
+      sel.innerHTML = '';
+      const seen = new Set();
+      for (const n of nets) {
+        if (seen.has(n.ssid)) continue;
+        seen.add(n.ssid);
+        const opt = document.createElement('option');
+        opt.value = n.ssid;
+        opt.textContent = n.ssid + (n.secured ? '' : ' (open)');
+        sel.appendChild(opt);
+      }
+      if (sel.children.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No networks found — try again';
+        sel.appendChild(opt);
+      }
+    }).catch(() => {
+      const sel = document.getElementById('ssid');
+      sel.innerHTML = '<option value="">Scan failed — reload</option>';
+    });
+  </script>
+</body>
+</html>

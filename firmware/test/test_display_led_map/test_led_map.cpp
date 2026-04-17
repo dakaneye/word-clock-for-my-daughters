@@ -1,7 +1,6 @@
 #include <unity.h>
 #include <set>
 #include "display/led_map.h"
-#include "display/rgb.h"
 #include "word_id.h"
 
 using namespace wc;
@@ -26,14 +25,15 @@ void test_index_of_at_is_34(void) {
 }
 
 void test_all_word_ids_map_to_unique_led_indices(void) {
+    constexpr uint8_t kWordCount = static_cast<uint8_t>(WordId::COUNT);
     std::set<uint8_t> seen;
-    for (uint8_t i = 0; i < static_cast<uint8_t>(WordId::COUNT); ++i) {
+    for (uint8_t i = 0; i < kWordCount; ++i) {
         const uint8_t idx = index_of(static_cast<WordId>(i));
-        TEST_ASSERT_LESS_THAN_UINT8(LED_COUNT, idx);
+        TEST_ASSERT_LESS_THAN_UINT8(kWordCount, idx);
         TEST_ASSERT_TRUE_MESSAGE(seen.insert(idx).second,
                                  "index_of returned a duplicate LED index");
     }
-    TEST_ASSERT_EQUAL_UINT32(LED_COUNT, seen.size());
+    TEST_ASSERT_EQUAL_UINT32(kWordCount, seen.size());
 }
 
 int main(int, char**) {

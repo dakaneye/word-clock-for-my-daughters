@@ -11,3 +11,13 @@ CompileFlags:
     - -std=gnu++11
   Add:
     - -std=gnu++17
+    # PlatformIO only generates compile_commands.json for the emory env, so
+    # native-env test files (firmware/test/test_*/*.cpp) fall back to clangd's
+    # default compiler invocation. Add the library include paths that
+    # platformio.ini wires into [env:native].build_flags so fallback mode
+    # resolves the pure-logic headers used by test files.
+    - -Ilib/core/include
+    - -Ilib/wifi_provision/include
+    - -Ilib/buttons/include
+    - -Ilib/display/include
+    - -Iconfigs

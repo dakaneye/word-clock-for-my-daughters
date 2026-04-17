@@ -2,7 +2,6 @@
 #pragma once
 
 #include <cstdint>
-#include "display/rgb.h"
 #include "word_id.h"
 
 namespace wc::display {

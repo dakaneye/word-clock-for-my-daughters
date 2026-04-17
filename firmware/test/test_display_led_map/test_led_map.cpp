@@ -1,6 +1,7 @@
 #include <unity.h>
 #include <set>
 #include "display/led_map.h"
+#include "display/rgb.h"
 #include "word_id.h"
 
 using namespace wc;

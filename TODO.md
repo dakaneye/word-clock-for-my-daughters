@@ -115,7 +115,7 @@ everything that actually drives the hardware and WiFi. Modules to write:
 
 ## Assembly + validation (Emory first, then Nora)
 
-- [ ] **Assembly plan document** — glue-up sequence, fastener BOM, adhesive choice per joint, jig notes for keeping the frame square during box-joint mating.
+- [x] **Assembly plan document** — end-to-end glue-up + fasten-up sequence at `docs/hardware/assembly-plan.md`. Covers BOM, adhesives, 7-phase assembly, frame-squaring jig notes.
 - [ ] **Cardboard dry-run** (optional) — ~$15 test cut to rehearse before touching real hardwood.
 - [ ] **Emory unit — first light, glue-up.**
 - [ ] **Emory 30-day burn-in.** Real-time calendar task — cannot be compressed. Watch for thermal, audio crackle, RTC drift, WiFi reconnection.

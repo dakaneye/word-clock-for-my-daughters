@@ -78,13 +78,16 @@ everything that actually drives the hardware and WiFi. Modules to write:
 - [ ] **`main.cpp` state machine** — boot → captive portal if no creds → NTP
       sync → normal clock loop, with holiday / birthday / bedtime-dim modes
       and audio button handling interleaved.
-- [ ] **SD-card filesystem layout** — pick flat root with `lullaby.mp3` +
-      `birth.mp3` (simplest) vs `emory/` + `nora/` subdirs (lets one card
-      serve both builds during dev). Flat root wins unless we need the
-      per-kid split during testing.
-- [ ] **Audio file format** — pick MP3 bitrate (128 kbps VBR is fine for
-      voice + a simple lullaby, tiny on a microSD). Confirm MAX98357A +
-      decoder library can handle the chosen format at I²S sample rate.
+- [x] **SD-card filesystem layout — flat root.** Cards are per-kid (one per
+      clock), bench testing runs one clock at a time, so `emory/`/`nora/`
+      subdirs buy nothing. Files: `lullaby.mp3` + `birth.mp3` at the root.
+      Firmware reads by fixed path; zero path-handling branches.
+- [x] **Audio file format — MP3, 128 kbps CBR, mono, 44.1 kHz.**
+      CBR over VBR because ESP32 MP3 decoder libs (ESP8266Audio / libhelix)
+      handle CBR more reliably — VBR can hiccup on sample-rate transitions.
+      Mono because single speaker. 128 kbps is transparent for voice + a
+      simple lullaby, ~1 MB/min, well under microSD capacity. 44.1 kHz
+      is standard and within MAX98357A's 8–48 kHz @ 16-bit envelope.
 
 ## PCB finalization + order
 

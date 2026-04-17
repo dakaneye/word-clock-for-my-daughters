@@ -182,6 +182,83 @@ void test_birthday_rainbow_wins_over_holiday_palette(void) {
     TEST_ASSERT_EQUAL_UINT8(  0, it.b);
 }
 
+void test_stale_sync_does_not_override_birthday_decor(void) {
+    RenderInput in = make_input();
+    in.month = 10;
+    in.day   = 6;
+    in.seconds_since_sync = 90'000;   // stale
+    const Frame f = render(in);
+    // Decor words still rainbow (priority 1 wins over stale).
+    for (WordId w : {WordId::HAPPY, WordId::BIRTH, WordId::DAY, WordId::NAME}) {
+        TEST_ASSERT_TRUE(is_rainbow_family(f[index_of(w)]));
+    }
+    // Time words show amber (stale wins over warm white since no
+    // holiday palette; birthday doesn't light time words).
+    const Rgb it = f[index_of(WordId::IT)];
+    TEST_ASSERT_EQUAL_UINT8(255, it.r);
+    TEST_ASSERT_EQUAL_UINT8(120, it.g);
+    TEST_ASSERT_EQUAL_UINT8( 30, it.b);
+}
+
+void test_dim_multiplier_warm_white(void) {
+    RenderInput in = make_input();
+    in.hour = 20;    // dim window
+    const Frame f = render(in);
+    // Dim math: bright_u8 = round(0.1 × 255) = 26.
+    // (255 × 26 + 127)/255 = 26, (170 × 26 + 127)/255 = 17,
+    // (100 × 26 + 127)/255 = 10.
+    const Rgb it = f[index_of(WordId::IT)];
+    TEST_ASSERT_EQUAL_UINT8(26, it.r);
+    TEST_ASSERT_EQUAL_UINT8(17, it.g);
+    TEST_ASSERT_EQUAL_UINT8(10, it.b);
+}
+
+void test_dim_multiplier_applies_to_rainbow(void) {
+    RenderInput in = make_input();
+    in.month = 10;
+    in.day   = 6;
+    in.hour  = 20;    // dim
+    in.now_ms = 0;
+    const Frame f = render(in);
+    // HAPPY at now_ms=0 is {255, 0, 0} pre-dim; dim → {26, 0, 0}.
+    const Rgb happy = f[index_of(WordId::HAPPY)];
+    TEST_ASSERT_EQUAL_UINT8(26, happy.r);
+    TEST_ASSERT_EQUAL_UINT8( 0, happy.g);
+    TEST_ASSERT_EQUAL_UINT8( 0, happy.b);
+}
+
+void test_dim_boundary_matches_dim_schedule(void) {
+    RenderInput in = make_input();
+
+    // 18:59 — full bright → IT is warm white.
+    in.hour = 18; in.minute = 59;
+    Frame f = render(in);
+    TEST_ASSERT_EQUAL_UINT8(255, f[index_of(WordId::IT)].r);
+    TEST_ASSERT_EQUAL_UINT8(170, f[index_of(WordId::IT)].g);
+    TEST_ASSERT_EQUAL_UINT8(100, f[index_of(WordId::IT)].b);
+
+    // 19:00 — dim → IT is {26, 17, 10}.
+    in.hour = 19; in.minute = 0;
+    f = render(in);
+    TEST_ASSERT_EQUAL_UINT8(26, f[index_of(WordId::IT)].r);
+    TEST_ASSERT_EQUAL_UINT8(17, f[index_of(WordId::IT)].g);
+    TEST_ASSERT_EQUAL_UINT8(10, f[index_of(WordId::IT)].b);
+
+    // 07:59 — still dim.
+    in.hour = 7; in.minute = 59;
+    f = render(in);
+    TEST_ASSERT_EQUAL_UINT8(26, f[index_of(WordId::IT)].r);
+    TEST_ASSERT_EQUAL_UINT8(17, f[index_of(WordId::IT)].g);
+    TEST_ASSERT_EQUAL_UINT8(10, f[index_of(WordId::IT)].b);
+
+    // 08:00 — bright.
+    in.hour = 8; in.minute = 0;
+    f = render(in);
+    TEST_ASSERT_EQUAL_UINT8(255, f[index_of(WordId::IT)].r);
+    TEST_ASSERT_EQUAL_UINT8(170, f[index_of(WordId::IT)].g);
+    TEST_ASSERT_EQUAL_UINT8(100, f[index_of(WordId::IT)].b);
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_unlit_word_is_black);
@@ -193,5 +270,9 @@ int main(int, char**) {
     RUN_TEST(test_birthday_rainbow_on_decor_only);
     RUN_TEST(test_birthday_rainbow_shifts_with_now_ms);
     RUN_TEST(test_birthday_rainbow_wins_over_holiday_palette);
+    RUN_TEST(test_stale_sync_does_not_override_birthday_decor);
+    RUN_TEST(test_dim_multiplier_warm_white);
+    RUN_TEST(test_dim_multiplier_applies_to_rainbow);
+    RUN_TEST(test_dim_boundary_matches_dim_schedule);
     return UNITY_END();
 }

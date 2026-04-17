@@ -102,7 +102,14 @@ yields to them.
 For `w ∈ {HAPPY, BIRTH, DAY, NAME}`:
 
 - Phase offsets: `HAPPY=0°, BIRTH=90°, DAY=180°, NAME=270°`
-- Hue: `hue_deg = (now_ms * 360 / RAINBOW_PERIOD_MS + phase_offset_deg) % 360`
+- Hue: `hue_deg = ((now_ms % RAINBOW_PERIOD_MS) * 360 / RAINBOW_PERIOD_MS + phase_offset_deg) % 360`.
+  Taking `now_ms % RAINBOW_PERIOD_MS` **before** the multiply keeps
+  the intermediate product under `60'000 * 360 = 21'600'000`, well
+  within `uint32_t` range. The naive form
+  `now_ms * 360 / RAINBOW_PERIOD_MS` overflows `uint32_t` every
+  `UINT32_MAX / 360 ≈ 3.3 hours` and produces a visible hue jump at
+  each overflow boundary — unacceptable for a 60 s rainbow that
+  must run for days.
 - Output: standard HSV→RGB conversion at `sat=255, val=255`, done
   in a pure-C++ helper (`display::detail::hsv_to_rgb`) compiled
   into both the native and ESP32 builds. **Not** FastLED's
@@ -131,8 +138,15 @@ For `w ∈ {HAPPY, BIRTH, DAY, NAME}`:
 
 ### Holiday palette cycling
 
-Each `Palette` value maps to a fixed array of 1–4 `Rgb` entries.
-A given lit word `w` receives:
+`color_for(Palette p, WordId w)` is implemented as a `switch` over
+named `Palette` enumerators — **not** as an array indexed by
+`static_cast<uint8_t>(p)`. This keeps palette lookup robust against
+`Palette` enum additions (a future `ST_PATRICKS` inserted between
+existing values would silently break array-indexed lookup; the
+switch form triggers `-Wswitch-enum` and forces the developer to
+handle the new case).
+
+Within a given palette, the word receives the color at:
 
 ```
 color = palette_colors[static_cast<uint8_t>(w) % palette_colors.size()]
@@ -145,8 +159,34 @@ receives a deterministic color within a given palette: on Halloween,
 HAPPY (enum 31) gets `palette[31 % 2] = palette[1] = purple`; BIRTH
 (enum 32) gets `palette[0] = orange`; etc.
 
-Per-palette starting arrays (tunable on real hardware; the values
-below are defaults to commit with, not final):
+### Palette power budget
+
+Two-layer defense against palette-tuning drift blowing the PSU:
+
+**Layer 1 — build-time check.** Every entry in every palette array
+MUST satisfy `r + g + b ≤ PALETTE_MAX_RGB_SUM = 700`. Worst-case
+current at this cap (all 35 LEDs lit to the sum cap simultaneously,
+full brightness) is ≈ `35 × (700/765) × 60 mA ≈ 1.92 A`. The
+existing defaults all fit well under 700 (max default entry is
+`EASTER_PASTEL {255, 180, 200}` = 635). A
+`test_palette_power_budget` Unity test enumerates every palette and
+asserts the invariant on every entry, catching a bad palette tune
+before it reaches the board.
+
+**Layer 2 — runtime enforcement.** The adapter calls
+`FastLED.setMaxPowerInVoltsAndMilliamps(5, 1800)` in
+`display::begin()`. If the renderer ever emits a frame that would
+pull more than 1.8 A on the strip, FastLED scales brightness down
+automatically. This catches the "someone bumped the cap to 800 and
+forgot to update the test" failure mode without damage.
+
+The 1.8 A ceiling matches `docs/hardware/pinout.md` §Power budget
+for the WS2812B strip alone, leaving headroom under the 2 A USB-C
+cable rating for the ESP32 + RTC + amplifier + microSD draw.
+
+Per-palette starting arrays (tunable on real hardware within the
+sum-≤-450 constraint; the values below are defaults to commit with,
+not final):
 
 | Palette | RGB entries |
 |---|---|
@@ -362,9 +402,16 @@ uint8_t index_of(WordId w);
 namespace wc::display {
 
 // Returns the RGB color a given word should be under a given palette.
-// Implementation: each Palette owns a fixed 1-4 Rgb array; the word
-// gets palette_colors[static_cast<uint8_t>(w) % size()].
+// Implementation MUST switch(p) over named Palette enumerators (not
+// array-indexed lookup) so a future Palette enum addition triggers
+// -Wswitch-enum at compile time. Within a palette: word gets
+// palette_colors[static_cast<uint8_t>(w) % size()].
 Rgb color_for(Palette p, WordId w);
+
+// Palette PSU budget: every Rgb returned by color_for(...) must
+// satisfy r + g + b <= PALETTE_MAX_RGB_SUM. Enforced by the
+// test_palette_power_budget native test.
+inline constexpr uint16_t PALETTE_MAX_RGB_SUM = 700;
 
 // Convenience constants.
 Rgb warm_white();   // {255, 170, 100}
@@ -389,8 +436,9 @@ namespace wc::display {
 // caller's responsibility — see renderer::render).
 // Period: RAINBOW_PERIOD_MS = 60'000 per full 360° cycle.
 // Phase offsets: HAPPY=0°, BIRTH=90°, DAY=180°, NAME=270°.
-// now_ms is allowed to wrap; modular arithmetic is correct across
-// the wrap boundary.
+// now_ms is allowed to wrap; implementation MUST use
+// (now_ms % RAINBOW_PERIOD_MS) * 360 / RAINBOW_PERIOD_MS to keep
+// the intermediate product from overflowing uint32_t every 3.3 h.
 Rgb rainbow(WordId w, uint32_t now_ms);
 
 inline constexpr uint32_t RAINBOW_PERIOD_MS = 60'000;
@@ -411,12 +459,24 @@ namespace wc::display {
 
 struct RenderInput {
     // Date + wall-clock time for palette, birthday, dim window, and
-    // time_to_words.
-    uint16_t year;   // 4-digit, e.g. 2030
-    uint8_t month;   // 1-12
-    uint8_t day;     // 1-31
-    uint8_t hour;    // 0-23
-    uint8_t minute;  // 0-59
+    // time_to_words. Caller guarantees ranges:
+    //   month  ∈ [1, 12]
+    //   day    ∈ [1, 31]
+    //   hour   ∈ [0, 23]
+    //   minute ∈ [0, 59]
+    //   year   ≥ 2023 (the earliest plausible wall-clock for either
+    //                  daughter's lifetime; pre-2023 is treated as
+    //                  "clock never synced" territory — still renders
+    //                  cleanly but behavior is unspecified).
+    // The renderer does NOT re-validate; bad inputs trigger undefined
+    // visual output but never crash. Bounds-checking is the `rtc`
+    // module's responsibility — it's the only legitimate source of
+    // these fields at runtime.
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
 
     // Monotonic millis for rainbow phase. Wraps at ~49 days; rainbow
     // math works correctly across the wrap.
@@ -493,6 +553,10 @@ static bool started = false;
 void begin() {
     if (started) return;
     FastLED.addLeds<WS2812B, PIN_LED_DATA, GRB>(leds, LED_COUNT);
+    // Runtime layer-2 defense on the palette power budget. If a
+    // palette tune ever emits a frame that would pull more than
+    // 1.8 A, FastLED scales brightness down automatically.
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, 1800);
     FastLED.clear();
     FastLED.show();
     started = true;
@@ -596,7 +660,7 @@ void loop() {
   `0..WordId::COUNT-1`, collect `index_of(WordId(i))`, assert the
   result is a permutation of `0..34`
 
-**`test_display_palette`** — 8 tests
+**`test_display_palette`** — 9 tests
 - `test_warm_white_rgb`: `warm_white() == Rgb{255, 170, 100}`
 - `test_amber_rgb`: `amber() == Rgb{255, 120, 30}`
 - `test_palette_warm_white_is_warm_white_for_all_words`
@@ -607,8 +671,13 @@ void loop() {
 - `test_palette_valentines_alternates_red_pink`
 - `test_palette_juneteenth_cycles_three_colors`
 - `test_palette_easter_cycles_four_colors`
+- `test_palette_power_budget`: iterate every `Palette` enum value;
+  for each, iterate every `WordId`; assert
+  `color_for(p, w).r + color_for(p, w).g + color_for(p, w).b
+  <= PALETTE_MAX_RGB_SUM` (= 700). Catches PSU-hostile palette tunes
+  at build time.
 
-**`test_display_rainbow`** — 6 tests
+**`test_display_rainbow`** — 7 tests
 - `test_rainbow_happy_at_t0_is_red`: `rainbow(HAPPY, 0) ≈ {255, 0, 0}`
   (R ≥ 250, G ≤ 5, B ≤ 5 — hue 0° of the standard HSV→RGB curve)
 - `test_rainbow_birth_at_t0_is_yellow_green`:
@@ -628,6 +697,13 @@ void loop() {
   shift); assert both outputs exist and differ per-channel by at
   least 1 LSB — the point is that modular arithmetic doesn't
   spuriously restart the cycle at the wrap boundary
+- `test_rainbow_no_overflow_near_uint32_div_360`: pick
+  `now_ms = UINT32_MAX / 360 = 11'930'464` (the boundary where a
+  naive `now_ms * 360` would overflow `uint32_t`). Assert
+  `rainbow(HAPPY, 11'930'463)` and `rainbow(HAPPY, 11'930'465)`
+  differ per-channel by no more than a few LSB — no visible hue
+  jump. Fails loudly if someone "simplifies" the rainbow formula
+  back to the overflow-prone form.
 
 **`test_display_renderer`** — 13 tests (the behavioral contract
 end-to-end)
@@ -666,17 +742,42 @@ end-to-end)
   19:00 is dim, 07:59 is dim, 08:00 is full-bright (mirrors
   `wc::brightness()` boundaries exactly)
 
-**`test_display_renderer_golden`** — 1 test
-- Fixed input: Emory, 2030-10-06 14:23, `seconds_since_sync=0`,
-  `now_ms=0`. Expected output: exact 35-entry `Frame` with every
-  RGB value asserted. Protects against silent drift in palette
-  values or precedence order during refactors. The expected frame
-  lives in a header fixture generated by the plan's first-run
-  commit (computed from the spec and pasted — single source of
-  truth is the test file itself after that).
+**`test_display_renderer_golden`** — 2 tests
+- `test_golden_birthday_non_holiday_bright`: Emory, 2030-10-06
+  14:23, `seconds_since_sync=0`, `now_ms=0`. Asserts per-LED
+  *categories* (not exact RGB), since exact-byte assertions rot the
+  moment a palette value is tuned during bring-up:
+  - LEDs for lit time words (`IT, IS, TWENTY, MINUTES, PAST, FIVE_HR,
+    AT, AFTERNOON`) → warm-white family: `R == 255 && G == 170
+    && B == 100` (warm white is a single exact tuple and not
+    tuning-target; asserting it exactly is fine)
+  - LEDs for decor words (`HAPPY, BIRTH, DAY, NAME`) → rainbow
+    family: each satisfies saturated-hue invariants (min channel
+    ≤ 5, max channel ≥ 250) and matches its phase-offset hue
+    sector (HAPPY red, BIRTH yellow-green, DAY cyan, NAME purple)
+  - All other LEDs → `{0, 0, 0}`
+- `test_multi_signal_transition_is_atomic`: single `render()` call
+  at 2030-11-01 00:00 with a synthetic `BirthdayConfig{11, 1, ...}`
+  so three signals flip on the same tick (day change to non-Halloween
+  + birthday start + dim window active). Asserts the frame is
+  internally consistent with the priority table — no LED is "mid-
+  transition" between two states. Guards against someone adding
+  stateful caching to the renderer in the future.
 
-Target native-suite count after this module:
-79 (pre-display) + 32 (display) = **111 native tests**.
+Category-based golden assertions catch the two real drift risks
+(palette entry reorder, precedence bug) while surviving legitimate
+palette tuning without fake-positive test failures. The palette's
+exact RGB values are still asserted byte-for-byte in
+`test_display_palette` — that's the single byte-level source of
+truth. Tuning a palette there → palette test fails → developer
+updates the palette table and re-runs; the renderer golden does
+not require re-coordination.
+
+Total display pure-logic tests: 4 (led_map) + 9 (palette) + 7
+(rainbow) + 13 (renderer) + 2 (golden) = **35 display tests**.
+
+Target native-suite count after this module: 79 (pre-display) + 35
+(display) = **114 native tests**.
 
 ### ESP32-only manual hardware check
 
@@ -732,6 +833,9 @@ hardware during bring-up without changing the spec's behavior.
 | Dim-window boundaries | 19:00–07:59 dim; 08:00–18:59 full | `firmware/lib/core/src/dim_schedule.cpp` + `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md` §Bedtime dim |
 | Birthday activation window | full day (midnight-to-midnight local) | `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md` §Birthday mode + `firmware/lib/core/src/birthday.cpp` |
 | WordId count | 35 | `firmware/lib/core/include/word_id.h` (`WordId::COUNT`) |
+| Palette power budget | `r + g + b ≤ 700` per entry | Derived: `35 LEDs × (700/765) × 60 mA = 1.92 A` worst case; `docs/hardware/pinout.md` §Power budget allocates up to ~2.1 A for LED strip alone |
+| Runtime strip-current cap | 1.8 A via `FastLED.setMaxPowerInVoltsAndMilliamps(5, 1800)` | `docs/hardware/pinout.md` §Power (LED subsystem budget) |
+| Rainbow overflow guard | `(now_ms % RAINBOW_PERIOD_MS) * 360 / RAINBOW_PERIOD_MS` | Keeps product under `60'000 × 360 = 21'600'000` well within `uint32_t`; naive form overflows at `UINT32_MAX / 360 ≈ 11.93 Ms ≈ 3.3 h` |
 
 ## References
 

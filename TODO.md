@@ -38,6 +38,15 @@ historical reference; this file supersedes it.
 - [ ] **Inspect AITRIP module for a polyfuse on the micro-USB VBUS input.** Magnifier-level inspection near the micro-USB connector, looking for a small yellow/green 0603/0805 component in series with VBUS. If a 500 mA polyfuse is present, bridge it with solder or bypass it before commit — the full clock draw (~700 mA typical, up to 1.5-2 A peak) will trip it otherwise. Detail in `docs/hardware/usb-c-breakout-removal-guide.md` step 3.3.
 - [ ] **Caliper-measure tallest bottom-side components.** Spot-check the pinout.md table's [MED]-confidence daughterboard heights (MAX98357A, DS3231 coin-cell holder, microSD slot). Update the standoff + light-channel depth budget if any value is off by > 2 mm.
 - [ ] **Pre-power smoke test protocol.** Run through `docs/hardware/pinout.md` §Pre-power smoke test: multimeter check of the USB-C breakout, DS3231 battery-charging resistor removal, MAX98357A pin sanity, then ESP32-alone flash/run, add peripherals one at a time. ~15 minutes total.
+- [ ] **Re-verify `wifi_provision_checks.md` + `buttons_checks.md`** against
+      today's C1 fix (confirm_audio now actually triggers WiFi). Behavior
+      externally identical, but worth eyeballing before running them on
+      real hardware.
+- [ ] **Optional: day-1 runbook** — single chronological doc threading
+      smoke test → Bambu A1 calibration → first standoff print → ESP32
+      flash → step-by-step breadboard bring-up. Currently spread across
+      3 docs (`pinout.md`, `3d-printing-setup.md`, `breadboard-bring-up-guide.md`).
+      Skippable — the 3 docs work fine side-by-side.
 
 ## Breadboard bring-up (after smoke test passes)
 
@@ -58,17 +67,28 @@ lives in `docs/hardware/pinout.md`. See
 
 Phase 1 produced pure-logic modules that don't touch hardware (`time_to_words`,
 `dim_schedule`, holiday/birthday triggers, grid rendering). Phase 2 is
-everything that actually drives the hardware and WiFi. Modules to write:
+everything that actually drives the hardware and WiFi. Each remaining
+module below needs a short spec + plan (same shape as
+`docs/superpowers/specs/2026-04-16-buttons-design.md` +
+`docs/archive/plans/2026-04-16-buttons-implementation.md`) before coding.
+The master plan at `docs/superpowers/plans/2026-04-14-daughters-clocks-implementation.md`
+is intentionally general from Phase 2 onward — each module gets its own
+spec+plan pair when its turn comes up. Modules to write:
 
 - [ ] **`display`** — FastLED driver + the Phase 1 renderer. Applies
       `dim_schedule` multiplier, holiday palettes, birthday rainbow cycle.
+      Needs a real spec — several live decisions (palette composition with
+      dim multiplier, fade vs. step transitions, birthday-rainbow timing,
+      amber-stale-sync tint interaction with holiday palettes).
 - [ ] **`rtc`** — DS3231 read/write via RTClib; remove the ZS-042 battery-
-      charging resistor before inserting CR2032.
+      charging resistor before inserting CR2032. Thin adapter — minimal spec.
 - [ ] **`ntp`** — NTPClient on boot + every 6 hours; falls back to RTC if
-      WiFi unreachable.
+      WiFi unreachable. Thin adapter — follows wifi_provision's backoff pattern.
 - [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop
       behavior: press once to play lullaby, press during playback to stop.
-      Volume is fixed in firmware and tuned during assembly.
+      Volume is fixed in firmware and tuned during assembly. Needs a spec
+      (ESP8266Audio vs. libhelix library choice, volume curve, play-state
+      machine with buffer-underrun handling).
 - [x] **`buttons`** — debounced tact-switch input on GPIO 14 / 32 / 33
       (hour / minute / audio). Shipped: `firmware/lib/buttons/` with
       `Debouncer` + `ComboDetector` pure-logic state machines (13 native
@@ -91,7 +111,10 @@ everything that actually drives the hardware and WiFi. Modules to write:
       Uses Arduino core `WebServer`, not SPIFFS / LittleFS.
 - [ ] **`main.cpp` state machine** — boot → captive portal if no creds → NTP
       sync → normal clock loop, with holiday / birthday / bedtime-dim modes
-      and audio button handling interleaved.
+      and audio button handling interleaved. Integration spec — pins
+      mode-priority order when multiple triggers align (birthday +
+      holiday + bedtime-dim all hit at 8:30 PM on Halloween of Emory's
+      birthday year, etc.).
 - [x] **SD-card filesystem layout — flat root.** Cards are per-kid (one per
       clock), bench testing runs one clock at a time, so `emory/`/`nora/`
       subdirs buy nothing. Files: `lullaby.mp3` + `birth.mp3` at the root.
@@ -120,7 +143,18 @@ everything that actually drives the hardware and WiFi. Modules to write:
       printer lands.
 - [ ] **Button actuator caps (×3)** — tiered cylinders that slide through the 6.5 mm panel holes, bridging the ~14 mm air gap to the tact switch plungers. ~30 min part.
 - [ ] **Speaker cradle** — cup with 2 mount-tab screw holes matching the speaker (~37 mm tab spacing, measure exactly from the physical part), glued to the back panel interior behind the vent. Worth printing vs gluing the speaker directly because the speakers are cheap ($2.50 each, 4-pack) while a replacement back panel is ~$50 — cradle keeps the speaker swappable without wasting wood. ~1-2 hrs to design.
-- [ ] **Diffuser material test** — compare paper vs 0.5 mm frosted PETG on a single LED. Locks the light-channel depth.
+- [x] **Diffuser — PETG stack, not single-layer.** Settled: frosted PETG
+      alone does not adequately diffuse (Chelsea's 2015 clock used PETG
+      and still showed visible hot spots at the LED face). Go with the
+      spec's recommended stack: adhesive-backed diffusion film against the
+      back of the face (also retains inner letter islands) + 2-3 mm opal
+      cast acrylic behind it for primary hot-spot elimination. The
+      `diffuser material test` becomes a stack-validation test once the
+      printer + materials are on hand.
+- [ ] **Diffuser stack validation** — once printer + materials land, test
+      the film + opal stack at various light-channel depths (15/18/21 mm)
+      on a single LED to lock the channel height before printing the full
+      honeycomb.
 - [ ] **Light channel honeycomb** — walls isolating each word's LED pocket, 35 LED pockets, snap fits to PCB, height ~18 mm. Substantial part; budget several hours of iteration. May be easier in Fusion/Onshape than scripted.
 
 ## Supplies still to order
@@ -137,7 +171,9 @@ everything that actually drives the hardware and WiFi. Modules to write:
 ## Assembly + validation (Emory first, then Nora)
 
 - [x] **Assembly plan document** — end-to-end glue-up + fasten-up sequence at `docs/hardware/assembly-plan.md`. Covers BOM, adhesives, 7-phase assembly, frame-squaring jig notes.
-- [ ] **Cardboard dry-run** (optional) — ~$15 test cut to rehearse before touching real hardwood.
+- [x] **Cardboard dry-run** — skipped. Real hardwood already ordered from
+      Ponoko (shipping); cardboard test would have validated kerf + box-
+      joint fit but the per-sheet cost wasn't worth the 2-3 week delay.
 - [ ] **Emory unit — first light, glue-up.**
 - [ ] **Emory 30-day burn-in.** Real-time calendar task — cannot be compressed. Watch for thermal, audio crackle, RTC drift, WiFi reconnection.
 - [ ] **Nora unit — build with fixes baked in from Emory.**
@@ -149,6 +185,8 @@ everything that actually drives the hardware and WiFi. Modules to write:
 
 ## Open questions (to resolve when the situation demands)
 
-- Diffuser material: paper vs frosted PETG — settled by the diffuser test.
-- Light channel depth vs standoff height tradeoff — tune once real component heights are measured.
-- Back-panel screw-head style: countersunk vs pan-head. Drives whether we countersink the 3.2 mm panel (countersunk) or let heads sit proud (pan-head, simpler). Pick during assembly.
+- Light channel depth vs standoff height tradeoff — tune once real
+  component heights are measured + diffuser-stack validation runs.
+- Back-panel screw-head style: countersunk vs pan-head. Drives whether we
+  countersink the 3.2 mm panel (countersunk) or let heads sit proud
+  (pan-head, simpler). Pick during assembly.

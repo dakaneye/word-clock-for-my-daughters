@@ -78,6 +78,9 @@ static const char* state_name(State s) {
         case State::Online:               return "Online";
         case State::IdleNoCredentials:    return "IdleNoCredentials";
     }
+    // Unreachable: the switch above is exhaustive on a C++ enum class.
+    // Kept to silence -Wreturn-type on compilers that don't see through
+    // the exhaustive switch.
     return "?";
 }
 
@@ -201,6 +204,12 @@ void loop() {
                 Serial.println("[wifi_provision] audio confirm timeout");
                 sm.handle(Event::ConfirmationTimeout);
                 pending = {};
+                // Note: ap_started_at is intentionally NOT reset here. The
+                // 10-minute AP lifetime runs from the first AP start; a
+                // submit-then-timeout cycle doesn't extend the broadcast
+                // window. stop_ap()/start_ap() aren't called because the AP
+                // hardware stayed up throughout AwaitingConfirmation — the
+                // state returns to ApActive with DNS + web already serving.
             }
             break;
         }

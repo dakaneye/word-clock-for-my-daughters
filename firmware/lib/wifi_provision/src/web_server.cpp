@@ -137,9 +137,12 @@ static void handle_scan() {
         json += "}";
     }
     json += "]";
+    // scanDelete() frees the result buffer from the just-completed scan
+    // unconditionally — it's independent of whether we start a new scan.
     WiFi.scanDelete();
-    // Start a fresh async scan only if the cooldown window has elapsed.
-    // Protects the 2.4 GHz radio from /scan spam by a misbehaving client.
+    // Only kick off a fresh async scan if the cooldown window has elapsed.
+    // Protects the 2.4 GHz radio from /scan spam by a misbehaving client
+    // (or an iOS captive-portal view that polls aggressively).
     if (cooldown_elapsed) {
         WiFi.scanNetworks(/* async = */ true);
         last_scan_started_at = now;

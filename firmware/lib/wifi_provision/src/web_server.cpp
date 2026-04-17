@@ -26,7 +26,9 @@ static WebServer& server() {
 static std::string current_csrf;
 static std::string last_error;
 static int submit_count = 0;
-static constexpr int MAX_SUBMITS = 5;
+static constexpr int MAX_SUBMITS = 5;           // spec: per-AP-session rate limit
+static uint32_t last_scan_started_at = 0;
+static constexpr uint32_t SCAN_COOLDOWN_MS = 10000;
 static SubmitHandler on_submit;
 static ConfirmationStatus get_status;
 
@@ -59,22 +61,38 @@ static std::string render_form() {
     return html;
 }
 
+// Common helper for the two paths where a 302 redirect to "/" is the
+// correct response (iOS captive probe + wildcard catch-all). For error
+// responses on /submit, the spec says 400 with the form body — use
+// render_form() + server().send(400, ...) instead.
+static void redirect_to_root() {
+    server().sendHeader("Location", "/", true);
+    server().send(302, "text/plain", "");
+}
+
 static void handle_root() {
     server().send(200, "text/html", render_form().c_str());
 }
 
 static void handle_ios_probe() {
     // iOS probes captive.apple.com/hotspot-detect.html for a <TITLE>Success</TITLE>.
-    // Returning a redirect instead triggers the captive-portal popup.
-    server().sendHeader("Location", "/", true);
-    server().send(302, "text/plain", "");
+    // A redirect here triggers the captive-portal auto-popup.
+    redirect_to_root();
 }
 
 static void handle_scan() {
     std::string json = "[";
     int n = WiFi.scanComplete();
+    const uint32_t now = millis();
+    const bool cooldown_elapsed =
+        last_scan_started_at == 0 || (now - last_scan_started_at) > SCAN_COOLDOWN_MS;
+
     if (n < 0) {
-        WiFi.scanNetworks(/* async = */ true);
+        // No scan complete yet — kick one off if cooldown allows.
+        if (cooldown_elapsed) {
+            WiFi.scanNetworks(/* async = */ true);
+            last_scan_started_at = now;
+        }
         server().send(200, "application/json", "[]");
         return;
     }
@@ -95,41 +113,50 @@ static void handle_scan() {
     }
     json += "]";
     WiFi.scanDelete();
-    WiFi.scanNetworks(true);
+    // Start a fresh async scan only if the cooldown window has elapsed.
+    // Protects the 2.4 GHz radio from /scan spam by a misbehaving client.
+    if (cooldown_elapsed) {
+        WiFi.scanNetworks(/* async = */ true);
+        last_scan_started_at = now;
+    }
     server().send(200, "application/json", json.c_str());
 }
 
 static void handle_submit() {
     if (submit_count >= MAX_SUBMITS) {
+        // Spec: 429 on rate limit. Defense-in-depth per §Scope.
         server().send(429, "text/plain",
                       "Too many attempts. Reset the clock and try again.");
         return;
     }
-    std::string body = server().arg("plain").c_str();
-    if (body.empty()) {
-        // arg("plain") is empty when the body is form-encoded; reconstruct it.
-        body.clear();
-        for (int i = 0; i < server().args(); ++i) {
-            if (!body.empty()) body += "&";
-            body += server().argName(i).c_str();
-            body += "=";
-            body += server().arg(i).c_str();
-        }
-    }
-    FormBody parsed = parse_form_body(body);
-    if (parsed.csrf != current_csrf) {
+
+    // Read fields directly from WebServer (which has already URL-decoded
+    // them). Avoids the earlier round-trip-through-reconstructed-body bug
+    // that corrupted SSIDs containing '&' / '=' / '+' / '%'.
+    FormBody parsed;
+    parsed.ssid = server().arg("ssid").c_str();
+    parsed.pw   = server().arg("pw").c_str();
+    parsed.tz   = server().arg("tz").c_str();
+    parsed.csrf = server().arg("csrf").c_str();
+
+    // CSRF: reject if the server-side token was never set (defense against
+    // a POST before any GET /) OR the submitted token doesn't match.
+    if (current_csrf.empty() || parsed.csrf != current_csrf) {
         last_error = "Session expired — please resubmit.";
-        server().sendHeader("Location", "/", true);
-        server().send(302, "text/plain", "");
+        // Spec §HTTP endpoints: 400 on validation failure. Respond with
+        // the form body so the user sees the error inline and gets a
+        // fresh CSRF token in one round-trip.
+        server().send(400, "text/html", render_form().c_str());
         return;
     }
+
     ValidationResult v = validate(parsed);
     if (!v.ok) {
         last_error = v.message;
-        server().sendHeader("Location", "/", true);
-        server().send(302, "text/plain", "");
+        server().send(400, "text/html", render_form().c_str());
         return;
     }
+
     submit_count++;
     on_submit(parsed);
     std::string msg =
@@ -152,8 +179,7 @@ static void handle_status() {
 }
 
 static void handle_wildcard() {
-    server().sendHeader("Location", "/", true);
-    server().send(302, "text/plain", "");
+    redirect_to_root();
 }
 
 void begin(SubmitHandler submit_cb, ConfirmationStatus status_cb) {
@@ -161,6 +187,10 @@ void begin(SubmitHandler submit_cb, ConfirmationStatus status_cb) {
     get_status = std::move(status_cb);
     submit_count = 0;
     last_error.clear();
+    last_scan_started_at = 0;
+    // Seed a CSRF token immediately so the first /submit can't slip past
+    // the empty-string comparison.
+    current_csrf = rand_hex(16);
 
     server().on("/", HTTP_GET, handle_root);
     server().on("/submit", HTTP_POST, handle_submit);
@@ -172,6 +202,7 @@ void begin(SubmitHandler submit_cb, ConfirmationStatus status_cb) {
 
     // Pre-seed the scan so the dropdown populates immediately.
     WiFi.scanNetworks(/* async = */ true);
+    last_scan_started_at = millis();
 }
 
 void loop() {

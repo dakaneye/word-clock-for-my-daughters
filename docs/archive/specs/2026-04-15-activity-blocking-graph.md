@@ -152,6 +152,6 @@ The original Phase 2→3→4→5 ordering was conservative — wait-and-see at e
 ## Reminders
 
 - Parts are **already ordered** — don't re-place the wishlist.
-- 3D printer is **already ordered** — don't re-evaluate the printer decision (spec at `docs/superpowers/specs/2026-04-14-3d-printer-purchase-decision.md`).
+- 3D printer is **already ordered** — don't re-evaluate the printer decision (spec at `docs/archive/specs/2026-04-14-3d-printer-purchase-decision.md`).
 - Ponoko is the laser-cut vendor — no need to re-evaluate SendCutSend etc. unless Ponoko's birch or walnut stock has changed.
 - The 3D-print fallback (outsource via SendCutSend) in the printer spec remains a valid backup if the Bambu A1 has issues.

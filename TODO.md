@@ -1,7 +1,8 @@
 # Word Clock — Remaining Work
 
-Live working list of what's left. Original phase-by-phase roadmap is at
-`docs/superpowers/specs/2026-04-15-activity-blocking-graph.md`.
+Live working list of what's left. The original phase-by-phase roadmap
+lives in `docs/archive/specs/2026-04-15-activity-blocking-graph.md` for
+historical reference; this file supersedes it.
 
 ## Status (2026-04-17)
 

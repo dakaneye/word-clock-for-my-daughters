@@ -109,7 +109,7 @@ Last commit: `fix(enclosure): aspect filter for Jost B + simplify for Fraunces s
 ## Relevant files
 
 - Spec: `docs/superpowers/specs/2026-04-15-laser-cut-face-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-04-15-laser-cut-face-implementation.md`
+- Implementation plan: `docs/archive/plans/2026-04-15-laser-cut-face-implementation.md` (archived — SVGs shipped)
 - Grid source of truth: `firmware/lib/core/src/grid.cpp`
 - PCB (for LED positions): `hardware/word-clock.kicad_pcb`
 - Brainstorm session with visual history: `.superpowers/brainstorm/5705-1776357082/`

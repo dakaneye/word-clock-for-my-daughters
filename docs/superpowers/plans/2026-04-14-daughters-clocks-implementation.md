@@ -15,7 +15,7 @@
 ## Amendments
 
 - **2026-04-14 (execution day):** Dropped Tasks 0.5 (CodeQL), 0.6 (hookshot claude-review-code), 0.7 (hookshot gas-fixer), and 0.9 (trivy+gitleaks scan). Equivalent coverage is provided centrally by `dakaneye/.github` sync (settings.yml baseline ruleset + template workflows for CodeQL, security scan, and dependabot auto-merge). What used to be Task 0.10 (repo wrap-up + branch protection) is now Task 0.9 and reshaped into "trigger/verify org sync." Original task text below is left intact for historical reference but superseded — follow the current task list, not those sections.
-- **2026-04-14:** Added a 3D-printing-fallback branch to Phase 4 (enclosure). If in-house printing (Bambu A1 purchase) isn't available when Phase 4 starts, outsource the internals via SendCutSend / Craftcloud / Shapeways. Budget impact: +$60-80/clock, still within the $150-180/clock spec target. See `docs/superpowers/specs/2026-04-14-3d-printer-purchase-decision.md` § Fallback.
+- **2026-04-14:** Added a 3D-printing-fallback branch to Phase 4 (enclosure). If in-house printing (Bambu A1 purchase) isn't available when Phase 4 starts, outsource the internals via SendCutSend / Craftcloud / Shapeways. Budget impact: +$60-80/clock, still within the $150-180/clock spec target. See `docs/archive/specs/2026-04-14-3d-printer-purchase-decision.md` § Fallback.
 
 ---
 
@@ -878,7 +878,7 @@ git push origin phase-0-complete
 
 **3D-printing branch point (decide at phase entry):**
 
-- **Path A — In-house print** (preferred): Bambu A1 is set up and calibrated per `docs/superpowers/specs/2026-04-14-3d-printer-purchase-decision.md`. Print the light-channel honeycomb, PCB standoffs, speaker mount, button housings in white PLA. Zero marginal cost per clock beyond filament (~$10).
+- **Path A — In-house print** (preferred): Bambu A1 is set up and calibrated per `docs/archive/specs/2026-04-14-3d-printer-purchase-decision.md`. Print the light-channel honeycomb, PCB standoffs, speaker mount, button housings in white PLA. Zero marginal cost per clock beyond filament (~$10).
 - **Path B — Outsource**: If the printer isn't available (not purchased, broken, otherwise blocked), send the same STL/STEP files to an online FDM service. Primary: SendCutSend (also the face-laser vendor — single PO). Alternatives: Craftcloud (aggregator), Shapeways/JLC3DP. Budget delta: +$60-80/clock. See fallback matrix in the 3D-printer spec.
 - **Vendor-neutrality requirement:** CAD files committed to `enclosure/` must be standard STEP + STL with no printer-specific slicer settings embedded. Path B must work without modifying the CAD sources.
 - **Decision trigger:** At Phase 4 kickoff, check printer status. If operational and calibrated, Path A. If not, Path B with no re-plan needed.

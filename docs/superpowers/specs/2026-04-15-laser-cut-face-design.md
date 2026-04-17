@@ -7,7 +7,7 @@ Status: Design locked, ready for implementation planning (`writing-plans`)
 
 This spec covers the laser-cut wooden components of both clocks: the 13×13 letter face and the four side frames. Light channel, diffuser, back panel, PCB standoffs, speaker mount, button housings, and 3D-printed internals are OUT of scope — each gets its own spec later.
 
-Parent spec: `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md`. Parent dependency graph: `docs/superpowers/specs/2026-04-15-activity-blocking-graph.md` (activities **E**, **F**, **G**).
+Parent spec: `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md`. Parent dependency graph: `docs/archive/specs/2026-04-15-activity-blocking-graph.md` (archived — activities **E**, **F**, **G**).
 
 Target vendor: **Ponoko**. File format: SVG (mm units). Material kerf and minimum-feature values verified against Ponoko material pages (2026-04-15).
 
@@ -255,7 +255,7 @@ Spec-level budget for laser-cut wood was ~$80 for both clocks (original spec); h
 
 ## Implementation status
 
-- Implementation plan: `docs/superpowers/plans/2026-04-15-laser-cut-face-implementation.md`
+- Implementation plan: `docs/archive/plans/2026-04-15-laser-cut-face-implementation.md` (archived — SVGs shipped)
 - Generator: `enclosure/scripts/build.py` (run from repo root via `python enclosure/scripts/build.py`)
 - Output SVGs: `enclosure/{emory,nora}-face.svg` + `enclosure/frame.svg` (frame is kid-agnostic — same file, different wood material per clock)
 - Tests: `pytest enclosure/scripts/tests/`
@@ -264,7 +264,7 @@ Spec-level budget for laser-cut wood was ~$80 for both clocks (original spec); h
 ## References
 
 - Parent spec: `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md`
-- Dependency graph: `docs/superpowers/specs/2026-04-15-activity-blocking-graph.md`
+- Dependency graph: `docs/archive/specs/2026-04-15-activity-blocking-graph.md`
 - Firmware grids (source of truth for letter layout): `firmware/lib/core/src/grid.cpp`
 - PCB (source of truth for board dimensions): `hardware/word-clock.kicad_pcb`
 - Ponoko material pages: [maple](https://www.ponoko.com/materials/maple-hardwood), [walnut](https://www.ponoko.com/materials/walnut-hardwood)

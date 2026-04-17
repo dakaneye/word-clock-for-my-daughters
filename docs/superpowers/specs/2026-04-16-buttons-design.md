@@ -1,7 +1,6 @@
 # Buttons Firmware Module — Design Spec
 
 Date: 2026-04-16
-Status: Design approved, ready for implementation planning (`writing-plans`)
 
 ## Overview
 
@@ -51,6 +50,10 @@ Events fire on the **press-down transition** (after debounce), not on release.
 - Raw GPIO reads can bounce for ~5–10 ms on mechanical contacts.
 - The debouncer requires the raw state to be **stable for 25 ms** before
   committing to a new debounced state.
+- The stability timer **resets to zero on every raw-state change**. A
+  long bounce sequence that keeps flipping the raw reading extends the
+  stabilization window; only a continuous 25 ms of unchanged raw state
+  commits the new debounced value.
 - A bounce on release does NOT retrigger the press event.
 
 ### Reset combo
@@ -71,6 +74,18 @@ Events fire on the **press-down transition** (after debounce), not on release.
   clearly attempting a reset, not a time adjustment or audio toggle.
   This applies from the moment both are down, not just after the 10 s
   threshold has elapsed.
+- **Suppression ends on release.** `in_combo()` must return `false`
+  immediately when either Hour or Audio transitions to released,
+  regardless of whether the 10 s threshold had fired. This is a
+  correctness invariant (see `ComboDetector` header contract below).
+- **Press-edge + suppression coupling — correctness invariant.**
+  `HourTick` / `AudioPressed` fire on press-down edges ONLY (not on
+  release). Combined with the suppression rule above, this means:
+  once a combo attempt is in progress and the user releases Hour
+  mid-hold while still holding Audio, no spurious `AudioPressed`
+  fires on that release — there is no new press-down edge in that
+  tick. Do not change `Debouncer::step` to fire on other edges
+  without revisiting this rule; the two are load-bearing together.
 
 ### Event ordering
 
@@ -111,10 +126,55 @@ firmware/test/
 Pure-logic `.cpp` files get added to the `[env:native]` `build_src_filter`
 in `platformio.ini` (same pattern wifi_provision's files use).
 
+### New shared file: `firmware/configs/pinmap.h`
+
+`docs/hardware/pinout.md` §Firmware constants specifies that Phase 2
+modules share a `firmware/configs/pinmap.h` with `PIN_*` macros. This is
+the first Phase 2 module to need it, so creating `pinmap.h` lands with
+this module. Content per pinout.md:
+
+```cpp
+#pragma once
+
+// WS2812B LED strip
+#define PIN_LED_DATA     13
+
+// DS3231 RTC (I²C default pins)
+#define PIN_I2C_SDA      21
+#define PIN_I2C_SCL      22
+
+// microSD card (VSPI)
+#define PIN_SD_CS         5
+#define PIN_SD_MOSI      23
+#define PIN_SD_MISO      19
+#define PIN_SD_CLK       18
+
+// MAX98357A I²S amplifier
+#define PIN_I2S_BCLK     26
+#define PIN_I2S_LRC      25
+#define PIN_I2S_DIN      27
+
+// Tact switches (INPUT_PULLUP, other leg to GND)
+#define PIN_BUTTON_HOUR   32
+#define PIN_BUTTON_MINUTE 33
+#define PIN_BUTTON_AUDIO  14
+```
+
+`configs/` is already on the ESP32 envs' `-I` include path via
+`[esp32-base] build_flags = -I configs`, so `#include "pinmap.h"` works
+from any module. Native tests for pure-logic modules never see this
+header (no pin reads happen in pure logic).
+
 ## Public API
 
 ```cpp
 // firmware/lib/buttons/include/buttons.h
+//
+// ESP32-only public API. Depends on Arduino.h. Include this ONLY in
+// translation units that compile under the Arduino toolchain (i.e. the
+// emory / nora PlatformIO envs). Native-env tests include the pure-logic
+// headers `buttons/debouncer.h` and `buttons/combo_detector.h` instead —
+// never this header.
 #pragma once
 
 #include <Arduino.h>
@@ -204,9 +264,12 @@ public:
     // Returns true on the tick where the 10 s threshold is crossed.
     bool step(bool hour_pressed, bool audio_pressed, uint32_t now_ms);
 
-    // True if a combo is currently in progress (both held, threshold
-    // not yet crossed or already fired). Adapter uses this to suppress
-    // the individual HourTick / AudioPressed events.
+    // True iff BOTH Hour and Audio were debounced-pressed on the most
+    // recent step() call. Transitions to false immediately when either
+    // button releases, regardless of whether the 10 s threshold already
+    // fired during the hold. Adapter uses this to suppress the
+    // individual HourTick / AudioPressed events for the duration of the
+    // both-held window.
     bool in_combo() const;
 
 private:
@@ -230,29 +293,26 @@ Actual code written during implementation; shape for review:
 #include "buttons/debouncer.h"
 #include "buttons/combo_detector.h"
 #include "buttons/event.h"
+#include "pinmap.h"             // PIN_BUTTON_{HOUR,MINUTE,AUDIO}
 
 namespace wc::buttons {
-    static constexpr int PIN_HOUR  = 32;
-    static constexpr int PIN_MIN   = 33;
-    static constexpr int PIN_AUDIO = 14;
-
     static Debouncer      db_hour, db_min, db_audio;
     static ComboDetector  combo;
     static Handler        on_event;
 
     void begin(Handler h) {
-        pinMode(PIN_HOUR,  INPUT_PULLUP);
-        pinMode(PIN_MIN,   INPUT_PULLUP);
-        pinMode(PIN_AUDIO, INPUT_PULLUP);
+        pinMode(PIN_BUTTON_HOUR,   INPUT_PULLUP);
+        pinMode(PIN_BUTTON_MINUTE, INPUT_PULLUP);
+        pinMode(PIN_BUTTON_AUDIO,  INPUT_PULLUP);
         on_event = std::move(h);
     }
 
     void loop() {
         const uint32_t now = millis();
         // Raw reads: LOW = pressed for active-low INPUT_PULLUP buttons.
-        const bool h_raw = (digitalRead(PIN_HOUR)  == LOW);
-        const bool m_raw = (digitalRead(PIN_MIN)   == LOW);
-        const bool a_raw = (digitalRead(PIN_AUDIO) == LOW);
+        const bool h_raw = (digitalRead(PIN_BUTTON_HOUR)   == LOW);
+        const bool m_raw = (digitalRead(PIN_BUTTON_MINUTE) == LOW);
+        const bool a_raw = (digitalRead(PIN_BUTTON_AUDIO)  == LOW);
 
         const bool h_edge = db_hour.step(h_raw, now);
         const bool m_edge = db_min.step(m_raw, now);

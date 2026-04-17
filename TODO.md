@@ -75,11 +75,14 @@ The master plan at `docs/superpowers/plans/2026-04-14-daughters-clocks-implement
 is intentionally general from Phase 2 onward — each module gets its own
 spec+plan pair when its turn comes up. Modules to write:
 
-- [ ] **`display`** — FastLED driver + the Phase 1 renderer. Applies
-      `dim_schedule` multiplier, holiday palettes, birthday rainbow cycle.
-      Needs a real spec — several live decisions (palette composition with
-      dim multiplier, fade vs. step transitions, birthday-rainbow timing,
-      amber-stale-sync tint interaction with holiday palettes).
+- [x] **`display`** — FastLED driver + Phase 1 renderer. Shipped:
+      `firmware/lib/display/` with pure-logic renderer (priority
+      chain birthday-rainbow > holiday > amber-stale-sync > warm-white,
+      dim multiplier last), overflow-safe 60 s rainbow on decor words,
+      PALETTE_MAX_RGB_SUM=700 invariant, FastLED adapter with 1.8 A
+      runtime power cap. 35 native tests; full suite 124/124. Spec:
+      `docs/superpowers/specs/2026-04-17-display-design.md`. Hardware
+      checklist: `firmware/test/hardware_checks/display_checks.md`.
 - [ ] **`rtc`** — DS3231 read/write via RTClib; remove the ZS-042 battery-
       charging resistor before inserting CR2032. Thin adapter — minimal spec.
 - [ ] **`ntp`** — NTPClient on boot + every 6 hours; falls back to RTC if

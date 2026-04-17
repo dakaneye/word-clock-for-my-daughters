@@ -21,3 +21,19 @@ CompileFlags:
     - -Ilib/buttons/include
     - -Ilib/display/include
     - -Iconfigs
+    # Unity is a PlatformIO libdep bundled per-env; native tests find it
+    # through pio's scons environment, but clangd's fallback invocation
+    # needs the path explicit.
+    - -I.pio/libdeps/native/Unity/src
+
+# Suppress diagnostics that only fire when clangd's fallback compiler
+# invocation can't resolve stdlib headers (the real PIO build uses gcc
+# with a known-good stdlib; clangd's fallback mixes libc++ and libstdc++
+# incompletely). Real build errors surface via `pio test -e native` and
+# `pio run -e emory`, not the LSP.
+Diagnostics:
+  Suppress:
+    - pp_file_not_found        # <_ansi.h>, <sys/types.h> fallback gaps
+    - typename_nested_not_found  # std::__tree issues
+    - nested_name_spec_non_tag   # std::allocator_traits confusion
+    - expected_unqualified_id    # cascading from header-resolution failure

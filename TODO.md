@@ -117,6 +117,9 @@ everything that actually drives the hardware and WiFi. Modules to write:
 - [ ] M3 × 12 mm countersunk (or pan-head) brass machine screws — (~$5)
 - [ ] 2-part structural epoxy (JB Weld or E6000) — (~$8)
 - [ ] Micro-USB-to-USB-C cable, 3-6 ft — 1 per clock (~$6 each)
+- [ ] PLA filament — 1 kg black (required for light channel — see laser-cut
+      spec §Light channel material override) + 1 kg any color for other
+      internals. Bambu PLA Basic is the zero-thinking default. (~$40)
 - [ ] Rubber grommet, 6 mm inner diameter (or sized to the cable OD) — (~$3)
 
 ## Assembly + validation (Emory first, then Nora)

@@ -17,16 +17,24 @@ python3 -m venv .venv
 (The `.venv/` directory is gitignored — it's ~500 MB of cached
 OpenCascade CAD geometry, rebuilt locally on demand.)
 
-## Generate every STL
+## Generate STLs
 
-From the repo root:
-
+Generate one part:
 ```bash
 enclosure/3d/.venv/bin/python enclosure/3d/pcb_standoff.py
-# (more scripts land here as we add parts)
+```
+
+Generate every part at once:
+```bash
+enclosure/3d/.venv/bin/python enclosure/3d/build_all.py
 ```
 
 Outputs go to `enclosure/3d/out/*.stl` (gitignored — regenerate any time).
+
+## Printer workflow
+
+See `docs/hardware/3d-printing-setup.md` — Bambu Studio setup, A1
+onboarding, per-part slicer settings, VS Code live-preview workflow.
 
 ## Printing one of these
 

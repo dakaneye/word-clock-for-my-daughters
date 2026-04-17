@@ -100,8 +100,12 @@ everything that actually drives the hardware and WiFi. Modules to write:
 
 ## 3D-printed internals (after printer calibrated + parts in hand)
 
-- [ ] **Install build123d** (Python CAD library) for parametric part authoring.
-- [ ] **PCB standoff posts (×4)** — 20 mm tall cylinders with a wider glue base, epoxied to the back panel interior at PCB corner positions. Compression-sandwich design: back-panel screws pull everything tight, PCB has no permanent fasteners. ~15 min part.
+- [x] **Install build123d** — venv at `enclosure/3d/.venv/`. See
+      `enclosure/3d/README.md` for setup + per-part workflow.
+- [x] **PCB standoff posts (×4)** — `enclosure/3d/pcb_standoff.py` generates
+      the STL. 20 mm post + 2 mm glue flange + 2 mm locating stub (fits
+      3.2 mm PCB hole). Run the script; slice in Bambu Studio when the
+      printer lands.
 - [ ] **Button actuator caps (×3)** — tiered cylinders that slide through the 6.5 mm panel holes, bridging the ~14 mm air gap to the tact switch plungers. ~30 min part.
 - [ ] **Speaker cradle** — cup with 2 mount-tab screw holes matching the speaker (~37 mm tab spacing, measure exactly from the physical part), glued to the back panel interior behind the vent. Worth printing vs gluing the speaker directly because the speakers are cheap ($2.50 each, 4-pack) while a replacement back panel is ~$50 — cradle keeps the speaker swappable without wasting wood. ~1-2 hrs to design.
 - [ ] **Diffuser material test** — compare paper vs 0.5 mm frosted PETG on a single LED. Locks the light-channel depth.

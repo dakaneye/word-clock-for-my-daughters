@@ -3,11 +3,12 @@
 Live working list of what's left. Original phase-by-phase roadmap is at
 `docs/superpowers/specs/2026-04-15-activity-blocking-graph.md`.
 
-## Status (2026-04-16)
+## Status (2026-04-17)
 
 | Workstream | State |
 |---|---|
-| Firmware logic | **Done** — 35 tests green, tagged `phase-1-complete` |
+| Firmware Phase 1 (pure logic) | **Done** — tagged `phase-1-complete` |
+| Firmware Phase 2 — `wifi_provision` + `buttons` | **Done native-side** — 79 tests green. Hardware-flash checks deferred to today's parts arrival. |
 | Face SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
 | Frame SVGs | **Ordered from Ponoko** — Emory Maple 6.4 mm, Nora Walnut 6.4 mm (bare shells, no cutouts) |
 | Back-panel SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
@@ -20,6 +21,10 @@ Live working list of what's left. Original phase-by-phase roadmap is at
 
 - **Frame is a bare shell.** All exterior features live on the back panel.
 - **Buttons pressed through the back panel** (PCB tact switches are bottom-side; "Hour / Min / Audio" labels engraved next to each hole).
+- **Captive portal — custom implementation, not WiFiManager.** Raw
+  `DNSServer` + `WebServer` + NVS-backed credentials. Avoids supply-chain
+  dependency and gives full control over the per-kid palette. Shipped
+  in `firmware/lib/wifi_provision/`.
 - **USB path: captive cable.** A 3-6 ft Micro-USB-to-USB-C cable lives permanently inside the clock, plugged into the ESP32 module's micro-USB port, exiting through a 6 mm grommeted hole at the bottom-right of the back panel. No adapter, no pigtail, no panel-mount hardware. See `docs/hardware/usb-c-breakout-removal-guide.md`.
 - **Back panel removable** via 4 × M3 brass corner screws threading into hex spacers epoxied into the frame corners. Unlimited removal cycles; serves the 40-year CR2032 replacement cadence.
 - **Daughterboard orientation:** DS3231 + HW-125 install with battery holder / SD slot facing the back panel (silkscreen markers on the PCB will enforce this).
@@ -62,21 +67,26 @@ everything that actually drives the hardware and WiFi. Modules to write:
 - [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop
       behavior: press once to play lullaby, press during playback to stop.
       Volume is fixed in firmware and tuned during assembly.
-- [ ] **`buttons`** — debounced tact-switch input on GPIO 14 / 32 / 33
-      (hour / minute / audio).
-- [ ] **`wifi_provision` (captive portal)** — first-boot WiFi setup. Clock
-      creates a temporary open AP ("WordClock-Setup-XXXX"), serves an HTML
-      form where the user picks an SSID + enters password, stores
-      credentials in `Preferences` NVS, reboots onto the chosen network.
-      Captive portal library: pick between **WiFiManager** (battle-tested
-      but opinionated UI) and **custom + `DNSServer` + `WebServer`** (more
-      control, more code). Ship decision during module implementation.
-- [ ] **HTML/CSS for the captive portal form** — `firmware/data/index.html`
-      (served by SPIFFS or LittleFS). Simple form: SSID dropdown (populated
-      from `WiFi.scanNetworks()`), password field, submit button. Style to
-      match the clock's aesthetic (warm whites, serif font); the user will
-      see this once per clock during setup. Test against a mocked backend
-      in a desktop browser before wiring to firmware.
+- [x] **`buttons`** — debounced tact-switch input on GPIO 14 / 32 / 33
+      (hour / minute / audio). Shipped: `firmware/lib/buttons/` with
+      `Debouncer` + `ComboDetector` pure-logic state machines (13 native
+      Unity tests) and an ESP32 adapter. 10 s Hour+Audio combo calls
+      `wifi_provision::reset_to_captive()`. Spec:
+      `docs/superpowers/specs/2026-04-16-buttons-design.md`. Manual
+      hardware checklist: `firmware/test/hardware_checks/buttons_checks.md`.
+- [x] **`wifi_provision` (captive portal)** — first-boot WiFi setup.
+      Decision: custom `DNSServer` + `WebServer` (not WiFiManager) for
+      UI + supply-chain control. Shipped: `firmware/lib/wifi_provision/`
+      with pure-logic state machine (13 transitions, native-tested), form
+      parser, credential validator, 8-entry TZ table, plus ESP32 adapters
+      for NVS, DNS hijack, web server, and lifecycle. Spec:
+      `docs/superpowers/specs/2026-04-16-captive-portal-design.md`.
+      Hardware checklist: `firmware/test/hardware_checks/wifi_provision_checks.md`.
+- [x] **HTML/CSS for the captive portal form** — embedded as PROGMEM via
+      build-time generator `firmware/assets/captive-portal/gen_form_html.py`
+      (5 pytests). Per-kid palette; runtime-substituted CSRF token + error
+      message. Browser preview: `python gen_form_html.py --kid emory --preview`.
+      Uses Arduino core `WebServer`, not SPIFFS / LittleFS.
 - [ ] **`main.cpp` state machine** — boot → captive portal if no creds → NTP
       sync → normal clock loop, with holiday / birthday / bedtime-dim modes
       and audio button handling interleaved.

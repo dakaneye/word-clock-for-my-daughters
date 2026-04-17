@@ -200,6 +200,10 @@ void reset_to_captive() {
     start_ap();
 }
 
+void confirm_audio() {
+    sm.handle(Event::AudioButtonConfirmed);
+}
+
 } // namespace wc::wifi_provision
 
 #endif // ARDUINO

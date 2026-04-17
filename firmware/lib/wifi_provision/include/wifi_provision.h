@@ -23,4 +23,9 @@ uint32_t seconds_since_last_sync();
 // Called by the buttons module when Hour + Audio is held for 10 s.
 void reset_to_captive();
 
+// Fire Event::AudioButtonConfirmed into the state machine.
+// Caller: the buttons module when Audio is pressed during captive-portal
+// AwaitingConfirmation state.
+void confirm_audio();
+
 } // namespace wc::wifi_provision

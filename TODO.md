@@ -83,8 +83,16 @@ spec+plan pair when its turn comes up. Modules to write:
       runtime power cap. 35 native tests; full suite 124/124. Spec:
       `docs/superpowers/specs/2026-04-17-display-design.md`. Hardware
       checklist: `firmware/test/hardware_checks/display_checks.md`.
-- [ ] **`rtc`** — DS3231 read/write via RTClib; remove the ZS-042 battery-
-      charging resistor before inserting CR2032. Thin adapter — minimal spec.
+- [x] **`rtc`** — DS3231 read/write via RTClib. Shipped:
+      `firmware/lib/rtc/` with pure-logic wrap math
+      (`advance_hour_fields`, `advance_minute_fields`) and pure-logic
+      UTC-fields→epoch (`utc_epoch_from_fields`, Howard Hinnant
+      days_from_civil), plus an ESP32 adapter. 16 native tests (5
+      epoch + 11 advance); full suite 140/140. UTC stored on chip;
+      libc `localtime_r` applies POSIX TZ set by wifi_provision.
+      Spec: `docs/superpowers/specs/2026-04-17-rtc-design.md`.
+      Plan: `docs/superpowers/plans/2026-04-17-rtc-implementation.md`.
+      Hardware checklist: `firmware/test/hardware_checks/rtc_checks.md`.
 - [ ] **`ntp`** — NTPClient on boot + every 6 hours; falls back to RTC if
       WiFi unreachable. Thin adapter — follows wifi_provision's backoff pattern.
 - [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop

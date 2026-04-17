@@ -50,8 +50,24 @@ void test_password_too_long_fails(void) {
     TEST_ASSERT_FALSE(result.ok);
 }
 
+void test_password_exactly_64_chars_ok(void) {
+    // Boundary: 64 is the documented max (spec comment notes WPA2 is 63 chars;
+    // we allow 64 for edge cases). Mirror the SSID 32-char boundary test.
+    std::string boundary(64, 'p');
+    auto result = validate(body("SSID", boundary.c_str(), "UTC0"));
+    TEST_ASSERT_TRUE(result.ok);
+}
+
 void test_unknown_tz_fails(void) {
     auto result = validate(body("SSID", "pw", "not_a_real_tz"));
+    TEST_ASSERT_FALSE(result.ok);
+}
+
+void test_empty_tz_fails(void) {
+    // Empty TZ is distinct from "string provided but not in the known list".
+    // Both must fail validation — tested at the validate() integration point
+    // (vs. the tz_options layer which tests is_known_posix_tz("") separately).
+    auto result = validate(body("SSID", "pw", ""));
     TEST_ASSERT_FALSE(result.ok);
 }
 
@@ -63,6 +79,8 @@ int main(int, char**) {
     RUN_TEST(test_ssid_too_long_fails);
     RUN_TEST(test_ssid_exactly_32_chars_ok);
     RUN_TEST(test_password_too_long_fails);
+    RUN_TEST(test_password_exactly_64_chars_ok);
     RUN_TEST(test_unknown_tz_fails);
+    RUN_TEST(test_empty_tz_fails);
     return UNITY_END();
 }

@@ -86,6 +86,39 @@ void test_in_combo_false_after_fire_and_release(void) {
     TEST_ASSERT_FALSE(c.in_combo());  // released — false immediately
 }
 
+// After a successful fire + full release, a fresh press should re-arm and
+// fire again 10s later. Spec: "fires exactly once per continuous hold."
+void test_fires_again_after_full_release_and_rearm(void) {
+    ComboDetector c;
+    // First combo: arm at t=0, fire at t=10000.
+    c.step(true, true, 0);
+    TEST_ASSERT_TRUE(c.step(true, true, 10000));
+    // Release both; in_combo() transitions to false, fired_ should reset.
+    c.step(false, false, 10100);
+    TEST_ASSERT_FALSE(c.in_combo());
+    // Re-press both at t=15000. Expect a fresh 10s countdown.
+    c.step(true, true, 15000);
+    TEST_ASSERT_FALSE(c.step(true, true, 24999));
+    TEST_ASSERT_TRUE(c.step(true, true, 25000));
+}
+
+// The armed timer must start when BOTH buttons are simultaneously pressed,
+// not when the first of the two was pressed. A plausible implementation
+// bug would treat any hold-since-first-press as the combo interval.
+void test_armed_timer_starts_on_simultaneous_press_not_first_press(void) {
+    ComboDetector c;
+    // Hour alone for 9000ms.
+    for (uint32_t t = 0; t <= 9000; t += 1000) {
+        c.step(true, false, t);
+    }
+    // Audio joins at t=9000. Combo timer starts now, not at t=0.
+    c.step(true, true, 9000);
+    // 10s from t=9000 is t=19000, not t=10000.
+    TEST_ASSERT_FALSE(c.step(true, true, 10000));
+    TEST_ASSERT_FALSE(c.step(true, true, 18999));
+    TEST_ASSERT_TRUE(c.step(true, true, 19000));
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_fires_after_10s_of_both_held);
@@ -95,5 +128,7 @@ int main(int, char**) {
     RUN_TEST(test_minute_not_part_of_combo);
     RUN_TEST(test_in_combo_tracks_both_pressed);
     RUN_TEST(test_in_combo_false_after_fire_and_release);
+    RUN_TEST(test_fires_again_after_full_release_and_rearm);
+    RUN_TEST(test_armed_timer_starts_on_simultaneous_press_not_first_press);
     return UNITY_END();
 }

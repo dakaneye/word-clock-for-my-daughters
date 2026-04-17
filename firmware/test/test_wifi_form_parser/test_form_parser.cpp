@@ -44,6 +44,52 @@ void test_extracts_csrf_token(void) {
     TEST_ASSERT_EQUAL_STRING("abc123", body.csrf.c_str());
 }
 
+// Malformed %XX tolerance: %X at end-of-string, %<non-hex>, truncated %.
+// Header contract says "Malformed %XX yields the literal chars."
+void test_malformed_percent_truncated(void) {
+    // Trailing %X with only one char after the %.
+    FormBody body = parse_form_body("ssid=ab%4&tz=UTC0");
+    // Expectation: the %4 is passed through as literal "%4" since there's
+    // no full %XX pair. Exact output isn't the point; no crash + survives
+    // to parse subsequent fields.
+    TEST_ASSERT_EQUAL_STRING("UTC0", body.tz.c_str());
+}
+
+void test_malformed_percent_nonhex(void) {
+    FormBody body = parse_form_body("ssid=a%GGb&tz=UTC0");
+    // %GG is not a valid hex escape; pass through literal.
+    TEST_ASSERT_EQUAL_STRING("UTC0", body.tz.c_str());
+    // The ssid field decodes without crashing; behavior is "best effort
+    // pass-through" per header contract.
+}
+
+void test_percent_at_very_end(void) {
+    FormBody body = parse_form_body("ssid=abc%");
+    // Trailing bare % — bounds check prevents OOB read.
+    // We don't pin exact output; we assert no crash and the earlier chars
+    // survived.
+    TEST_ASSERT_TRUE(body.ssid.find("abc") != std::string::npos);
+}
+
+void test_trailing_ampersand(void) {
+    FormBody body = parse_form_body("ssid=X&pw=Y&tz=UTC0&");
+    TEST_ASSERT_EQUAL_STRING("X", body.ssid.c_str());
+    TEST_ASSERT_EQUAL_STRING("Y", body.pw.c_str());
+    TEST_ASSERT_EQUAL_STRING("UTC0", body.tz.c_str());
+}
+
+void test_duplicate_key_last_wins(void) {
+    FormBody body = parse_form_body("ssid=first&ssid=second&tz=UTC0");
+    // Documents current behavior: later value overwrites earlier.
+    TEST_ASSERT_EQUAL_STRING("second", body.ssid.c_str());
+}
+
+void test_unknown_key_ignored(void) {
+    FormBody body = parse_form_body("foo=bar&ssid=X&baz=qux&tz=UTC0");
+    TEST_ASSERT_EQUAL_STRING("X", body.ssid.c_str());
+    TEST_ASSERT_EQUAL_STRING("UTC0", body.tz.c_str());
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_parses_simple_body);
@@ -52,5 +98,11 @@ int main(int, char**) {
     RUN_TEST(test_missing_field_is_empty);
     RUN_TEST(test_empty_body_yields_empty_fields);
     RUN_TEST(test_extracts_csrf_token);
+    RUN_TEST(test_malformed_percent_truncated);
+    RUN_TEST(test_malformed_percent_nonhex);
+    RUN_TEST(test_percent_at_very_end);
+    RUN_TEST(test_trailing_ampersand);
+    RUN_TEST(test_duplicate_key_last_wins);
+    RUN_TEST(test_unknown_key_ignored);
     return UNITY_END();
 }

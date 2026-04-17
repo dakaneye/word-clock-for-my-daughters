@@ -1,4 +1,5 @@
 # firmware/assets/captive-portal/tests/test_gen_form_html.py
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -6,6 +7,9 @@ from pathlib import Path
 import pytest
 
 SCRIPT = Path(__file__).parents[1] / "gen_form_html.py"
+# Test file sits at firmware/assets/captive-portal/tests/ — repo root is 4 up.
+REPO_ROOT = Path(__file__).resolve().parents[4]
+TZ_CPP = REPO_ROOT / "firmware/lib/wifi_provision/src/tz_options.cpp"
 
 
 def run_preview(kid: str) -> str:
@@ -52,6 +56,47 @@ def test_kid_accent_color_differs_per_kid():
     assert "#b88b4a" not in nora
     assert "#3d2817" in nora
     assert "#3d2817" not in emory
+
+
+def _parse_cpp_tz_options() -> list[tuple[str, str]]:
+    """Extract (label, posix) entries from tz_options.cpp's static vector init.
+
+    The target block looks like:
+        {"Pacific (Los Angeles, Seattle)", "PST8PDT,M3.2.0,M11.1.0"},
+        {"Mountain (Denver, Salt Lake City)", "MST7MDT,M3.2.0,M11.1.0"},
+        ...
+    """
+    src = TZ_CPP.read_text()
+    entries = re.findall(r'\{\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\}', src)
+    return entries
+
+
+def test_tz_options_lockstep_cpp_vs_python():
+    """Lockstep: the Python TZ_OPTIONS list MUST match the C++ source of truth.
+
+    If these diverge, the portal dropdown can show a timezone that the
+    credential validator (is_known_posix_tz) will reject — a confusing
+    failure mode where the user picks what they see but gets an error.
+    """
+    # Import the generator module in-process (adds parent dir to sys.path).
+    gen_dir = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(gen_dir))
+    try:
+        import gen_form_html  # noqa: E402
+    finally:
+        sys.path.pop(0)
+
+    cpp_entries = _parse_cpp_tz_options()
+    py_entries = list(gen_form_html.TZ_OPTIONS)
+
+    assert cpp_entries, f"no TZ entries parsed from {TZ_CPP}"
+    assert cpp_entries == py_entries, (
+        "TZ list drift between C++ and Python sources.\n"
+        f"C++ ({TZ_CPP.name}):\n"
+        + "\n".join(f"  {lbl} -> {posix}" for lbl, posix in cpp_entries)
+        + "\nPython (gen_form_html.TZ_OPTIONS):\n"
+        + "\n".join(f"  {lbl} -> {posix}" for lbl, posix in py_entries)
+    )
 
 
 def test_embedded_header_is_valid_c_literal(tmp_path):

@@ -4,6 +4,15 @@
 // native test build where <WiFi.h> etc. don't exist.
 #ifdef ARDUINO
 
+// Compile-time guard: this module targets the Arduino-ESP32 framework
+// specifically (it uses <WiFi.h>, <Preferences.h> via nvs_store, <DNSServer.h>
+// via dns_wrapper, and <WebServer.h> via web_server — all Arduino-ESP32 core
+// headers). If a future toolchain change defines ARDUINO but on a different
+// arch, fail loud instead of silently compiling to nothing useful.
+#if !defined(ARDUINO_ARCH_ESP32)
+  #error "wifi_provision requires the Arduino-ESP32 framework (ARDUINO_ARCH_ESP32 not defined)"
+#endif
+
 #include <WiFi.h>
 #include <IPAddress.h>
 #include <time.h>

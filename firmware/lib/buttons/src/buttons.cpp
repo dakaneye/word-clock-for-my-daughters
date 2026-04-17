@@ -4,6 +4,13 @@
 // test build where <Arduino.h> doesn't exist.
 #ifdef ARDUINO
 
+// Compile-time guard: targets ESP32 GPIO pinmap + Arduino-ESP32 digitalRead.
+// If a future toolchain change defines ARDUINO but without the ESP32 arch,
+// fail loud instead of silently compiling to nothing.
+#if !defined(ARDUINO_ARCH_ESP32)
+  #error "buttons adapter requires the Arduino-ESP32 framework (ARDUINO_ARCH_ESP32 not defined)"
+#endif
+
 #include <Arduino.h>
 #include "buttons.h"
 #include "buttons/debouncer.h"

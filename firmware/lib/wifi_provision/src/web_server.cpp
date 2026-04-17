@@ -52,6 +52,33 @@ static std::string replace_all(std::string s, const std::string& from, const std
     return s;
 }
 
+// Minimal JSON string escape: quote, backslash, control characters.
+// Defense-in-depth for /status and /scan responses — if a future change
+// feeds user-controlled text through these endpoints (e.g. a "connected
+// to <SSID>" message), this keeps the JSON well-formed.
+static std::string json_escape(const std::string& s) {
+    std::string out;
+    out.reserve(s.size() + 2);
+    for (char c : s) {
+        switch (c) {
+            case '"':  out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\n': out += "\\n";  break;
+            case '\r': out += "\\r";  break;
+            case '\t': out += "\\t";  break;
+            default:
+                if (static_cast<unsigned char>(c) < 0x20) {
+                    char buf[8];
+                    snprintf(buf, sizeof(buf), "\\u%04x", c);
+                    out += buf;
+                } else {
+                    out += c;
+                }
+        }
+    }
+    return out;
+}
+
 static std::string render_form() {
     current_csrf = rand_hex(16);
     std::string html(FORM_HTML);
@@ -98,13 +125,11 @@ static void handle_scan() {
     }
     for (int i = 0; i < n; ++i) {
         if (i > 0) json += ",";
-        String ssid = WiFi.SSID(i);
-        ssid.replace("\\", "\\\\");
-        ssid.replace("\"", "\\\"");
+        std::string ssid = WiFi.SSID(i).c_str();
         int rssi = WiFi.RSSI(i);
         bool secured = WiFi.encryptionType(i) != WIFI_AUTH_OPEN;
         json += "{\"ssid\":\"";
-        json += ssid.c_str();
+        json += json_escape(ssid);
         json += "\",\"rssi\":";
         json += std::to_string(rssi);
         json += ",\"secured\":";
@@ -174,7 +199,7 @@ static void handle_submit() {
 
 static void handle_status() {
     std::string status = get_status();
-    std::string json = "{\"message\":\"" + status + "\"}";
+    std::string json = "{\"message\":\"" + json_escape(status) + "\"}";
     server().send(200, "application/json", json.c_str());
 }
 

@@ -34,6 +34,6 @@ CompileFlags:
 # signal in test files.
 ---
 If:
-  PathMatch: test/.*
+  PathMatch: .*/firmware/test/.*
 Diagnostics:
   Suppress: "*"

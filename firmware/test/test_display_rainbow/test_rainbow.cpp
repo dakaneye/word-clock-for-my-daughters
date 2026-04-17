@@ -56,11 +56,28 @@ void test_rainbow_period_is_60s(void) {
     TEST_ASSERT_EQUAL_UINT8(a.b, b.b);
 }
 
-// Across the uint32_t wrap boundary, colors stay in-cycle (no
-// cycle-restart glitch).
+// Across the uint32_t millis rollover boundary (~49 days of uptime),
+// rainbow still produces saturated, valid rainbow-family colors — not
+// corrupt bytes from a broken modular operation. UINT32_MAX % 60'000
+// = 42'295, so a uint32_t-wrapped now_ms lands mid-cycle. Both samples
+// should be saturated (one channel >= 250, one channel <= 5) — the
+// defining property of a point on the rainbow wheel at full S, V.
 void test_rainbow_wraps_across_uint32_max(void) {
     const Rgb before_wrap = rainbow(WordId::HAPPY, UINT32_MAX - 1'000);
     const Rgb after_wrap  = rainbow(WordId::HAPPY, 1'000);
+    const auto saturated = [](Rgb c) -> bool {
+        const uint8_t mx = c.r > c.g ? (c.r > c.b ? c.r : c.b)
+                                     : (c.g > c.b ? c.g : c.b);
+        const uint8_t mn = c.r < c.g ? (c.r < c.b ? c.r : c.b)
+                                     : (c.g < c.b ? c.g : c.b);
+        return mx >= 250 && mn <= 5;
+    };
+    TEST_ASSERT_TRUE_MESSAGE(saturated(before_wrap),
+        "pre-wrap color should be on the rainbow wheel (saturated)");
+    TEST_ASSERT_TRUE_MESSAGE(saturated(after_wrap),
+        "post-wrap color should be on the rainbow wheel (saturated)");
+    // Also sanity-check they're not the same color — they're 2 s of
+    // phase apart after accounting for UINT32_MAX % 60'000.
     const bool differs = (before_wrap.r != after_wrap.r) ||
                          (before_wrap.g != after_wrap.g) ||
                          (before_wrap.b != after_wrap.b);

@@ -1,0 +1,13 @@
+CompileFlags:
+  # clangd runs its own bundled clang, which doesn't understand xtensa-specific
+  # flags emitted by PlatformIO's ESP32 toolchain. Strip them from compile_commands.json.
+  Remove:
+    - -mlongcalls
+    - -fstrict-volatile-bitfields
+    - -fno-tree-switch-conversion
+    # Arduino-ESP32 framework appends -std=gnu++11 AFTER our -std=gnu++17.
+    # platformio.ini build_unflags strips it at actual build time, but the
+    # entry can linger in compile_commands.json — strip again here.
+    - -std=gnu++11
+  Add:
+    - -std=gnu++17

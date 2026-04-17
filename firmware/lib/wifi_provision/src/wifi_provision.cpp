@@ -16,8 +16,8 @@ namespace wc::wifi_provision::nvs_store {
     bool has_credentials();
     struct StoredCredentials { String ssid; String pw; String tz; };
     StoredCredentials read();
-    void write(const FormBody& body);
-    void touch_last_sync(uint64_t unix_seconds);
+    bool write(const FormBody& body);
+    bool touch_last_sync(uint64_t unix_seconds);
     uint64_t last_sync();
     void clear();
 }
@@ -38,6 +38,7 @@ namespace wc::wifi_provision::web {
 namespace wc::wifi_provision {
 
 static StateMachine sm;
+static State last_logged_state = State::Boot;
 
 // Timers (all in millis). 0 means "not armed".
 static uint32_t ap_started_at = 0;
@@ -50,9 +51,33 @@ static uint32_t sta_backoff_ms = 2000;
 // doing a trial connection. Never written to NVS until Validating succeeds.
 static FormBody pending;
 
-static constexpr uint32_t AP_TIMEOUT_MS          = 10UL * 60UL * 1000UL;
+static constexpr uint32_t AP_TIMEOUT_MS           = 10UL * 60UL * 1000UL;
 static constexpr uint32_t CONFIRMATION_TIMEOUT_MS = 60UL * 1000UL;
 static constexpr uint32_t VALIDATING_TIMEOUT_MS   = 30UL * 1000UL;
+static constexpr uint32_t STA_BACKOFF_INITIAL_MS  = 2000;
+static constexpr uint32_t STA_BACKOFF_MAX_MS      = 5UL * 60UL * 1000UL;
+
+static const char* state_name(State s) {
+    switch (s) {
+        case State::Boot:                 return "Boot";
+        case State::StaConnecting:        return "StaConnecting";
+        case State::ApActive:             return "ApActive";
+        case State::AwaitingConfirmation: return "AwaitingConfirmation";
+        case State::Validating:           return "Validating";
+        case State::Online:               return "Online";
+        case State::IdleNoCredentials:    return "IdleNoCredentials";
+    }
+    return "?";
+}
+
+static void log_state_if_changed() {
+    State now = sm.state();
+    if (now != last_logged_state) {
+        Serial.printf("[wifi_provision] %s -> %s\n",
+                      state_name(last_logged_state), state_name(now));
+        last_logged_state = now;
+    }
+}
 
 static std::string confirmation_message() {
     switch (sm.state()) {
@@ -72,12 +97,16 @@ static void start_ap() {
     WiFi.softAP(ssid, /* password = */ nullptr, /* channel = */ 1,
                 /* ssid_hidden = */ 0, /* max_connection = */ 1);
     IPAddress ip = WiFi.softAPIP();
+    Serial.printf("[wifi_provision] AP up: SSID=%s IP=%s\n",
+                  ssid, ip.toString().c_str());
     dns_hijack::begin(ip);
     web::begin(
         [](const FormBody& body) {
             pending = body;
             sm.handle(Event::FormSubmitted);
             awaiting_started_at = millis();
+            Serial.println("[wifi_provision] form accepted; awaiting audio confirm");
+            log_state_if_changed();
         },
         confirmation_message
     );
@@ -99,15 +128,25 @@ static void start_sta() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(creds.ssid.c_str(), creds.pw.c_str());
     last_sta_attempt_at = millis();
+    Serial.printf("[wifi_provision] STA attempt to %s (backoff=%ums)\n",
+                  creds.ssid.c_str(), sta_backoff_ms);
 }
 
 static void start_validating() {
+    // Tear down AP BEFORE switching to pure STA mode so the ESP32 doesn't
+    // attempt to run both at once. Spec: "AP is up only during AP_ACTIVE
+    // or AWAITING_CONFIRMATION."
+    stop_ap();
+    WiFi.disconnect(/* wifioff = */ true);
     WiFi.mode(WIFI_STA);
     WiFi.begin(pending.ssid.c_str(), pending.pw.c_str());
     validating_started_at = millis();
+    Serial.printf("[wifi_provision] validating credentials for SSID=%s\n",
+                  pending.ssid.c_str());
 }
 
 void begin() {
+    Serial.println("[wifi_provision] begin");
     if (nvs_store::has_credentials()) {
         sm.handle(Event::BootWithCredentials);
         start_sta();
@@ -115,6 +154,7 @@ void begin() {
         sm.handle(Event::BootWithNoCredentials);
         start_ap();
     }
+    log_state_if_changed();
 }
 
 void loop() {
@@ -123,10 +163,12 @@ void loop() {
     switch (sm.state()) {
         case State::StaConnecting: {
             if (WiFi.status() == WL_CONNECTED) {
+                Serial.println("[wifi_provision] STA connected");
+                sta_backoff_ms = STA_BACKOFF_INITIAL_MS;
                 sm.handle(Event::StaConnected);
                 // NTP sync happens in main.cpp's ntp module; touch_last_sync on success.
             } else if (now - last_sta_attempt_at > sta_backoff_ms) {
-                sta_backoff_ms = std::min<uint32_t>(sta_backoff_ms * 2, 5 * 60 * 1000);
+                sta_backoff_ms = std::min<uint32_t>(sta_backoff_ms * 2, STA_BACKOFF_MAX_MS);
                 start_sta();
             }
             break;
@@ -135,6 +177,7 @@ void loop() {
             dns_hijack::loop();
             web::loop();
             if (now - ap_started_at > AP_TIMEOUT_MS) {
+                Serial.println("[wifi_provision] AP timeout; entering idle");
                 sm.handle(Event::ApTimeout);
                 stop_ap();
             }
@@ -144,6 +187,7 @@ void loop() {
             dns_hijack::loop();
             web::loop();
             if (now - awaiting_started_at > CONFIRMATION_TIMEOUT_MS) {
+                Serial.println("[wifi_provision] audio confirm timeout");
                 sm.handle(Event::ConfirmationTimeout);
                 pending = {};
             }
@@ -151,16 +195,24 @@ void loop() {
         }
         case State::Validating: {
             if (WiFi.status() == WL_CONNECTED) {
-                nvs_store::write(pending);
-                pending = {};
-                stop_ap();
-                sm.handle(Event::ValidationSucceeded);
+                Serial.printf("[wifi_provision] validated; committing creds (SSID=%s)\n",
+                              pending.ssid.c_str());
+                if (!nvs_store::write(pending)) {
+                    Serial.println("[wifi_provision] ERROR: NVS write failed; retrying captive");
+                    pending = {};
+                    WiFi.disconnect(/* wifioff = */ true);
+                    sm.handle(Event::ValidationFailed);
+                    start_ap();
+                } else {
+                    pending = {};
+                    // AP is already torn down by start_validating().
+                    sta_backoff_ms = STA_BACKOFF_INITIAL_MS;
+                    sm.handle(Event::ValidationSucceeded);
+                }
             } else if (now - validating_started_at > VALIDATING_TIMEOUT_MS) {
+                Serial.println("[wifi_provision] validation timeout; back to captive");
                 pending = {};
-                WiFi.disconnect(true);
-                // Re-enter AP to show the error; web_server's last_error is set
-                // by the validator before we get here only on syntactic errors,
-                // not on connection failure — set a user-visible message now.
+                WiFi.disconnect(/* wifioff = */ true);
                 sm.handle(Event::ValidationFailed);
                 start_ap();
             }
@@ -168,6 +220,8 @@ void loop() {
         }
         case State::Online: {
             if (WiFi.status() != WL_CONNECTED) {
+                Serial.println("[wifi_provision] WiFi dropped");
+                sta_backoff_ms = STA_BACKOFF_INITIAL_MS;
                 sm.handle(Event::WiFiDropped);
                 start_sta();
             }
@@ -182,6 +236,7 @@ void loop() {
             break;
         }
     }
+    log_state_if_changed();
 }
 
 State state() { return sm.state(); }
@@ -195,13 +250,29 @@ uint32_t seconds_since_last_sync() {
 }
 
 void reset_to_captive() {
+    // Per spec §Reset flow (line 45): clear NVS then ESP.restart().
+    // Clean WiFi stack state is load-bearing; we explicitly don't try to
+    // transition in-place.
+    Serial.println("[wifi_provision] reset_to_captive: clearing NVS + restarting");
+    Serial.flush();
     nvs_store::clear();
-    sm.handle(Event::ResetCombo);
-    start_ap();
+    ESP.restart();
+    // not reached
 }
 
 void confirm_audio() {
+    // The state-machine transition alone is insufficient — WiFi.begin() and
+    // the validation timer must fire on entry to Validating, which is what
+    // start_validating() does. Without this call, the clock appears to "try"
+    // to connect but never actually calls WiFi.begin with the submitted
+    // credentials; the uninitialized validating_started_at forces an immediate
+    // timeout into ValidationFailed.
+    Serial.println("[wifi_provision] audio confirmed");
     sm.handle(Event::AudioButtonConfirmed);
+    if (sm.state() == State::Validating) {
+        start_validating();
+    }
+    log_state_if_changed();
 }
 
 } // namespace wc::wifi_provision

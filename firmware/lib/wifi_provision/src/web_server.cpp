@@ -154,7 +154,8 @@ static void handle_submit() {
     if (submit_count >= MAX_SUBMITS) {
         // Spec: 429 on rate limit. Defense-in-depth per §Scope.
         server().send(429, "text/plain",
-                      "Too many attempts. Reset the clock and try again.");
+                      "Too many tries. Hold Hour + Audio on the clock for "
+                      "10 seconds to start fresh.");
         return;
     }
 
@@ -170,7 +171,7 @@ static void handle_submit() {
     // CSRF: reject if the server-side token was never set (defense against
     // a POST before any GET /) OR the submitted token doesn't match.
     if (current_csrf.empty() || parsed.csrf != current_csrf) {
-        last_error = "Session expired — please resubmit.";
+        last_error = "Let's try that again — the form timed out.";
         // Spec §HTTP endpoints: 400 on validation failure. Respond with
         // the form body so the user sees the error inline and gets a
         // fresh CSRF token in one round-trip.

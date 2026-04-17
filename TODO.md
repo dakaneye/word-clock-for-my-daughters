@@ -35,7 +35,9 @@ Live working list of what's left. Original phase-by-phase roadmap is at
 ## Breadboard bring-up (after smoke test passes)
 
 Per-peripheral isolation tests first, then the Phase 2 firmware modules that
-wire everything together. See
+wire everything together. Full bench procedure with wiring + test sketches:
+`docs/hardware/breadboard-bring-up-guide.md`. Pre-power smoke-test protocol
+lives in `docs/hardware/pinout.md`. See
 `docs/superpowers/plans/2026-04-14-daughters-clocks-implementation.md` §Phase 2.
 
 - [ ] **ESP32 alone** — blink sketch. Confirms power + flashing path work on the real module.

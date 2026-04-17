@@ -21,7 +21,7 @@ public:
     bool in_combo() const;
 
 private:
-    static constexpr uint32_t COMBO_MS = 10'000;
+    static constexpr uint32_t COMBO_MS = 10000;
     bool armed_ = false;           // both pressed at last step?
     bool fired_ = false;           // already fired this hold?
     uint32_t armed_since_ = 0;

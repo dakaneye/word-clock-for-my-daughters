@@ -24,4 +24,13 @@ uint32_t next_backoff_ms(uint32_t consecutive_failures) {
     return CURVE[idx];
 }
 
+uint64_t next_deadline_after_success(uint64_t success_ms,
+                                     uint32_t jitter_sample) {
+    constexpr uint64_t TWENTY_FOUR_HOURS_MS = 86'400'000ULL;
+    constexpr uint32_t JITTER_SPAN_MS = 3'600'000u;  // 1h total span
+    constexpr uint32_t JITTER_HALF_MS = 1'800'000u;  // ±30 min
+    uint32_t jitter = jitter_sample % JITTER_SPAN_MS;
+    return success_ms + TWENTY_FOUR_HOURS_MS + jitter - JITTER_HALF_MS;
+}
+
 } // namespace wc::ntp

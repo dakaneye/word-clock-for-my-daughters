@@ -3,6 +3,8 @@
 
 namespace wc::ntp {
 
-// Implementation lands in Task 2 (TDD).
+bool is_plausible_epoch(uint32_t unix_epoch) {
+    return unix_epoch >= MIN_PLAUSIBLE_EPOCH;
+}
 
 } // namespace wc::ntp

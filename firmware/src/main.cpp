@@ -3,6 +3,7 @@
 #include "buttons.h"
 #include "display.h"
 #include "display/renderer.h"
+#include "ntp.h"
 #include "rtc.h"
 #include "wifi_provision.h"
 
@@ -13,6 +14,8 @@ void setup() {
     wc::wifi_provision::begin();   // runs setenv/tzset on warm boot
     wc::rtc::begin();              // AFTER wifi_provision — load-bearing
                                    // so TZ is set before first now()
+    wc::ntp::begin();              // AFTER wifi_provision; warm-boot
+                                   // resume reads NVS-stored last-sync
     wc::display::begin();
 
     wc::buttons::begin([](wc::buttons::Event e) {
@@ -43,6 +46,7 @@ void setup() {
 void loop() {
     wc::wifi_provision::loop();
     wc::buttons::loop();
+    wc::ntp::loop();               // sync scheduler; no-op when not Online
 
     if (wc::wifi_provision::state() == wc::wifi_provision::State::Online) {
         auto dt = wc::rtc::now();

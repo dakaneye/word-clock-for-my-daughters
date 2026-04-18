@@ -93,9 +93,15 @@ spec+plan pair when its turn comes up. Modules to write:
       Spec: `docs/superpowers/specs/2026-04-17-rtc-design.md`.
       Plan: `docs/superpowers/plans/2026-04-17-rtc-implementation.md`.
       Hardware checklist: `firmware/test/hardware_checks/rtc_checks.md`.
-- [ ] **`ntp`** — NTPClient on boot + every 24 hours (±30 min jitter);
-      falls back to RTC if WiFi unreachable. Thin adapter — follows
-      wifi_provision's backoff pattern.
+- [x] **`ntp`** — NTPClient on boot + every 24 hours (±30 min jitter);
+      uses RTC continuously between syncs. Shipped: `firmware/lib/ntp/`
+      with pure-logic validation (epoch floor 2026-01-01) + scheduler
+      (capped exponential backoff 30s→30m, jittered 24h cadence) and
+      ESP32 adapter wrapping NTPClient + WiFi.hostByName. 10 native
+      tests; full suite 150/150. Server: `time.google.com`. Spec:
+      `docs/superpowers/specs/2026-04-17-ntp-design.md`. Plan:
+      `docs/superpowers/plans/2026-04-17-ntp-implementation.md`.
+      Hardware checklist: `firmware/test/hardware_checks/ntp_checks.md`.
 - [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop
       behavior: press once to play lullaby, press during playback to stop.
       Volume is fixed in firmware and tuned during assembly. Needs a spec

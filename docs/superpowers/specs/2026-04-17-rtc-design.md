@@ -620,7 +620,8 @@ void loop() {
 Not implemented here. The `ntp` module — scheduled next in TODO.md
 — will:
 
-1. On transition to `Online` and every 6 hours thereafter, fetch UTC
+1. On transition to `Online` and every 24 hours (±30 min jitter)
+   thereafter, fetch UTC
    from an NTP server via `NTPClient` (already in
    `[esp32-base] lib_deps` as `arduino-libraries/NTPClient@^3.2.1`).
 2. Range-validate the result (reject epoch 0, reject epoch < the
@@ -840,7 +841,7 @@ All 5 brainstorming decisions are locked.
 | POSIX TZ string source | 8-entry table in `wifi_provision` | `docs/superpowers/specs/2026-04-16-captive-portal-design.md` §Timezone options |
 | TZ application path | `wifi_provision::start_sta()` runs `setenv("TZ", posix); tzset()` → libc `localtime_r` in `rtc::now()` | `firmware/lib/wifi_provision/src/wifi_provision.cpp:140` |
 | DST rule | Encoded in POSIX TZ string; libc applies via `tzset` + `localtime_r` | POSIX TZ format spec |
-| NTP sync cadence | On boot + every 6 hours | `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md` §Time sync |
+| NTP sync cadence | On boot + every 24 hours (±30 min jitter) | `docs/superpowers/specs/2026-04-14-daughters-clocks-design.md` §Time sync |
 | `time_to_words` minute resolution | 5-min blocks (internal floor) | `firmware/lib/core/include/time_to_words.h:16` |
 | NTPClient version | 3.2.1 | `firmware/platformio.ini` `[esp32-base] lib_deps` |
 

@@ -93,8 +93,9 @@ spec+plan pair when its turn comes up. Modules to write:
       Spec: `docs/superpowers/specs/2026-04-17-rtc-design.md`.
       Plan: `docs/superpowers/plans/2026-04-17-rtc-implementation.md`.
       Hardware checklist: `firmware/test/hardware_checks/rtc_checks.md`.
-- [ ] **`ntp`** — NTPClient on boot + every 6 hours; falls back to RTC if
-      WiFi unreachable. Thin adapter — follows wifi_provision's backoff pattern.
+- [ ] **`ntp`** — NTPClient on boot + every 24 hours (±30 min jitter);
+      falls back to RTC if WiFi unreachable. Thin adapter — follows
+      wifi_provision's backoff pattern.
 - [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop
       behavior: press once to play lullaby, press during playback to stop.
       Volume is fixed in firmware and tuned during assembly. Needs a spec

@@ -139,7 +139,7 @@ Single-day color shifts. Clock displays time normally, but word colors use the h
 
 ### Time sync
 
-- **On WiFi:** NTP sync on boot and every 6 hours. Updates RTC.
+- **On WiFi:** NTP sync on boot and every 24 hours (±30 min jitter). Updates RTC.
 - **No WiFi:** free-runs on DS3231. Drift is low (seconds per week) — acceptable.
 
 ## Per-Clock Configuration

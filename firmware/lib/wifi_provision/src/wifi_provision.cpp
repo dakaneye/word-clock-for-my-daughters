@@ -21,14 +21,13 @@
 #include "wifi_provision/form_parser.h"
 
 // Forward decls to the adapter namespaces (defined in sibling .cpp files).
-// Only the symbols actually called from this TU are declared here; nvs_store
-// exposes touch_last_sync() too, but the NTP module that calls it doesn't
-// exist yet — its forward decl will land with that module.
+// Only the symbols actually called from this TU are declared here.
 namespace wc::wifi_provision::nvs_store {
     bool has_credentials();
     struct StoredCredentials { String ssid; String pw; String tz; };
     StoredCredentials read();
     bool write(const FormBody& body);
+    bool touch_last_sync(uint64_t unix_seconds);
     uint64_t last_sync();
     void clear();
 }
@@ -293,6 +292,10 @@ void confirm_audio() {
         start_validating();
     }
     log_state_if_changed();
+}
+
+void touch_last_sync(uint64_t unix_seconds) {
+    nvs_store::touch_last_sync(unix_seconds);
 }
 
 } // namespace wc::wifi_provision

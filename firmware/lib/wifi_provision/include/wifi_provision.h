@@ -28,4 +28,10 @@ void reset_to_captive();
 // AwaitingConfirmation state.
 void confirm_audio();
 
+// Stamp NVS with a successful NTP sync at unix_seconds (UTC).
+// Called by the ntp module on a successful sync. Display reads
+// the corresponding seconds_since_last_sync() to drive the amber
+// stale-sync tint.
+void touch_last_sync(uint64_t unix_seconds);
+
 } // namespace wc::wifi_provision

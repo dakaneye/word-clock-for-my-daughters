@@ -93,6 +93,7 @@ bool write(const FormBody& body) {
     return sentinel > 0;
 }
 
+// Internal — external callers go through wc::wifi_provision::touch_last_sync.
 bool touch_last_sync(uint64_t unix_seconds) {
     if (!open_writable()) return false;
     bool ok = prefs().putULong64("last_sync", unix_seconds) > 0;

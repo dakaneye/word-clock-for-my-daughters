@@ -153,6 +153,15 @@ void loop() {
             transition_to_idle("finished");
             return;
         }
+        // Round down to even: 16-bit PCM is 2 bytes/sample. Canonical
+        // WAVs always yield even reads, but a truncated/corrupt file
+        // could return odd n; we'd otherwise feed half a sample into
+        // I²S. Discard at most 1 trailing byte.
+        n &= ~1;
+        if (n == 0) {
+            transition_to_idle("finished");
+            return;
+        }
         apply_gain_q8(reinterpret_cast<int16_t*>(read_buf_),
                       static_cast<size_t>(n) / 2,
                       CLOCK_AUDIO_GAIN_Q8);

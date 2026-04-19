@@ -142,7 +142,7 @@ spec+plan pair when its turn comes up. Modules to write:
       birthday year, etc.).
 - [x] **SD-card filesystem layout — flat root.** Cards are per-kid (one per
       clock), bench testing runs one clock at a time, so `emory/`/`nora/`
-      subdirs buy nothing. Files: `lullaby.mp3` + `birth.mp3` at the root.
+      subdirs buy nothing. Files: `lullaby.wav` + `birth.wav` at the root.
       Firmware reads by fixed path; zero path-handling branches.
 - [x] **Audio file format — WAV, 16-bit PCM, 44.1 kHz, mono, little-endian.**
       Design flipped from MP3 during audio-module spec pass

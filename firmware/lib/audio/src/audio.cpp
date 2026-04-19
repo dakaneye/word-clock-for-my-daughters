@@ -15,10 +15,9 @@
 #include <Preferences.h>
 #include <driver/i2s.h>
 #include <cstdint>
-#include "audio.h"
+#include "audio.h"              // pulls in audio/fire_guard.h transitively
 #include "audio/wav.h"
 #include "audio/gain.h"
-#include "audio/fire_guard.h"
 #include "rtc.h"
 #include "wifi_provision.h"
 #include "pinmap.h"
@@ -186,9 +185,11 @@ void loop() {
     NowFields nf{ dt.year, dt.month, dt.day, dt.hour, dt.minute };
     bool time_known =
         (wc::wifi_provision::seconds_since_last_sync() != UINT32_MAX);
-    bool already_playing = (state_ == State::Playing);
+    // state_ is Idle here by construction (outer guard returned on Playing).
+    // Pass false literally — should_auto_fire's already_playing param is
+    // for callers who might invoke it from a non-idle context.
     if (should_auto_fire(nf, birth_, last_birth_year_,
-                         time_known, already_playing)) {
+                         time_known, /*already_playing=*/false)) {
         Serial.printf("[audio] play birth.wav (year=%u)\n", nf.year);
         // Stamp NVS FIRST, gate playback on the write succeeding.
         if (!nvs_write_last_birth_year(nf.year)) {

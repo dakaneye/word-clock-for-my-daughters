@@ -1,4 +1,8 @@
 // firmware/lib/audio/include/audio/gain.h
+//
+// Pure-logic Q8 PCM gain scalar. No Arduino, no I/O, no platform
+// dependencies — compiled into both the ESP32 adapter (applied in
+// the pump loop before i2s_write) and the native test binary.
 #pragma once
 
 #include <cstdint>

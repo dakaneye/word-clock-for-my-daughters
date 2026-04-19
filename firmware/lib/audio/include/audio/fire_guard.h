@@ -1,4 +1,9 @@
 // firmware/lib/audio/include/audio/fire_guard.h
+//
+// Pure-logic birthday auto-fire gate. No Arduino, no rtc/NVS reads —
+// the adapter supplies current time, last-fired year, and liveness
+// signals as inputs. Compiled into both the ESP32 adapter and the
+// native test binary.
 #pragma once
 
 #include <cstdint>

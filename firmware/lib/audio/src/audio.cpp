@@ -77,7 +77,8 @@ static bool i2s_install() {
     cfg.channel_format       = I2S_CHANNEL_FMT_ONLY_LEFT;
     cfg.communication_format = I2S_COMM_FORMAT_STAND_I2S;
     cfg.dma_buf_count        = 4;
-    cfg.dma_buf_len          = 1024;
+    cfg.dma_buf_len          = 1024;    // units: samples (NOT bytes); 16-bit mono so 1024 samples = 2048 B/buffer
+
     cfg.use_apll             = false;
     cfg.tx_desc_auto_clear   = true;
     if (i2s_driver_install(I2S_PORT, &cfg, 0, nullptr) != ESP_OK) return false;
@@ -133,6 +134,10 @@ void begin(const BirthConfig& birth) {
     if (!i2s_install()) {
         Serial.println("[audio] begin: I2S install FAILED (subsequent i2s_write calls will fail)");
     }
+    // Log BEFORE the SD.begin call so a corrupt-FAT hang (SD.begin
+    // spinning on SPI bus polling) is diagnosable from serial — the
+    // post-call line below won't emit if begin never returns.
+    Serial.println("[audio] begin: mounting SD...");
     sd_ok = SD.begin(PIN_SD_CS);
     if (!sd_ok) {
         Serial.println("[audio] begin: SD FAILED, playback disabled until next boot");

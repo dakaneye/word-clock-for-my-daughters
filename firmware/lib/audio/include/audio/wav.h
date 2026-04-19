@@ -1,4 +1,9 @@
 // firmware/lib/audio/include/audio/wav.h
+//
+// Pure-logic RIFF/WAVE header validation. No Arduino, no I/O, no
+// platform dependencies — compiled into both the ESP32 adapter and
+// the native test binary. See audio spec §WAV format validation
+// for the accepted-format contract.
 #pragma once
 
 #include <cstdint>
@@ -30,7 +35,11 @@ enum class WavParseError : uint8_t {
 struct ParseResult {
     WavParseError error;
     uint32_t      data_offset;      // bytes from file start to PCM
-    uint32_t      data_size_bytes;  // from the "data" chunk header
+    uint32_t      data_size_bytes;  // from the "data" chunk header.
+                                    // Currently NOT used by the adapter's
+                                    // pump loop (which terminates on
+                                    // read()<=0); exposed for future use +
+                                    // symmetry with the RIFF spec.
 };
 
 // Pure. Validates a canonical 44-byte RIFF/WAVE/fmt /data header.

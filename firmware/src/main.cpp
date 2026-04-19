@@ -1,5 +1,6 @@
 // firmware/src/main.cpp
 #include <Arduino.h>
+#include "audio.h"
 #include "buttons.h"
 #include "display.h"
 #include "display/renderer.h"
@@ -31,8 +32,10 @@ void setup() {
             case BE::AudioPressed:
                 if (wc::wifi_provision::state() == WS::AwaitingConfirmation) {
                     wc::wifi_provision::confirm_audio();
+                } else if (wc::audio::is_playing()) {
+                    wc::audio::stop();
                 } else {
-                    Serial.println("[buttons] AudioPressed (audio module not yet wired)");
+                    wc::audio::play_lullaby();
                 }
                 break;
             case BE::ResetCombo:
@@ -41,12 +44,15 @@ void setup() {
                 break;
         }
     });
+    wc::audio::begin({CLOCK_BIRTH_MONTH, CLOCK_BIRTH_DAY,
+                      CLOCK_BIRTH_HOUR,  CLOCK_BIRTH_MINUTE});
 }
 
 void loop() {
     wc::wifi_provision::loop();
     wc::buttons::loop();
     wc::ntp::loop();               // sync scheduler; no-op when not Online
+    wc::audio::loop();             // pump I²S when Playing; auto-fire check when Idle
 
     if (wc::wifi_provision::state() == wc::wifi_provision::State::Online) {
         auto dt = wc::rtc::now();

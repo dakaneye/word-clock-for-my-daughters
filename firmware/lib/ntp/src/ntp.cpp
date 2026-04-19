@@ -24,6 +24,7 @@
 #include "ntp/validation.h"
 #include "wifi_provision.h"
 #include "rtc.h"
+#include "audio.h"
 
 namespace wc::ntp {
 
@@ -76,6 +77,8 @@ void begin() {
 
 void loop() {
     if (!started) return;
+    if (wc::audio::is_playing()) return;   // defer sync; ~1s forceUpdate
+                                           // would underrun I²S DMA
     if (wc::wifi_provision::state() != wc::wifi_provision::State::Online) {
         return;
     }

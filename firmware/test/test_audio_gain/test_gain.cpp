@@ -1,5 +1,5 @@
 #include <unity.h>
-#include <climits>
+#include <cstdint>
 #include "audio/gain.h"
 
 using namespace wc::audio;

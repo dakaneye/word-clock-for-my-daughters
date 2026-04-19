@@ -102,12 +102,18 @@ spec+plan pair when its turn comes up. Modules to write:
       `docs/superpowers/specs/2026-04-17-ntp-design.md`. Plan:
       `docs/superpowers/plans/2026-04-17-ntp-implementation.md`.
       Hardware checklist: `firmware/test/hardware_checks/ntp_checks.md`.
-- [ ] **`audio`** — I²S + MAX98357A. MP3 decode from microSD. Play / stop
-      behavior: press once to play lullaby, press during playback to stop.
-      Volume is fixed in firmware and tuned during assembly. Needs a spec
-      (ESP8266Audio vs. libhelix library choice, volume curve, play-state
-      machine with buffer-underrun handling).
-      Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
+- [x] **`audio`** — I²S + MAX98357A + microSD WAV playback.
+      Shipped: `firmware/lib/audio/` with pure-logic WAV header
+      validation (10 tests), Q8 gain scalar (4 tests), birthday
+      auto-fire guard (8 tests), and an ESP32 adapter wrapping
+      `driver/i2s.h` + `SD.h` + `Preferences` with a 2-state
+      play-state machine. Button-press plays lullaby / stops
+      playback; birth.wav auto-fires exactly once per year at
+      the birth minute (NVS-gated). 22 native tests; full suite
+      172/172. Both envs build clean. Spec:
+      `docs/superpowers/specs/2026-04-18-audio-design.md`.
+      Plan: `docs/superpowers/plans/2026-04-19-audio-implementation.md`.
+      Hardware checklist: `firmware/test/hardware_checks/audio_checks.md`.
 - [x] **`buttons`** — debounced tact-switch input on GPIO 14 / 32 / 33
       (hour / minute / audio). Shipped: `firmware/lib/buttons/` with
       `Debouncer` + `ComboDetector` pure-logic state machines (13 native

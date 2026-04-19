@@ -408,8 +408,8 @@ means "never fired" — treated the same as "fired in a year before
 
 | Scenario | Behavior |
 |---|---|
-| `SD.begin(PIN_SD_CS)` fails in `begin()` | Log `[audio] begin: SD FAILED` once. Module remains initialized with `sd_ok=false`; `play_lullaby()` / birth auto-fire both gate on `sd_ok && i2s_ok` and fail fast. No retry. |
-| `i2s_driver_install` fails in `begin()` | Log `[audio] begin: I2S install FAILED` once. `i2s_ok=false`. Same fail-fast gate as SD. Module is effectively disabled until reboot. |
+| `SD.begin(PIN_SD_CS)` fails in `begin()` | Log `[audio] begin: SD FAILED` once. `sd_ok=false`; `play_lullaby()` / birth auto-fire both gate on `sd_ok` and fail fast. No retry until reboot. |
+| `i2s_driver_install` fails in `begin()` | Log `[audio] begin: I2S install FAILED` once. Subsequent `i2s_write` calls in `loop()` return `ESP_ERR_INVALID_STATE`; adapter logs per-attempt and transitions back to Idle. No sound, no corruption. |
 | `lullaby.wav` / `birth.wav` not found on SD | `play_lullaby()` / auto-fire opens file, read fails, header parse reports truncated. Log once. Stay Idle. |
 | WAV header fails validation (any of the 9 error codes) | Close file, return to Idle. Log the error code. |
 | SD read returns short / errors mid-playback | Treated as EOF. Log `[audio] error: SD read failed at offset <N>`. Close file, return to Idle. Speaker stops cleanly (tx_desc_auto_clear drains to silence). |
@@ -417,7 +417,6 @@ means "never fired" — treated the same as "fired in a year before
 | `i2s_write` returns ESP_OK with `written == 0` persistently (peripheral hung, clock glitch) | Not separately retried; the SD rewind re-reads the same bytes next tick indefinitely. A hard hang here is indistinguishable from a stuck peripheral — diagnosable only via serial logs showing no `finished` / `stopped` line and the clock face continuing to render. Acceptable: the failure mode is "audio doesn't play" which is observable at the speaker, not "clock crashes". |
 | WAV `data_size_bytes` in header > actual file size on disk | Read loop transitions to Idle on `read() <= 0` regardless of what the header claimed; header's `data_size` is used only by `parse_wav_header` to validate the `data` chunk magic offset, not to gate the read loop. Benign mismatch. |
 | SD card swapped (removed, different card inserted) mid-session | `current_file_` handle is invalidated at the FS layer. Next `read()` returns ≤0 → treated as EOF → clean transition to Idle. Next play attempt re-mounts via the FS driver. If the new card doesn't contain the expected files, `play_lullaby()` / auto-fire log the standard "file not found" error. |
-| Audio button held (not tap-released) during captive-portal state transitions | Debouncing is `wc::buttons` module's responsibility; each completed press emits exactly one `AudioPressed` event regardless of hold duration. Audio module sees discrete events only. |
 | User presses audio button during `birth.wav` auto-play | `is_playing() == true` → button handler calls `stop()`. Kid hears a partial birth message; last_birth_year is already stamped so no re-fire this year. Accepted tradeoff. |
 | Power cycle mid-`birth.wav` auto-play | NVS `last_birth_year` is stamped BEFORE the transition to Playing, and the in-RAM `last_birth_year_` is only updated after a successful NVS write. On reboot, auto-fire guard returns false (`last_fired_year == current_year`). No re-fire this year. Acceptable. |
 | NVS `putUShort("last_birth_year", year)` fails (flash full / corrupt) | Auto-fire path sees `nvs_write_last_birth_year` return false → logs `[audio] error: NVS stamp FAILED; skipping birth.wav this tick` → returns without transitioning. Birth message is missed this minute; next minute the guard will retry (same minute match still possible for the current-year-vs-last-year check on the very next tick since last_birth_year_ is still last year's value). This is the correct failure mode — missing a birth message is acceptable; missing or double-firing across a power cycle is not. |
@@ -445,7 +444,6 @@ firmware/lib/audio/
       gain.h               # apply_gain_q8 + CLOCK_AUDIO_GAIN_Q8 default
       fire_guard.h         # should_auto_fire + NowFields +
                            #   BirthConfig
-      state_machine.h      # next_state(State, Event) — pure transition
   src/
     audio.cpp              # ADAPTER — I²S install, SD mount,
                            #   NVS, state machine, pump
@@ -453,13 +451,11 @@ firmware/lib/audio/
     wav.cpp                # pure-logic RIFF header validation
     gain.cpp               # pure-logic Q8 scalar
     fire_guard.cpp         # pure-logic birthday guard
-    state_machine.cpp      # pure-logic state transitions
 
 firmware/test/
   test_audio_wav/test_wav.cpp
   test_audio_gain/test_gain.cpp
   test_audio_fire_guard/test_fire_guard.cpp
-  test_audio_state_machine/test_state_machine.cpp
 ```
 
 Pure-logic `.cpp` files get added to `[env:native]` `build_src_filter`
@@ -550,38 +546,6 @@ void apply_gain_q8(int16_t* samples, size_t n, uint16_t gain_q8);
 
 } // namespace wc::audio
 ```
-
-### Pure-logic state-machine transition
-
-```cpp
-// firmware/lib/audio/include/audio/state_machine.h
-#pragma once
-
-#include <cstdint>
-
-namespace wc::audio {
-
-enum class State : uint8_t { Idle, Playing };
-enum class Event : uint8_t {
-    PlayLullabyRequested,
-    PlayBirthRequested,
-    StopRequested,
-    EofOrError,
-};
-
-// Pure. Decides the next state from (current state, event). Has no
-// side effects (no file opens, no I²S calls — the adapter performs
-// those alongside the transition). Captures the 2×4 state-transition
-// table exactly as documented in §Playback state machine.
-State next_state(State current, Event e);
-
-} // namespace wc::audio
-```
-
-The adapter's `transition_to_playing` / `transition_to_idle` helpers
-now split into "compute the next state via `next_state`" and "perform
-the side effect"; the state variable is only written via the pure
-function. Keeps the state-machine invariants native-testable.
 
 ### Pure-logic birthday auto-fire guard
 
@@ -686,7 +650,6 @@ Shape for review; actual code written during implementation.
 #include "audio/wav.h"
 #include "audio/gain.h"
 #include "audio/fire_guard.h"
-#include "audio/state_machine.h"
 #include "rtc.h"
 #include "wifi_provision.h"
 #include "pinmap.h"
@@ -702,11 +665,11 @@ static constexpr const char*  NVS_KEY_LAST_YEAR = "last_birth_year";
 
 // Compile-time guard for CLOCK_AUDIO_GAIN_Q8 lives in audio/gain.h
 // (which defines a default of 256 if no config header overrides it).
-// State and Event enums come from audio/state_machine.h.
+
+enum class State : uint8_t { Idle, Playing };
 
 static bool        started              = false;
 static bool        sd_ok                = false;
-static bool        i2s_ok               = false;
 static State       state_               = State::Idle;
 static BirthConfig birth_               = {};
 static uint16_t    last_birth_year_     = 0;
@@ -798,15 +761,13 @@ void begin(const BirthConfig& birth) {
     if (started) return;
     birth_ = birth;
 
-    i2s_ok = i2s_install();
-    if (!i2s_ok) {
-        Serial.println("[audio] begin: I2S install FAILED, playback disabled until next boot");
+    if (!i2s_install()) {
+        Serial.println("[audio] begin: I2S install FAILED (subsequent i2s_write calls will fail)");
     }
     sd_ok = SD.begin(PIN_SD_CS);
     if (!sd_ok) {
         Serial.println("[audio] begin: SD FAILED, playback disabled until next boot");
-    }
-    if (sd_ok && i2s_ok) {
+    } else {
         Serial.println("[audio] begin: SD ok, I2S ok");
     }
     last_birth_year_ = nvs_read_last_birth_year();
@@ -842,7 +803,7 @@ void loop() {
     }
 
     // Idle: check birthday auto-fire.
-    if (!sd_ok || !i2s_ok) return;
+    if (!sd_ok) return;
     // audio::loop() reads rtc::now() directly here — deliberate
     // deviation from the display module's data-injection pattern
     // (display takes NowFields via RenderInput from main.cpp). The
@@ -869,8 +830,8 @@ void loop() {
 }
 
 void play_lullaby() {
-    if (!started || !sd_ok || !i2s_ok) return;
-    if (state_ != State::Idle)         return;
+    if (!started || !sd_ok)    return;
+    if (state_ != State::Idle) return;
     transition_to_playing(LULLABY_PATH);
 }
 
@@ -1061,8 +1022,6 @@ Edits (mirroring ntp's pattern):
 - Add `+<../lib/audio/src/gain.cpp>` to `[env:native] build_src_filter`.
 - Add `+<../lib/audio/src/fire_guard.cpp>` to `[env:native]
   build_src_filter`.
-- Add `+<../lib/audio/src/state_machine.cpp>` to `[env:native]
-  build_src_filter`.
 
 `audio.cpp` is NOT added to the native filter — `#ifdef ARDUINO`
 short-circuits it on that target.
@@ -1143,25 +1102,16 @@ catches any >256 value at compile time (would clip on PCM peaks).
 - `test_fire_unknown_time`: time_known=false → false.
 - `test_fire_already_playing`: already_playing=true → false.
 
-**`test_audio_state_machine`** — 8 tests (one per row of the
-state-transition table in §Playback state machine).
+Total audio pure-logic tests: **22** (10 wav + 4 gain + 8 fire_guard).
 
-`next_state`:
+Target native-suite count after this module: 150 (post-ntp) + 22
+(audio) = **172 native tests**.
 
-- `test_sm_idle_play_lullaby_to_playing`: Idle + PlayLullabyRequested → Playing.
-- `test_sm_idle_play_birth_to_playing`: Idle + PlayBirthRequested → Playing.
-- `test_sm_idle_stop_stays_idle`: Idle + StopRequested → Idle.
-- `test_sm_idle_eof_stays_idle`: Idle + EofOrError → Idle (defensive).
-- `test_sm_playing_play_lullaby_stays_playing`: Playing + PlayLullabyRequested → Playing (no-op).
-- `test_sm_playing_play_birth_stays_playing`: Playing + PlayBirthRequested → Playing (no-op).
-- `test_sm_playing_stop_to_idle`: Playing + StopRequested → Idle.
-- `test_sm_playing_eof_to_idle`: Playing + EofOrError → Idle.
-
-Total audio pure-logic tests: **30** (10 wav + 4 gain + 8 fire_guard
-+ 8 state_machine).
-
-Target native-suite count after this module: 150 (post-ntp) + 30
-(audio) = **180 native tests**.
+The state-machine transition table itself (§Playback state machine)
+is a trivial 2×4 lookup implemented as an inline switch inside the
+adapter. No pure-logic extraction — the hexagonal benefit would be
+8 tests against a static table, and the transitions are clearer read
+in the adapter context where the side effects live.
 
 ### ESP32 adapter — NOT native-testable
 
@@ -1280,6 +1230,32 @@ and §MicroSD).
 considered hardware-verified. 8-10 require a controlled pre-set
 DS3231 and may be deferred until the final PCB burn-in phase when
 we can sit through a real birthday. 12 is diagnostic-only.
+
+## Accepted risks
+
+- **DS3231 hardware failure returning garbage DateTime.** If the
+  chip itself bricks (silicon failure, I²C bus short) while WiFi /
+  ntp is healthy, `time_known=true` but `rtc::now()` returns random
+  fields. In theory the garbage could coincidentally read as the
+  birth minute and trigger a false auto-fire, stamping a garbage
+  year into NVS. Mitigations considered (an `rtc_ok` health-check
+  API, a sentinel year) were rejected: the parent design already
+  accepts DS3231 failure as a 5-to-10-year coin-cell maintenance
+  event rather than a monitored failure mode, and rtc is the
+  *fallback* path for ntp — not a primary source of truth for the
+  auto-fire. The "tiny probabilistic risk on the event that
+  matters most" is accepted in exchange for no rtc-spec drift.
+
+- **ntp → audio header coupling.** `ntp.cpp` includes `audio.h` to
+  call `audio::is_playing()` — the first cross-adapter include in
+  this firmware. Acceptable because (a) the alternative
+  (`ntp::loop(bool defer)` with main.cpp threading) is an
+  aesthetic refactor, not a functional difference, and (b) the
+  dependency graph is acyclic: `audio.cpp` does NOT include
+  `ntp.h` (verified against the adapter include list in §Adapter
+  pseudocode). If a future spec ever wants audio to call into ntp,
+  the coupling will need to be inverted at that moment — not
+  pre-emptively.
 
 ## Open issues
 

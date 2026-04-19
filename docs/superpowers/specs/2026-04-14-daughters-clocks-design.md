@@ -30,7 +30,7 @@ One design spec covers both clocks. Differences are configuration values, not de
 - **Time source:** NTP over WiFi; DS3231 RTC as offline fallback.
 - **WiFi provisioning:** captive portal on first boot (phone connects to temporary AP, enters SSID + password in browser form). USB-C available as debug + firmware update path.
 - **LEDs:** WS2812B RGB, one per word group (~25 per clock).
-- **Audio:** MAX98357A I2S DAC + amp, small speaker (~2-3W), microSD card for MP3 files.
+- **Audio:** MAX98357A I2S DAC + amp, small speaker (~2-3W), microSD card for 16-bit PCM WAV files (44.1 kHz mono). Format was flipped from MP3 during audio-module spec (`docs/superpowers/specs/2026-04-18-audio-design.md`) — eliminates the MP3 decoder dependency.
 - **Power:** USB-C only. Any standard 5V/2A source drives the full system. No wall adapter specific to the clock.
 - **Buttons:** three tact switches on the right side — hour set, minute set, audio play/stop.
 - **No power button.** Always on when plugged in.

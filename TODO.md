@@ -107,6 +107,7 @@ spec+plan pair when its turn comes up. Modules to write:
       Volume is fixed in firmware and tuned during assembly. Needs a spec
       (ESP8266Audio vs. libhelix library choice, volume curve, play-state
       machine with buffer-underrun handling).
+      Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
 - [x] **`buttons`** — debounced tact-switch input on GPIO 14 / 32 / 33
       (hour / minute / audio). Shipped: `firmware/lib/buttons/` with
       `Debouncer` + `ComboDetector` pure-logic state machines (13 native
@@ -137,12 +138,15 @@ spec+plan pair when its turn comes up. Modules to write:
       clock), bench testing runs one clock at a time, so `emory/`/`nora/`
       subdirs buy nothing. Files: `lullaby.mp3` + `birth.mp3` at the root.
       Firmware reads by fixed path; zero path-handling branches.
-- [x] **Audio file format — MP3, 128 kbps CBR, mono, 44.1 kHz.**
-      CBR over VBR because ESP32 MP3 decoder libs (ESP8266Audio / libhelix)
-      handle CBR more reliably — VBR can hiccup on sample-rate transitions.
-      Mono because single speaker. 128 kbps is transparent for voice + a
-      simple lullaby, ~1 MB/min, well under microSD capacity. 44.1 kHz
-      is standard and within MAX98357A's 8–48 kHz @ 16-bit envelope.
+- [x] **Audio file format — WAV, 16-bit PCM, 44.1 kHz, mono, little-endian.**
+      Design flipped from MP3 during audio-module spec pass
+      (`docs/superpowers/specs/2026-04-18-audio-design.md`). Eliminates the
+      MP3 decoder dependency (libhelix / ESP8266Audio / ESP32-audioI2S —
+      ESP32-audioI2S required PSRAM we don't have; the others were decoder
+      libraries we don't need once the file format is uncompressed).
+      Collapses the audio adapter to an SD-read → I²S-write pump. File size
+      is ~88 kB/s raw PCM (~18.5 MB total per card for a 3 min lullaby +
+      30 s birth message); trivially inside any modern microSD's capacity.
 
 ## PCB finalization + order
 

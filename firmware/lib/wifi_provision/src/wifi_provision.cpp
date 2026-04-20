@@ -101,10 +101,15 @@ static void log_state_if_changed() {
 }
 
 static std::string confirmation_message() {
+    // The captive page only polls /status after a form submit, so any state
+    // we return to outside of the submit → confirm → validate flow implies
+    // something went wrong. ApActive here means "came back from failed
+    // validation" (or a timed-out AwaitingConfirmation), so tell the user.
     switch (sm.state()) {
-        case State::AwaitingConfirmation: return "Waiting for Audio button…";
-        case State::Validating:           return "Connecting…";
+        case State::AwaitingConfirmation: return "Waiting for Audio button...";
+        case State::Validating:           return "Connecting...";
         case State::Online:               return "Connected!";
+        case State::ApActive:             return "Didn't connect. Check your password and try again.";
         default:                          return "Ready.";
     }
 }

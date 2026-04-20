@@ -202,22 +202,29 @@ static void handle_submit() {
     // ~5 s (ONLINE_GRACE_MS) so this page gets one last poll showing
     // "Connected!" before the AP tears down and the page goes blank.
     // Try/catch around fetch swallows the expected final disconnect error.
+    // charset=utf-8 declared on the <meta> AND via Content-Type so the
+    // fancy characters in this page and in /status responses render right.
+    // Without it, em-dashes and ellipses get mojibake'd ("â€"" etc).
     std::string msg =
-        "<!doctype html><html><body style='font-family:Georgia,serif;padding:2rem'>"
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        "</head>"
+        "<body style='font-family:Georgia,serif;padding:2rem'>"
         "<h1>Press the Audio button on the clock</h1>"
         "<p>Press and release the Audio button within 60 seconds to confirm.</p>"
-        "<p id='s' style='font-weight:bold;font-size:1.2em'>Waiting…</p>"
+        "<p id='s' style='font-weight:bold;font-size:1.2em'>Waiting...</p>"
         "<p style='color:#666;font-size:0.9em;margin-top:2em'>"
         "After you press Audio, this page will briefly show <b>Connected!</b> "
-        "and then the clock's WiFi network will disappear from your phone. "
-        "That's the success signal — your clock is now on your home WiFi."
+        "and then the clock&apos;s WiFi network will disappear from your phone. "
+        "That&apos;s the success signal &mdash; your clock is now on your home WiFi."
         "</p>"
         "<script>"
         "setInterval(async()=>{try{const r=await fetch('/status');"
         "const j=await r.json();document.getElementById('s').textContent=j.message;"
         "}catch(e){}},2000);"
         "</script></body></html>";
-    server().send(200, "text/html", msg.c_str());
+    server().sendHeader("Content-Type", "text/html; charset=utf-8");
+    server().send(200, "text/html; charset=utf-8", msg.c_str());
 }
 
 static void handle_status() {

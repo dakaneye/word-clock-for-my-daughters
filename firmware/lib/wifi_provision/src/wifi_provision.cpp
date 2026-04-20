@@ -67,7 +67,11 @@ static FormBody pending;
 
 static constexpr uint32_t AP_TIMEOUT_MS           = 10UL * 60UL * 1000UL;
 static constexpr uint32_t CONFIRMATION_TIMEOUT_MS = 60UL * 1000UL;
-static constexpr uint32_t VALIDATING_TIMEOUT_MS   = 30UL * 1000UL;
+// 60 s (was 30 s). Intermittent timeouts observed on bench 2026-04-20
+// where a first-try STA handshake took >30 s on a mildly congested 2.4
+// GHz band. Retry usually worked, but the user shouldn't need a retry
+// at all for a normal home network.
+static constexpr uint32_t VALIDATING_TIMEOUT_MS   = 60UL * 1000UL;
 static constexpr uint32_t STA_BACKOFF_INITIAL_MS  = 2000;
 static constexpr uint32_t STA_BACKOFF_MAX_MS      = 5UL * 60UL * 1000UL;
 

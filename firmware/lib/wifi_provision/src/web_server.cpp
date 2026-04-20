@@ -80,7 +80,15 @@ static std::string json_escape(const std::string& s) {
 }
 
 static std::string render_form() {
-    current_csrf = rand_hex(16);
+    // Do NOT regenerate current_csrf here. iOS captive-portal assistants
+    // (and browsers in general) fetch secondary resources during form
+    // display — favicon.ico, apple-touch-icon, repeat /hotspot-detect.html
+    // probes — which hit handle_wildcard()/handle_ios_probe() and 302 the
+    // client back to "/", triggering another handle_root() + render_form().
+    // Regenerating CSRF on every GET makes the form in the user's browser
+    // tab go stale against a fresh server token, producing the
+    // "form timed out" error on submit even though the user did nothing
+    // wrong. Seed once in begin() and keep it stable for the AP session.
     std::string html(FORM_HTML);
     html = replace_all(html, "{{CSRF_TOKEN}}", current_csrf);
     html = replace_all(html, "{{ERROR_MESSAGE}}", last_error);

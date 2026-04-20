@@ -115,3 +115,115 @@ def test_embedded_header_is_valid_c_literal(tmp_path):
     literal_body = contents[start + 1 : end]
     for forbidden in ["\n", "\r"]:
         assert forbidden not in literal_body, f"Raw {forbidden!r} in string literal"
+
+
+# -----------------------------------------------------------------------------
+# Tier 1 structural checks for the /scan polling logic.
+# These scan the raw template for expected identifiers; they do NOT execute
+# the JS. Tier 2 (test_form_behavior.py) covers actual runtime behavior.
+# -----------------------------------------------------------------------------
+
+TEMPLATE_PATH = Path(__file__).resolve().parents[1] / "form.html.template"
+
+
+def _template_text() -> str:
+    return TEMPLATE_PATH.read_text()
+
+
+def test_polling_interval_is_2000ms():
+    """POLL_INTERVAL_MS constant exists and equals 2000."""
+    assert re.search(r"POLL_INTERVAL_MS\s*=\s*2000", _template_text()), (
+        "POLL_INTERVAL_MS constant missing or changed from 2000"
+    )
+
+
+def test_polling_timeout_is_30s():
+    """TIMEOUT_MS constant exists and equals 30000."""
+    assert re.search(r"TIMEOUT_MS\s*=\s*30000", _template_text()), (
+        "TIMEOUT_MS constant missing or changed from 30000"
+    )
+
+
+def test_polling_stops_on_nonempty_result():
+    """Stop-on-success path exists (length>0 check + timer cleared)."""
+    text = _template_text()
+    assert re.search(r"nets\.length\s*>\s*0", text), \
+        "Missing nets.length > 0 stop condition"
+    assert "clearTimeout" in text, \
+        "Missing clearTimeout call on success path"
+
+
+def test_timeout_shows_refresh_button():
+    """Timeout path creates a visible Refresh button that restarts polling."""
+    text = _template_text()
+    assert "Refresh networks" in text, "Missing 'Refresh networks' button text"
+    assert re.search(r"renderTimeoutRetry", text), \
+        "Missing renderTimeoutRetry function"
+
+
+def test_no_single_line_comments_in_js():
+    """//-style comments are forbidden inside <script> — they consume the
+    rest of the line after _collapse_newlines() joins everything with spaces."""
+    text = _template_text()
+    # Extract <script>...</script> body (the template has one script block).
+    m = re.search(r"<script>(.*?)</script>", text, re.DOTALL)
+    assert m, "Could not locate <script> block in template"
+    script_body = m.group(1)
+    # Strip string literals (single + double + backtick) before checking for //.
+    stripped = re.sub(r'"(?:[^"\\]|\\.)*"', '', script_body)
+    stripped = re.sub(r"'(?:[^'\\]|\\.)*'", '', stripped)
+    stripped = re.sub(r"`(?:[^`\\]|\\.)*`", '', stripped)
+    # Any //... sequence left is a real line comment.
+    assert "//" not in stripped, (
+        "Found // comment inside <script>; use /* ... */ instead. "
+        "// comments break when _collapse_newlines() joins lines with spaces."
+    )
+
+
+def test_generated_js_parses_as_valid_js():
+    """Collapsed preview HTML's JS must be syntactically valid.
+
+    Runs `node --check` on the extracted <script> body. This catches
+    post-collapse syntax errors — e.g., missing semicolons where ASI fails
+    once newlines become spaces.
+    """
+    import shutil
+    import tempfile
+
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node not available; install Node.js to run this check")
+
+    # Emit a header (which triggers _collapse_newlines), then extract JS.
+    with tempfile.TemporaryDirectory() as td:
+        header = Path(td) / "form_html.h"
+        subprocess.run(
+            [sys.executable, str(SCRIPT), "--kid", "emory", "--out", str(header)],
+            check=True,
+        )
+        body = header.read_text()
+
+    # Header contains FORM_HTML raw string; extract the HTML payload.
+    m = re.search(r'R"WCHTML\((.*?)\)WCHTML"', body, re.DOTALL)
+    assert m, "Could not find raw string literal in generated header"
+    collapsed_html = m.group(1)
+
+    # Extract the script body from collapsed HTML.
+    ms = re.search(r"<script>(.*?)</script>", collapsed_html, re.DOTALL)
+    assert ms, "Collapsed HTML lost its <script> block"
+    js_body = ms.group(1)
+
+    # Hand to node --check. Success = exit code 0.
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
+        f.write(js_body)
+        js_path = f.name
+    try:
+        result = subprocess.run(
+            [node, "--check", js_path],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, (
+            f"node --check failed:\nstderr:\n{result.stderr}\nstdout:\n{result.stdout}"
+        )
+    finally:
+        Path(js_path).unlink()

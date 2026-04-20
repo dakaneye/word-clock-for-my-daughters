@@ -120,3 +120,34 @@ def test_refresh_button_restarts_polling(serve_preview, page: Page):
     dropdown = page.locator("#ssid")
     expect(dropdown.locator("option")).to_have_count(1, timeout=5000)
     expect(dropdown.locator("option")).to_contain_text(["Restarted"])
+
+
+def test_polling_stops_after_success(serve_preview, page: Page):
+    """First /scan returns networks; polling stops; dropdown stays populated."""
+    counter_mock = """
+    <script>
+      window.__fetchCount = 0;
+      window.fetch = async () => {
+        window.__fetchCount += 1;
+        return { json: async () => ([
+          {ssid: 'Stable', rssi: -50, secured: true},
+        ])};
+      };
+    </script>
+    """
+    url = serve_preview(kid="emory", mock_script=counter_mock)
+    page.goto(url)
+
+    dropdown = page.locator("#ssid")
+    expect(dropdown.locator("option")).to_have_count(1, timeout=3000)
+    expect(dropdown.locator("option")).to_contain_text(["Stable"])
+
+    # Wait 10 s — several poll intervals. Polling must have stopped.
+    page.wait_for_timeout(10000)
+
+    count = page.evaluate("window.__fetchCount")
+    assert count <= 2, f"expected ≤2 /scan calls, saw {count} (polling did not stop)"
+
+    # Dropdown still populated (not reset to empty by a late poll).
+    expect(dropdown.locator("option")).to_have_count(1)
+    expect(dropdown.locator("option")).to_contain_text(["Stable"])

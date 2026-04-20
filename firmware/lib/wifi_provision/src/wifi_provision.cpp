@@ -102,13 +102,13 @@ static std::string confirmation_message() {
 }
 
 static void start_ap() {
-    WiFi.mode(WIFI_AP);
+    WiFi.mode(WIFI_AP_STA);
     uint64_t mac = ESP.getEfuseMac();
     char ssid[32];
     snprintf(ssid, sizeof(ssid), "WordClock-Setup-%04X",
              (uint16_t)((mac >> 32) & 0xFFFF));
     WiFi.softAP(ssid, /* password = */ nullptr, /* channel = */ 1,
-                /* ssid_hidden = */ 0, /* max_connection = */ 1);
+                /* ssid_hidden = */ 0, /* max_connection = */ 4);
     IPAddress ip = WiFi.softAPIP();
     Serial.printf("[wifi_provision] AP up: SSID=%s IP=%s\n",
                   ssid, ip.toString().c_str());

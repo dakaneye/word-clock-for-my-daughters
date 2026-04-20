@@ -52,3 +52,27 @@ def test_dropdown_populates_on_immediate_success(serve_preview, page: Page):
     expect(dropdown.locator("option")).to_contain_text(
         ["HomeWiFi-5G", "HomeWiFi-2.4", "Guest (open)", "Neighbor"]
     )
+
+
+def test_dropdown_populates_after_polling(serve_preview, page: Page):
+    """Two empty responses then networks → dropdown populates within ~6 s.
+
+    At 2 s poll interval: T0=empty, T2=empty, T4=networks → DOM updates.
+    """
+    mock = _make_mock([
+        [],
+        [],
+        [
+            {"ssid": "Home", "rssi": -50, "secured": True},
+            {"ssid": "Other", "rssi": -65, "secured": False},
+        ],
+    ])
+    url = serve_preview(kid="emory", mock_script=mock)
+    page.goto(url)
+    dropdown = page.locator("#ssid")
+    # Playwright's 2-count assertion waits up to `timeout` ms for the DOM.
+    # 8000 ms covers two 2-second poll cycles + slack.
+    expect(dropdown.locator("option")).to_have_count(2, timeout=8000)
+    expect(dropdown.locator("option")).to_contain_text(
+        ["Home", "Other (open)"]
+    )

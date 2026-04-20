@@ -4,19 +4,19 @@ Live working list of what's left. The original phase-by-phase roadmap
 lives in `docs/archive/specs/2026-04-15-activity-blocking-graph.md` for
 historical reference; this file supersedes it.
 
-## Status (2026-04-17)
+## Status (2026-04-20)
 
 | Workstream | State |
 |---|---|
 | Firmware Phase 1 (pure logic) | **Done** — tagged `phase-1-complete` |
-| Firmware Phase 2 — `wifi_provision` + `buttons` | **Done native-side** — 89 native tests + 6 Python tests green, code-reviewed to A-grade (137/150). Awaiting hardware-flash verification. |
+| Firmware Phase 2 — all modules | **Done native-side** — `wifi_provision`, `buttons`, `display`, `rtc`, `ntp`, `audio` all shipped; `main.cpp` wires them together. 173/173 native Unity tests + 17/17 captive-portal pytest (Tier 1 structural + Tier 2 Playwright) green. Bench bring-up Steps 1-6 passed 2026-04-20; Step 7 (captive portal) shipped three scan fixes; awaiting on-device re-verification of the scan fixes. |
 | Bench / printer prep | Bambu Studio installed, build123d venv ready (`enclosure/3d/`), PCB standoff STL generated. See `docs/hardware/3d-printing-setup.md`. |
 | Face SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
 | Frame SVGs | **Ordered from Ponoko** — Emory Maple 6.4 mm, Nora Walnut 6.4 mm (bare shells, no cutouts) |
 | Back-panel SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
 | PCB layout | Cermant USB-C removed. Mounting holes verified. **Awaiting final review + JLCPCB submit** (gated on breadboard bring-up). |
-| Parts (ESP32, LEDs, MAX98357A, DS3231, speaker, USB breakout) | **Arriving today (2026-04-17).** |
-| Bambu Lab A1 3D printer | **Arriving today.** Standoff STL pre-generated, waiting for printer + filament. |
+| Parts (ESP32, LEDs, MAX98357A, DS3231, speaker, USB breakout) | **Arrived 2026-04-17.** On hand, ready for bench work. |
+| Bambu Lab A1 3D printer | **Arriving 2026-04-24 to 2026-04-27.** Standoff STL pre-generated, waiting for printer + filament. |
 | 3D internals (button caps, speaker cradle, light blocker) | Not started — blocked on physical component measurements. |
 
 ## Architecture (decisions locked this session)
@@ -27,15 +27,15 @@ historical reference; this file supersedes it.
   `DNSServer` + `WebServer` + NVS-backed credentials. Avoids supply-chain
   dependency and gives full control over the per-kid palette. Shipped
   in `firmware/lib/wifi_provision/`.
-- **USB path: captive cable.** A 3-6 ft Micro-USB-to-USB-C cable lives permanently inside the clock, plugged into the ESP32 module's micro-USB port, exiting through a 6 mm grommeted hole at the bottom-right of the back panel. No adapter, no pigtail, no panel-mount hardware. See `docs/hardware/usb-c-breakout-removal-guide.md`.
+- **USB path: captive cable.** A 3-6 ft Micro-USB-to-USB-C cable lives permanently inside the clock, plugged into the ESP32 module's micro-USB port, exiting through a 6 mm grommeted hole at the bottom-right of the back panel. No adapter, no pigtail, no panel-mount hardware. Historical rework record: `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`.
 - **Back panel removable** via 4 × M3 brass corner screws threading into hex spacers epoxied into the frame corners. Unlimited removal cycles; serves the 40-year CR2032 replacement cadence.
 - **Daughterboard orientation:** DS3231 + HW-125 install with battery holder / SD slot facing the back panel (silkscreen markers on the PCB will enforce this).
 
 ---
 
-## This week — blocked on parts arrival (2026-04-17)
+## Bench work — parts on hand (arrived 2026-04-17)
 
-- [ ] **Inspect AITRIP module for a polyfuse on the micro-USB VBUS input.** Magnifier-level inspection near the micro-USB connector, looking for a small yellow/green 0603/0805 component in series with VBUS. If a 500 mA polyfuse is present, bridge it with solder or bypass it before commit — the full clock draw (~700 mA typical, up to 1.5-2 A peak) will trip it otherwise. Detail in `docs/hardware/usb-c-breakout-removal-guide.md` step 3.3.
+- [ ] **Inspect AITRIP module for a polyfuse on the micro-USB VBUS input.** Magnifier-level inspection near the micro-USB connector, looking for a small yellow/green 0603/0805 component in series with VBUS. If a 500 mA polyfuse is present, bridge it with solder or bypass it before commit — the full clock draw (~700 mA typical, up to 1.5-2 A peak) will trip it otherwise. Detail in `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md` step 3.3.
 - [ ] **Caliper-measure tallest bottom-side components.** Spot-check the pinout.md table's [MED]-confidence daughterboard heights (MAX98357A, DS3231 coin-cell holder, microSD slot). Update the standoff + light-channel depth budget if any value is off by > 2 mm.
 - [ ] **Pre-power smoke test protocol.** Run through `docs/hardware/pinout.md` §Pre-power smoke test: multimeter check of the USB-C breakout, DS3231 battery-charging resistor removal, MAX98357A pin sanity, then ESP32-alone flash/run, add peripherals one at a time. ~15 minutes total.
 - [ ] **Re-verify `wifi_provision_checks.md` + `buttons_checks.md`** against
@@ -129,17 +129,34 @@ spec+plan pair when its turn comes up. Modules to write:
       for NVS, DNS hijack, web server, and lifecycle. Spec:
       `docs/superpowers/specs/2026-04-16-captive-portal-design.md`.
       Hardware checklist: `firmware/test/hardware_checks/wifi_provision_checks.md`.
+- [x] **Captive portal scan fix (2026-04-20)** — bench bring-up Step 7
+      revealed three defects: `WIFI_AP` mode blocked `WiFi.scanNetworks`
+      so the SSID dropdown stayed stuck on "Scanning for networks…",
+      `max_connection=1` blocked multi-device provisioning, and the form
+      JS fired `/scan` exactly once with no retry. Shipped three fixes
+      (`WIFI_AP_STA`, `max_connection=4`, polling loop with 30 s timeout
+      + Refresh button) under Tier 1 structural pytest (6) + Tier 2
+      Playwright behavior (5) + 3 new hardware checks (§11-§13). Spec:
+      `docs/superpowers/specs/2026-04-20-captive-portal-scan-fix-design.md`.
+      Plan: `docs/superpowers/plans/2026-04-20-captive-portal-scan-fix-implementation.md`.
 - [x] **HTML/CSS for the captive portal form** — embedded as PROGMEM via
       build-time generator `firmware/assets/captive-portal/gen_form_html.py`
       (5 pytests). Per-kid palette; runtime-substituted CSRF token + error
       message. Browser preview: `python gen_form_html.py --kid emory --preview`.
       Uses Arduino core `WebServer`, not SPIFFS / LittleFS.
-- [ ] **`main.cpp` state machine** — boot → captive portal if no creds → NTP
-      sync → normal clock loop, with holiday / birthday / bedtime-dim modes
-      and audio button handling interleaved. Integration spec — pins
-      mode-priority order when multiple triggers align (birthday +
-      holiday + bedtime-dim all hit at 8:30 PM on Halloween of Emory's
-      birthday year, etc.).
+- [x] **`main.cpp` state machine** — shipped as a side-effect of the
+      Phase 2 module ships, no dedicated spec needed. `firmware/src/main.cpp`
+      wires `wifi_provision::begin()` → `rtc::begin()` → `ntp::begin()` →
+      `display::begin()` → `buttons::begin(...)` → `audio::begin(...)` in
+      that order (tz set before first RTC read is load-bearing). `loop()`
+      pumps each subsystem and renders only when
+      `wifi_provision::seconds_since_last_sync() != UINT32_MAX` (free-runs
+      on DS3231 during WiFi drops; blanks face before first-ever sync so
+      pre-TZ UTC garbage is never shown). Button events route to
+      rtc / audio / wifi_provision; the 10 s Hour+Audio combo triggers
+      captive-portal reset. Mode-priority collisions (birthday + holiday
+      + dim) were resolved inside `display::render` (priority chain in
+      `docs/superpowers/specs/2026-04-17-display-design.md`), not here.
 - [x] **SD-card filesystem layout — flat root.** Cards are per-kid (one per
       clock), bench testing runs one clock at a time, so `emory/`/`nora/`
       subdirs buy nothing. Files: `lullaby.wav` + `birth.wav` at the root.
@@ -158,7 +175,7 @@ spec+plan pair when its turn comes up. Modules to write:
 
 - [ ] **Add silkscreen markers for daughterboard orientation.** Print "BATTERY →" next to `J_RTC1` and "SD →" next to `J_SD1` on the main PCB silkscreen. Prevents assembly-time orientation errors.
 - [ ] **Optional: revise PCB if breadboard reveals pin conflicts or noise issues** (documented failure modes in pinout.md).
-- [ ] **Re-export gerbers + drill + CPL + BOM.** Same process as `docs/hardware/kicad-rework-guide.md` step 2.11.
+- [ ] **Re-export gerbers + drill + CPL + BOM.** Same process as `docs/archive/hardware/2026-04-15-kicad-rework.md` step 2.11.
 - [ ] **Submit to JLCPCB** for fab + assembly. 5-unit MOQ. Lead time 2-3 weeks realistic + shipping.
 
 ## 3D-printed internals (after printer calibrated + parts in hand)
@@ -171,19 +188,28 @@ spec+plan pair when its turn comes up. Modules to write:
       printer lands.
 - [ ] **Button actuator caps (×3)** — tiered cylinders that slide through the 6.5 mm panel holes, bridging the ~14 mm air gap to the tact switch plungers. ~30 min part.
 - [ ] **Speaker cradle** — cup with 2 mount-tab screw holes matching the speaker (~37 mm tab spacing, measure exactly from the physical part), glued to the back panel interior behind the vent. Worth printing vs gluing the speaker directly because the speakers are cheap ($2.50 each, 4-pack) while a replacement back panel is ~$50 — cradle keeps the speaker swappable without wasting wood. ~1-2 hrs to design.
-- [x] **Diffuser — PETG stack, not single-layer.** Settled: frosted PETG
-      alone does not adequately diffuse (Chelsea's 2015 clock used PETG
-      and still showed visible hot spots at the LED face). Go with the
-      spec's recommended stack: adhesive-backed diffusion film against the
-      back of the face (also retains inner letter islands) + 2-3 mm opal
-      cast acrylic behind it for primary hot-spot elimination. The
-      `diffuser material test` becomes a stack-validation test once the
-      printer + materials are on hand.
-- [ ] **Diffuser stack validation** — once printer + materials land, test
-      the film + opal stack at various light-channel depths (15/18/21 mm)
-      on a single LED to lock the channel height before printing the full
-      honeycomb.
 - [ ] **Light channel honeycomb** — walls isolating each word's LED pocket, 35 LED pockets, snap fits to PCB, height ~18 mm. Substantial part; budget several hours of iteration. May be easier in Fusion/Onshape than scripted.
+
+## Diffuser stack (purchased, not printed)
+
+Two-layer stack sitting between the face and the light channel. Neither
+layer is 3D-printed — an earlier PETG-print iteration was rejected
+because Chelsea's 2015 clock used PETG and still shows visible LED hot
+spots.
+
+- [x] **Design settled — adhesive film + opal cast acrylic, not single-layer.**
+      Per `docs/superpowers/specs/2026-04-15-laser-cut-face-design.md` §Diffuser:
+      ~0.2 mm adhesive-backed diffusion film against the back of the
+      face (also retains inner letter islands — A/B/D/O/P/Q/R/0/6/8/9)
+      + 2-3 mm opal cast acrylic behind it for primary hot-spot
+      elimination.
+- [ ] **Diffuser stack validation** — during breadboard bring-up Step 5
+      (single WS2812B lit), stack the film + opal acrylic at various
+      distances (15 / 18 / 21 mm) in front of one lit LED and pick the
+      channel depth that hides the die. Locks the light-channel
+      honeycomb height before designing it. Also gives a last cheap
+      A/B against scavenged tracing paper / vellum to confirm film is
+      the right fix before the acrylic arrives.
 
 ## Supplies still to order
 
@@ -195,6 +221,15 @@ spec+plan pair when its turn comes up. Modules to write:
       spec §Light channel material override) + 1 kg any color for other
       internals. Bambu PLA Basic is the zero-thinking default. (~$40)
 - [ ] Rubber grommet, 6 mm inner diameter (or sized to the cable OD) — (~$3)
+- [x] **Adhesive-backed LED diffusion film — ordered.** Selens 3-pack, 7.9×11.82",
+      0.16 mm thick, self-adhesive (Amazon ASIN B0D2D42XPG). One sheet per face
+      + one spare for application practice. Thickness matches spec's 0.2 mm
+      target within 0.04 mm. Ships with squeegee + cleaning wipes.
+- [x] **Opal cast acrylic — ordered.** Acrylite Satinice White WD008 DF, 1/8"
+      (3.2 mm), dual-sided matte with embedded light-diffusing beads (not
+      surface frost — engineered specifically for LED hot-spot suppression).
+      60% light transmission at this thickness per Evonik datasheet. Sourced
+      from TAP Plastics, cut-to-size.
 
 ## Assembly + validation (Emory first, then Nora)
 

@@ -54,8 +54,16 @@ static State last_logged_state = State::Boot;
 static uint32_t ap_started_at = 0;
 static uint32_t awaiting_started_at = 0;
 static uint32_t validating_started_at = 0;
+static uint32_t last_validating_heartbeat_at = 0;
 static uint32_t last_sta_attempt_at = 0;
 static uint32_t sta_backoff_ms = 2000;
+
+// Grace period after successful provisioning during which we keep the AP up
+// so the user's captive-portal browser sees "Connected!" before the AP
+// vanishes. 0 means "not armed" (warm boot via StaConnecting doesn't use this).
+static uint32_t online_grace_started_at = 0;
+static constexpr uint32_t ONLINE_GRACE_MS = 5UL * 1000UL;
+static constexpr uint32_t VALIDATING_HEARTBEAT_MS = 2UL * 1000UL;
 
 // In-flight credentials held while awaiting Audio-button confirmation or
 // doing a trial connection. Never written to NVS until Validating succeeds.
@@ -146,14 +154,19 @@ static void start_sta() {
 }
 
 static void start_validating() {
-    // Tear down AP BEFORE switching to pure STA mode so the ESP32 doesn't
-    // attempt to run both at once. Spec: "AP is up only during AP_ACTIVE
-    // or AWAITING_CONFIRMATION."
-    stop_ap();
-    WiFi.disconnect(/* wifioff = */ true);
-    WiFi.mode(WIFI_STA);
+    // KEEP the AP up during Validating so the captive-portal page can poll
+    // /status and show the user "Connecting…" → "Connected!" before the AP
+    // vanishes. Possible because we run in WIFI_AP_STA mode (set by
+    // start_ap) — the radio handles both concurrently. AP teardown is
+    // deferred to the Online state's 5-second grace timer below.
+    //
+    // Supersedes the original "stop_ap before WiFi.mode(WIFI_STA)" pattern.
+    // The old flow left the user's browser stranded with no way to surface
+    // success — handle_status' "Connected!" branch was unreachable because
+    // the web server was dead by the time the state reached Online.
     WiFi.begin(pending.ssid.c_str(), pending.pw.c_str());
     validating_started_at = millis();
+    last_validating_heartbeat_at = 0;
     Serial.printf("[wifi_provision] validating credentials for SSID=%s\n",
                   pending.ssid.c_str());
 }
@@ -213,34 +226,68 @@ void loop() {
             break;
         }
         case State::Validating: {
+            // Keep serving the captive page so the user sees "Connecting…"
+            // via /status polling. AP + STA run concurrently in WIFI_AP_STA.
+            dns_hijack::loop();
+            web::loop();
+            // Heartbeat the serial log so operators can see progress during
+            // the 5-30 s window WiFi.status() takes to resolve.
+            if (now - last_validating_heartbeat_at > VALIDATING_HEARTBEAT_MS) {
+                uint32_t elapsed_s = (now - validating_started_at) / 1000;
+                Serial.printf("[wifi_provision] connecting to home WiFi... (%us elapsed)\n",
+                              elapsed_s);
+                last_validating_heartbeat_at = now;
+            }
             if (WiFi.status() == WL_CONNECTED) {
                 Serial.printf("[wifi_provision] validated; committing creds (SSID=%s)\n",
                               pending.ssid.c_str());
                 if (!nvs_store::write(pending)) {
                     Serial.println("[wifi_provision] ERROR: NVS write failed; retrying captive");
                     pending = {};
-                    WiFi.disconnect(/* wifioff = */ true);
+                    // Disconnect STA only (wifioff=false) — the AP must stay
+                    // up so the user can retry submitting. With wifioff=true
+                    // the radio shuts off and the AP disappears.
+                    WiFi.disconnect(/* wifioff = */ false);
                     sm.handle(Event::ValidationFailed);
-                    start_ap();
+                    // AP is already running; do not re-call start_ap().
                 } else {
                     pending = {};
-                    // AP is already torn down by start_validating().
                     sta_backoff_ms = STA_BACKOFF_INITIAL_MS;
+                    // Arm the grace timer so the user's /status poll catches
+                    // "Connected!" before the AP goes down.
+                    online_grace_started_at = millis();
                     sm.handle(Event::ValidationSucceeded);
                 }
             } else if (now - validating_started_at > VALIDATING_TIMEOUT_MS) {
                 Serial.println("[wifi_provision] validation timeout; back to captive");
                 pending = {};
-                WiFi.disconnect(/* wifioff = */ true);
+                WiFi.disconnect(/* wifioff = */ false);
                 sm.handle(Event::ValidationFailed);
-                start_ap();
+                // AP is already running from AwaitingConfirmation.
             }
             break;
         }
         case State::Online: {
+            // Grace window: right after a fresh provisioning, keep the AP +
+            // web server alive for a few seconds so the user's captive-portal
+            // page can poll /status one more time and see "Connected!".
+            if (online_grace_started_at != 0) {
+                if (now - online_grace_started_at > ONLINE_GRACE_MS) {
+                    Serial.println("[wifi_provision] online grace window ended; stopping AP");
+                    stop_ap();
+                    online_grace_started_at = 0;
+                } else {
+                    dns_hijack::loop();
+                    web::loop();
+                }
+            }
             if (WiFi.status() != WL_CONNECTED) {
                 Serial.println("[wifi_provision] WiFi dropped");
                 sta_backoff_ms = STA_BACKOFF_INITIAL_MS;
+                // If the drop happened during the grace window, abandon the
+                // window — the AP is about to be torn down anyway via
+                // start_sta's WiFi.mode(WIFI_STA) call.
+                online_grace_started_at = 0;
                 sm.handle(Event::WiFiDropped);
                 start_sta();
             }

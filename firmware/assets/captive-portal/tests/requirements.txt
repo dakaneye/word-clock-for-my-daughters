@@ -1,0 +1,5 @@
+# Tier 1 (structural) only needs pytest — no extra deps.
+# Tier 2 (behavior) needs Playwright for headless browser assertions.
+pytest>=8.0
+playwright>=1.40
+pytest-playwright>=0.5

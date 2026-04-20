@@ -122,7 +122,10 @@ def emit_preview(kid: str, mock_script: str | None = None) -> str:
                       csrf_placeholder="preview-csrf",
                       error_placeholder="")
     mock = mock_script if mock_script is not None else DEFAULT_PREVIEW_MOCK
-    return html.replace("</body>", mock + "</body>")
+    # The mock must run BEFORE the body's inline <script> so it can replace
+    # window.fetch before /scan is called. Injecting into <head> guarantees
+    # that ordering.
+    return html.replace("</head>", mock + "</head>")
 
 
 def main() -> int:

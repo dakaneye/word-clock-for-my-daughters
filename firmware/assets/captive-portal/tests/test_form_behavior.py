@@ -76,3 +76,18 @@ def test_dropdown_populates_after_polling(serve_preview, page: Page):
     expect(dropdown.locator("option")).to_contain_text(
         ["Home", "Other (open)"]
     )
+
+
+def test_timeout_shows_refresh_button(serve_preview, page: Page):
+    """Empty responses for 30 s → "Refresh networks" button appears."""
+    mock = _make_mock([[]])  # repeats [] forever (list has 1 entry, mock repeats last)
+    url = serve_preview(kid="emory", mock_script=mock)
+    page.goto(url)
+
+    refresh = page.get_by_role("button", name="Refresh networks")
+    # 32-second timeout to accommodate the 30s TIMEOUT_MS + poll interval + slack.
+    expect(refresh).to_be_visible(timeout=32000)
+
+    dropdown = page.locator("#ssid")
+    expect(dropdown.locator("option")).to_have_count(1)
+    expect(dropdown.locator("option")).to_contain_text(["click Refresh"])

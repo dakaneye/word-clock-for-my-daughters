@@ -38,8 +38,15 @@
   </div>
 
   <script>
-    // Populate SSID dropdown from /scan once it arrives.
-    fetch('/scan').then(r => r.json()).then(nets => {
+    /* Poll /scan every 2s until populated or 30s timeout. Stop on first
+       non-empty result — the server calls WiFi.scanDelete() after returning
+       results, so a subsequent poll would return [] and erase the dropdown. */
+    const POLL_INTERVAL_MS = 2000;
+    const TIMEOUT_MS = 30000;
+    let startedAt = 0;
+    let timerId = null;
+
+    function renderSsidList(nets) {
       const sel = document.getElementById('ssid');
       sel.innerHTML = '';
       const seen = new Set();
@@ -51,16 +58,50 @@
         opt.textContent = n.ssid + (n.secured ? '' : ' (open)');
         sel.appendChild(opt);
       }
-      if (sel.children.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No networks found — try again';
-        sel.appendChild(opt);
-      }
-    }).catch(() => {
+    }
+
+    function renderTimeoutRetry() {
       const sel = document.getElementById('ssid');
-      sel.innerHTML = '<option value="">Scan failed — reload</option>';
-    });
+      sel.innerHTML = '';
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No networks found — click Refresh';
+      sel.appendChild(opt);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'Refresh networks';
+      btn.onclick = () => { btn.remove(); startPolling(); };
+      sel.parentNode.insertBefore(btn, sel.nextSibling);
+    }
+
+    function pollScanOnce() {
+      fetch('/scan').then(r => r.json()).then(nets => {
+        if (nets.length > 0) {
+          clearTimeout(timerId);
+          timerId = null;
+          renderSsidList(nets);
+          return;
+        }
+        if (Date.now() - startedAt >= TIMEOUT_MS) {
+          renderTimeoutRetry();
+          return;
+        }
+        timerId = setTimeout(pollScanOnce, POLL_INTERVAL_MS);
+      }).catch(() => {
+        if (Date.now() - startedAt >= TIMEOUT_MS) {
+          renderTimeoutRetry();
+          return;
+        }
+        timerId = setTimeout(pollScanOnce, POLL_INTERVAL_MS);
+      });
+    }
+
+    function startPolling() {
+      startedAt = Date.now();
+      pollScanOnce();
+    }
+
+    startPolling();
   </script>
 </body>
 </html>

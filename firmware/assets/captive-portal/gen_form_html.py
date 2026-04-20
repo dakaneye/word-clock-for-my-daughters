@@ -104,14 +104,7 @@ def emit_header(kid: str, out_path: Path) -> None:
     out_path.write_text(header)
 
 
-def emit_preview(kid: str) -> str:
-    template = TEMPLATE.read_text()
-    # Preview has no real CSRF / error, and injects a mock /scan stub so the
-    # dropdown shows something without an ESP32.
-    html = substitute(template, kid,
-                      csrf_placeholder="preview-csrf",
-                      error_placeholder="")
-    mock = """
+DEFAULT_PREVIEW_MOCK = """
     <script>
       window.fetch = async () => ({ json: async () => ([
           {ssid: 'HomeWiFi-5G', rssi: -45, secured: true},
@@ -121,6 +114,14 @@ def emit_preview(kid: str) -> str:
       ])});
     </script>
     """
+
+
+def emit_preview(kid: str, mock_script: str | None = None) -> str:
+    template = TEMPLATE.read_text()
+    html = substitute(template, kid,
+                      csrf_placeholder="preview-csrf",
+                      error_placeholder="")
+    mock = mock_script if mock_script is not None else DEFAULT_PREVIEW_MOCK
     return html.replace("</body>", mock + "</body>")
 
 

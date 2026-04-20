@@ -31,6 +31,12 @@ static uint32_t last_scan_started_at = 0;
 static constexpr uint32_t SCAN_COOLDOWN_MS = 10000;
 static SubmitHandler on_submit;
 static ConfirmationStatus get_status;
+// True after a successful form POST has routed to AwaitingConfirmation.
+// Makes handle_root serve the waiting page instead of resetting the user
+// back to the form when iOS's captive popup re-probes /hotspot-detect.html
+// (which 302s back to /). Cleared by wifi_provision on validation failure
+// via reset_submit_state() so subsequent / loads show the form again.
+static bool submit_accepted = false;
 
 static std::string rand_hex(size_t bytes) {
     std::string out;
@@ -105,8 +111,37 @@ static void redirect_to_root() {
     server().send(302, "text/plain", "");
 }
 
+static std::string render_waiting_page() {
+    // Served both as the POST /submit response and as the GET / response
+    // while submit_accepted is true. Same HTML either way so the user sees
+    // a stable "Press Audio" view even if the iOS captive popup's
+    // periodic /hotspot-detect.html probe navigates the view back to /.
+    return
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        "</head>"
+        "<body style='font-family:Georgia,serif;padding:2rem'>"
+        "<h1>Press the Audio button on the clock</h1>"
+        "<p>Press and release the Audio button within 60 seconds to confirm.</p>"
+        "<p id='s' style='font-weight:bold;font-size:1.2em'>Waiting...</p>"
+        "<p style='color:#666;font-size:0.9em;margin-top:2em'>"
+        "After you press Audio, the clock will briefly connect to your home "
+        "WiFi and the <b>WordClock-Setup</b> network will disappear from "
+        "your phone. That&apos;s the success signal."
+        "</p>"
+        "<script>"
+        "setInterval(async()=>{try{const r=await fetch('/status');"
+        "const j=await r.json();document.getElementById('s').textContent=j.message;"
+        "}catch(e){}},2000);"
+        "</script></body></html>";
+}
+
 static void handle_root() {
-    server().send(200, "text/html", render_form().c_str());
+    if (submit_accepted) {
+        server().send(200, "text/html; charset=utf-8", render_waiting_page().c_str());
+    } else {
+        server().send(200, "text/html", render_form().c_str());
+    }
 }
 
 static void handle_ios_probe() {
@@ -195,36 +230,9 @@ static void handle_submit() {
     }
 
     submit_count++;
+    submit_accepted = true;
     on_submit(parsed);
-    // Success page polls /status every 2 s so the user sees the state
-    // machine progress ("Waiting for Audio button…" → "Connecting…" →
-    // "Connected!"). After successful provisioning the AP is held up for
-    // ~5 s (ONLINE_GRACE_MS) so this page gets one last poll showing
-    // "Connected!" before the AP tears down and the page goes blank.
-    // Try/catch around fetch swallows the expected final disconnect error.
-    // charset=utf-8 declared on the <meta> AND via Content-Type so the
-    // fancy characters in this page and in /status responses render right.
-    // Without it, em-dashes and ellipses get mojibake'd ("â€"" etc).
-    std::string msg =
-        "<!doctype html><html><head><meta charset=\"utf-8\">"
-        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        "</head>"
-        "<body style='font-family:Georgia,serif;padding:2rem'>"
-        "<h1>Press the Audio button on the clock</h1>"
-        "<p>Press and release the Audio button within 60 seconds to confirm.</p>"
-        "<p id='s' style='font-weight:bold;font-size:1.2em'>Waiting...</p>"
-        "<p style='color:#666;font-size:0.9em;margin-top:2em'>"
-        "After you press Audio, this page will briefly show <b>Connected!</b> "
-        "and then the clock&apos;s WiFi network will disappear from your phone. "
-        "That&apos;s the success signal &mdash; your clock is now on your home WiFi."
-        "</p>"
-        "<script>"
-        "setInterval(async()=>{try{const r=await fetch('/status');"
-        "const j=await r.json();document.getElementById('s').textContent=j.message;"
-        "}catch(e){}},2000);"
-        "</script></body></html>";
-    server().sendHeader("Content-Type", "text/html; charset=utf-8");
-    server().send(200, "text/html; charset=utf-8", msg.c_str());
+    server().send(200, "text/html; charset=utf-8", render_waiting_page().c_str());
 }
 
 static void handle_status() {
@@ -247,6 +255,9 @@ void begin(SubmitHandler submit_cb, ConfirmationStatus status_cb) {
     // the empty-string comparison.
     current_csrf = rand_hex(16);
 
+    // Fresh AP session — clear submit state from any previous lifecycle.
+    submit_accepted = false;
+
     server().on("/", HTTP_GET, handle_root);
     server().on("/submit", HTTP_POST, handle_submit);
     server().on("/scan", HTTP_GET, handle_scan);
@@ -266,6 +277,13 @@ void loop() {
 
 void stop() {
     server().stop();
+}
+
+// Called from wifi_provision's loop() on validation failures so the next
+// render_form() call surfaces the error inline. Takes an `std::string` by
+// value to keep the ABI simple; callers can pass literals.
+void set_error(const std::string& msg) {
+    last_error = msg;
 }
 
 } // namespace wc::wifi_provision::web

@@ -91,3 +91,32 @@ def test_timeout_shows_refresh_button(serve_preview, page: Page):
     dropdown = page.locator("#ssid")
     expect(dropdown.locator("option")).to_have_count(1)
     expect(dropdown.locator("option")).to_contain_text(["click Refresh"])
+
+
+MUTABLE_MOCK = """
+<script>
+  window.__testNetworks = [];
+  window.fetch = async () => ({ json: async () => window.__testNetworks });
+</script>
+"""
+
+
+def test_refresh_button_restarts_polling(serve_preview, page: Page):
+    """After timeout retry, changing the mock to networks → dropdown populates."""
+    url = serve_preview(kid="emory", mock_script=MUTABLE_MOCK)
+    page.goto(url)
+
+    # Wait for timeout path (30 s) to surface the Refresh button.
+    refresh = page.get_by_role("button", name="Refresh networks")
+    expect(refresh).to_be_visible(timeout=32000)
+
+    # Swap the mock to return networks, then click Refresh.
+    page.evaluate(
+        "window.__testNetworks = "
+        "[{ssid:'Restarted', rssi:-50, secured:true}]"
+    )
+    refresh.click()
+
+    dropdown = page.locator("#ssid")
+    expect(dropdown.locator("option")).to_have_count(1, timeout=5000)
+    expect(dropdown.locator("option")).to_contain_text(["Restarted"])

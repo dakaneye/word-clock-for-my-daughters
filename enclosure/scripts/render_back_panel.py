@@ -86,8 +86,8 @@ BUTTON_HOLE_DIA_MM = 6.5
 # USB cable exit. Single Micro-USB-to-USB-C cable permanently resides
 # inside the clock, plugged into the ESP32 module's native Micro USB port,
 # with its USB-C end routed out through this grommeted hole. A standard
-# rubber grommet (~3 mm ID, 6 mm OD, for a ~5 mm panel hole) protects
-# the cable at the wood edge.
+# rubber grommet sized for a 6 mm panel hole (ID ~3 mm, matched to the
+# cable OD) protects the cable at the wood edge.
 USB_CABLE_EXIT_DIA_MM = 6.0
 
 # Speaker vent — 5×5 grid of 2 mm holes at 4 mm pitch ≈ 16 mm square vent.

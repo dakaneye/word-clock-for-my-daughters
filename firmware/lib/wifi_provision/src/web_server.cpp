@@ -116,19 +116,32 @@ static std::string render_waiting_page() {
     // while submit_accepted is true. Same HTML either way so the user sees
     // a stable "Press Audio" view even if the iOS captive popup's
     // periodic /hotspot-detect.html probe navigates the view back to /.
+    //
+    // On successful validation, the AP tears down and this page closes
+    // with no further /status updates — so the page must FRONT-LOAD the
+    // "what to expect" info. On failure, the AP returns and /status
+    // polling picks up the error message inline.
     return
         "<!doctype html><html><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         "</head>"
-        "<body style='font-family:Georgia,serif;padding:2rem'>"
+        "<body style='font-family:Georgia,serif;padding:2rem;max-width:36em;margin:auto'>"
         "<h1>Press the Audio button on the clock</h1>"
-        "<p>Press and release the Audio button within 60 seconds to confirm.</p>"
-        "<p id='s' style='font-weight:bold;font-size:1.2em'>Waiting...</p>"
-        "<p style='color:#666;font-size:0.9em;margin-top:2em'>"
-        "After you press Audio, the clock will briefly connect to your home "
-        "WiFi and the <b>WordClock-Setup</b> network will disappear from "
-        "your phone. That&apos;s the success signal."
+        "<p>Press and release the Audio button within 60 seconds.</p>"
+        "<p id='s' style='font-weight:bold;font-size:1.1em;color:#555'>Waiting for button press...</p>"
+        "<div style='background:#eef5ee;border:1px solid #9c9;border-radius:8px;padding:1em 1.25em;margin-top:1.5em'>"
+        "<p style='margin:0 0 0.5em;font-weight:bold'>What happens next</p>"
+        "<ol style='margin:0.25em 0 0;padding-left:1.25em'>"
+        "<li>You press the Audio button.</li>"
+        "<li><b>This page will close by itself</b> within a couple seconds &mdash; that&apos;s the success signal.</li>"
+        "<li>Your phone will switch back to your home WiFi automatically.</li>"
+        "<li>The clock is now online and will start showing the time.</li>"
+        "</ol>"
+        "<p style='margin:1em 0 0;font-size:0.9em;color:#555'>"
+        "If the password was wrong, this page will come back with an error "
+        "after about a minute &mdash; just edit the password and try again."
         "</p>"
+        "</div>"
         "<script>"
         "setInterval(async()=>{try{const r=await fetch('/status');"
         "const j=await r.json();document.getElementById('s').textContent=j.message;"

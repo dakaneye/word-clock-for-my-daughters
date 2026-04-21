@@ -18,14 +18,89 @@ each builds on the last.
 
 ---
 
+## Breadboard primer (read this if it's been a while)
+
+A breadboard is a plastic block full of holes with metal clips hidden
+underneath. Pushing a component lead or jumper wire into a hole makes an
+electrical contact. Which holes are electrically tied together depends
+on their position, not on anything you do — the wiring is baked into
+the board.
+
+### What's connected to what
+
+There are two kinds of hole groups:
+
+1. **Power rails** (also called "buses") — the long strips that run
+   along the outer edges, marked with a red `+` line and a blue/black
+   `-` line. Every hole in the same colored column is a single long
+   wire. Connect your power source to one hole and you've powered the
+   entire column. These are for distributing +V and GND across the
+   board.
+
+2. **Terminal strips** — the main field in the middle, with the long
+   center gutter running down the length. Each **row of 5 holes** on
+   one side of the gutter is tied together. Rows are **independent of
+   each other** (row 1 is not connected to row 2). The gutter
+   **breaks** the connection, so the 5 holes on the left of the gutter
+   are NOT connected to the 5 holes on the right of the same row.
+   (That gutter is there so DIP chips — like the 74HCT245 in Step 5 —
+   can straddle it with legs on each side in independent rows.)
+
+### How to connect two things
+
+Either put both leads in the **same group** of connected holes (same
+power-rail column, or the same 5-hole row on one side of the gutter),
+or run a **jumper wire** from one group to another. Jumper wires are
+short pre-stripped wires that plug into two holes at once.
+
+### How to power the board
+
+Pick one source (here: the USB-C breakout's 5V/GND pads). Run two
+jumpers from the source to the `+` and `-` columns of the rail you're
+going to use. Now every 5V peripheral can grab power from any hole in
+the `+` column and every GND can come from any hole in the `-` column.
+
+Same trick for 3.3V: after the ESP32 brings up its onboard regulator,
+jumper the ESP32's `3V3` pin to a **different** rail column so 5V and
+3.3V don't collide. All `-` (GND) columns get bridged together with a
+jumper — one shared ground for the whole board.
+
+### Ground rules (literal)
+
+- **One common GND.** Every peripheral's GND goes to the same `-` rail.
+  Tie all `-` columns together with a jumper. 90% of "it's not working"
+  on a breadboard is a missing GND connection.
+- **Disconnect USB before rewiring.** Don't rearrange live wires — a
+  stray lead brushing the wrong hole can instantly fry a regulator or
+  a dev board.
+- **Leads push straight in.** Friction holds them. If a lead is too
+  thick or too thin to stay put, use a jumper or trim the lead.
+- **Double-check polarity before powering up.** Reversed +/- on the
+  rail will cook polarized parts (electrolytic caps, ICs, the ESP32
+  itself). The smoke test in `pinout.md` catches this before power
+  goes on.
+
+---
+
 ## Workspace setup
 
 ### Breadboard layout (the salvaged dual-bus board, ~2400 tie points)
 
+This particular board is a **dual-bus** layout: two independent
+breadboard sections stacked top-and-bottom, each with its own pair of
+power rails on each side. Four rail pairs total: Va / Vb (top section)
+and Vc / Vd (bottom section).
+
 ```
- [ Va+ Va-  row 1 ... row ~60 ... row Na ][ center split ][ row Nb ... ][ Vb+ Vb- ]
- [ Vc+ Vc-  row 1 ... row ~60 ... row Nc ][ center split ][ row Nd ... ][ Vd+ Vd- ]
+ top    section:  [ Va+ Va- | rows 1..~30 | gutter | rows ~30..60 | Vb+ Vb- ]
+ bottom section:  [ Vc+ Vc- | rows 1..~30 | gutter | rows ~30..60 | Vd+ Vd- ]
 ```
+
+Read the diagram as: the leftmost two columns (`Va+`, `Va-`) are a pair
+of power rails running the full length of the top section. The main
+terminal field is next, split by the center gutter. Then another pair
+of power rails on the right (`Vb+`, `Vb-`). Bottom section is the same
+layout again with its own rail labels.
 
 Assign power rails consistently across the whole session:
 - **Va+ → 5V** (from USB-C breakout's 5V pad)
@@ -34,6 +109,10 @@ Assign power rails consistently across the whole session:
 - **Vb- → GND** (same GND as Va-; tie them together with a jumper)
 - **Vc, Vd rails** — leave free for peripheral-specific rails, or bridge to
   the main rails as needed.
+
+**Before plugging anything in:** jumper `Va-` ↔ `Vb-` ↔ `Vc-` ↔ `Vd-`
+so all four ground rails are the same GND. Do this first and leave it
+for the whole bring-up.
 
 ### ESP32 dev board placement
 

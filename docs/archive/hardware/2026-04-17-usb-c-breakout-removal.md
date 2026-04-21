@@ -15,7 +15,7 @@
 
 - `git status` clean or your pending changes saved.
 - Close KiCad cleanly before starting if it's open from a previous session (it takes a file lock).
-- Read `docs/hardware/kicad-rework-guide.md` once for the general rhythm — this guide follows the same structure.
+- Read `docs/archive/hardware/2026-04-15-kicad-rework.md` once for the general rhythm — this guide follows the same structure.
 
 ---
 
@@ -126,7 +126,7 @@ Target: 0 errors. Fix any new unconnected-pad warnings by routing (likely none, 
 
 ## 2.6: Re-export fabrication outputs
 
-- **File → Plot →** Gerbers. Layers per the original `kicad-rework-guide.md` step 2.11.
+- **File → Plot →** Gerbers. Layers per the original `2026-04-15-kicad-rework.md` step 2.11.
 - **Generate Drill Files.**
 - **Component Placement → CSV** to regenerate `hardware/word-clock-all-pos.csv`.
 - **Tools → Generate Legacy BOM → CSV** to regenerate `hardware/word-clock.csv`.

@@ -253,3 +253,24 @@ Run these while epoxy cures — they're not blocked on the main sequence:
 - Confirm SD card is FAT32 with the two audio files at root (per
   `TODO.md` Phase 2 decisions: `lullaby.mp3`, `birth.mp3`, 128 kbps CBR
   mono 44.1 kHz)
+
+---
+
+## Long-term maintenance
+
+### DS3231 CR2032 replacement — every 5 years
+
+The DS3231 RTC module (ZS-042) keeps time during power outages on a CR2032 coin cell. In a mostly-powered clock the battery drain is minimal (~2 μA only during outages), so a typical 220 mAh cell has >10 year practical life. We replace every 5 years conservatively — this also keeps the cell voltage comfortably above the 2.6V threshold where the onboard trickle-charge circuit would start engaging (see `docs/hardware/pinout.md` §Critical Issues #1 for the full physics).
+
+**Back panel is removable** via 4 × M3 brass corner screws — unscrew, swap cell, screw back. Takes 2 minutes per clock.
+
+**Replacement schedule:**
+
+| Clock | First CR2032 install | Next replacement | Then every |
+|---|---|---|---|
+| Emory | TBD (~2026 breadboard → ~2030 delivery) | +5 years from install | 5 years |
+| Nora | TBD (~2032 build) | +5 years from install | 5 years |
+
+**Set calendar reminders at install time.** The clock won't warn you — the battery just goes flat, and on the next power outage the RTC loses the time and reverts to 2000-01-01 until NTP re-syncs. No catastrophic failure, but a 5-minute avoidable inconvenience.
+
+**Why not remove the trickle-charge resistor instead?** Considered and rejected 2026-04-20. The trickle circuit is inert on 3.3V with a fresh cell (diode reverse-biased). The actual risk is end-of-life batteries, mitigated cheaper by the replacement schedule than by a desolder step that could damage the board.

@@ -55,7 +55,7 @@
 
 ## Power
 
-- **Input:** USB-C from the back panel via a panel-mount USB-C-female-to-micro-USB-male pigtail, plugged into the ESP32 module's on-board micro-USB port. The CP2102 bridge on the module handles enumeration for firmware flashing; the module's 5V pin feeds the main +5V rail. The original Cermant USB-C breakout (with 5.1kΩ CC resistors) has been removed — see `docs/hardware/usb-c-breakout-removal-guide.md`. Power negotiation is now whatever the module's micro-USB input does (no PD chip anywhere; relies on the 5V/2A charger delivering full rated current, same as before).
+- **Input:** USB-C from the back panel via a captive Micro-USB-to-USB-C cable (3-6 ft) permanently plugged into the ESP32 module's on-board micro-USB port; the USB-C end exits through a 6 mm grommeted hole in the back panel. No panel-mount adapter, no pigtail, no breakout board. The CP2102 bridge on the module handles enumeration for firmware flashing; the module's 5V pin feeds the main +5V rail. The Cermant USB-C breakout that originally appeared on the schematic was removed before submission; the rework record is archived at `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`. Power negotiation is now whatever the module's micro-USB input does (no PD chip anywhere; relies on the 5V/2A charger delivering full rated current).
 - **Power budget (worst case):**
   - WS2812B 25 LEDs full white: 1.5A @ 5V = 7.5W
   - ESP32 WiFi active peak: ~500 mA @ 5V (after 3.3V reg) = 2.5W
@@ -77,18 +77,20 @@ height (≥ tallest feature) and the total enclosure-depth budget.
 | Ref | Part | Package | Est. height (mm) | Source |
 |---|---|---|---:|---|
 | C2 | 1000µF / 10V electrolytic | `CP_Radial_D10.0mm_P5.00mm` | **16** | common D10 radial cap spec; spec already cites this |
-| U1 | ESP32-WROOM-32 dev module | `ESP32_38Pin` on 2.54 mm headers | **~13** | 8.5 mm header + 1.6 mm module PCB + ~3 mm shielding can |
-| J_AMP1 | 1×7 header + Adafruit MAX98357A breakout | `PinHeader_1x07_P2.54mm_Vertical` + daughter | **~12** (terminal) / **~19** (screw-terminal) | 8.5 mm header + 1.6 mm breakout + 2 mm chip side; **+8 mm if using screw-terminal variant** |
-| J_RTC1 | 1×6 header + DS3231 ZS-042 | `PinHeader_1x06_P2.54mm_Vertical` + daughter | **~15** | 8.5 mm header + 1.6 mm module + 5 mm CR2032 coin-cell holder |
-| J_SD1 | 1×6 header + HW-125 microSD breakout | `PinHeader_1x06_P2.54mm_Vertical` + daughter | **~13** | 8.5 mm header + 1.6 mm module + 3 mm card slot |
+| U1 | ESP32-WROOM-32 dev module (52.16×28.47 mm PCB, 1.14 mm thick) | `ESP32_38Pin` on 2.54 mm headers | **12.26 (measured)** | Full stack end-to-end caliper-measured 2026-04-20. Slightly under the 13 mm estimate. |
+| J_AMP1 | 1×7 header + MAX98357A breakout (GODIYMODULES clone, 17.66×18.73 mm PCB) | `PinHeader_1x07_P2.54mm_Vertical` + daughter | **~11.3** (no terminal, measured) / **~19** (screw-terminal) | 8.5 mm header + 1.6 mm breakout PCB + 1.23 mm chip side *(caliper-measured 2026-04-20; total breakout + component = 2.83 mm)*. **+8 mm if using screw-terminal variant** — decision: **skip the terminal**, solder JST-PH2.0 speaker leads direct to `+` / `−` pads. |
+| J_RTC1 | 1×6 header + DS3231 ZS-042 (21.83×38.28 mm PCB, 1.09 mm thick) | `PinHeader_1x06_P2.54mm_Vertical` + daughter | **12.6 (measured)** | Full stack end-to-end (male pin tip through PCB to top of CR2032 holder) caliper-measured 2026-04-20. Module ships with 1×6 male header pre-soldered — no header to install. ~2.4 mm shorter than original 15 mm estimate. |
+| J_SD1 | 1×6 header + HW-125 microSD breakout (24.22×42.03 mm PCB, 1.54 mm thick) | `PinHeader_1x06_P2.54mm_Vertical` + daughter | **7.27 (measured)** | Caliper-measured 2026-04-20; the pre-soldered 1×6 pin connector is the tallest feature (taller than the SD-card slot). ~5.7 mm shorter than original 13 mm estimate. Module ships with pin header pre-soldered — no header to install. |
 | SW1-3 | 6 mm tact switches | `SW_PUSH_6mm` | **~8** | 5 mm body + 3 mm plunger |
 | C1, C3-C6 | 100 nF ceramic disc | `C_Disc_D5.0mm_W2.5mm_P5.00mm` | **~7** | 5 mm disc + leads |
 | U2 | 74HC245 DIP-20 | `DIP-20_W7.62mm` | **~4** | direct solder; add ~5 mm if using a socket |
 | R1 | 300Ω 0207 axial (horizontal) | `R_Axial_DIN0207` | **~3** | horizontal orientation |
 
-**Tallest feature:** the MAX98357A breakout's screw-terminal block, at ~19 mm if using that variant. Otherwise ESP32 module + DS3231 coin-cell holder tie at ~13-15 mm.
+**Tallest feature (all caliper-measured 2026-04-20):** DS3231 at 12.6 mm and ESP32 module at 12.26 mm tie as the tallest installed daughterboards. All four measured under their original estimates — ESP32 12.26 mm (−0.74), MAX98357A 11.33 mm (−0.67), DS3231 12.6 mm (−2.4), HW-125 7.27 mm (−5.73). The screw-terminal-equipped MAX98357A variant would still be ~19 mm but we're skipping the screw terminal.
 
-**Confidence:** [MED] for the daughterboard stacks — heights inferred from datasheet + header standards, not yet caliper-verified. Re-measure once parts arrive and update the table; any discrepancy > 2 mm should re-trigger the back-panel standoff + light-channel depth decision.
+**Confidence:** [HIGH] for all four daughterboards — caliper-verified 2026-04-20.
+
+**Headroom in standoff budget:** with all daughterboards measured, the 20 mm standoff recommendation has ~7.4 mm of headroom against the tallest (DS3231 at 12.6 mm). **Decision window open:** the standoff could drop from 20 mm to 15 mm and grow the light channel from 18 mm to ~23 mm for measurably better LED diffusion. Trade-off: tighter depth tolerance (2.4 mm margin vs 7.4 mm) and no assembly slack for thicker-than-expected components. Re-decide after diffuser-stack validation on the breadboard (Step 5 outcome).
 
 **Back-panel standoff recommendation:** **20 mm** (off-the-shelf brass M3 standoff size; clears the MAX98357A screw-terminal variant with ~1 mm margin; clears all other components with 5+ mm margin).
 
@@ -152,13 +154,17 @@ Cross-checked 2026-04-15 against Adafruit NeoPixel Überguide, MAX98357A datashe
 
 These are hardware modifications or additions required for safe operation. Do them in this order.
 
-### 🔴 1. DS3231 ZS-042: remove the battery-charging resistor before installing a coin cell
+### ⚠️ 1. DS3231 ZS-042 trickle-charge circuit — skip the removal, mitigate with battery-swap cadence
 
-The ZS-042 module (the common Chinese DS3231 breakout, including the spare from Chelsea's clock and the new 2-pack) has an onboard **200Ω + 1N4148** trickle-charge circuit designed for rechargeable LIR2032 cells. It ships with — and most people install — a **non-rechargeable CR2032**. Attempting to charge a CR2032 can **leak, vent, or explode**.
+**Decision (2026-04-20): we are NOT removing the 200Ω + 1N4148 trickle-charge resistor.** See `docs/hardware/assembly-plan.md` §Long-term maintenance for the CR2032 replacement cadence that makes this safe.
 
-**Action:** before inserting a coin cell, locate the 200Ω resistor on the PCB (near the battery holder, in series between Vcc and the battery positive terminal) and **desolder it, cut the trace, or snip it out with diagonals**. Do this on every DS3231 board.
+**The FUD-free picture:** The ZS-042 module has a 200Ω + 1N4148 trickle-charge circuit intended for rechargeable LIR2032 cells. We run a non-rechargeable CR2032 instead. The circuit only attempts to charge the battery when Vbat drops below (Vcc − 0.7V) — because the 1N4148 is reverse-biased otherwise.
 
-Source: confirmed via Last Minute Engineers DS3231 tutorial and multiple Arduino forum posts. This is a well-known issue with this specific module.
+At the design's **3.3V VCC** (DS3231 ties to the ESP32 module's 3V3 pin, not the 5V rail), the effective charge voltage is 3.3 − 0.7 = **2.6V**. A fresh CR2032 sits at 3.0V. The diode is reverse-biased → **zero charge current flows**. The circuit is functionally inert as long as the battery is above end-of-life voltage.
+
+**What actually creates risk:** letting the CR2032 discharge below ~2.6V before replacement (it would then start charging, with leak/vent potential over years). Mitigation is replacement schedule, not hardware modification — see assembly-plan.md.
+
+**Do NOT wire VCC to 5V.** On 5V the math inverts: 5.0 − 0.7 = 4.3V applied to the CR2032 (above its 3.0V) → active charging while powered → trickle-charge circuit engages → real risk. Our `pinmap.h` / pinout table ties DS3231 VCC to 3V3 intentionally.
 
 ### 🔴 2. WS2812B: level shifter is required, not optional
 

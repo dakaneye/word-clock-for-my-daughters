@@ -30,6 +30,13 @@ Live docs live at the normal paths:
 | `2026-04-16-buttons-implementation.md` | Executed 2026-04-16 / 2026-04-17 session. `firmware/lib/buttons/` shipped; hardware verification in `firmware/test/hardware_checks/buttons_checks.md`. |
 | `2026-04-16-captive-portal-implementation.md` | Executed 2026-04-16. `firmware/lib/wifi_provision/` shipped; hardware verification in `firmware/test/hardware_checks/wifi_provision_checks.md`. |
 
+### `hardware/`
+
+| File | Archived because |
+|---|---|
+| `2026-04-15-kicad-rework.md` | LED chain re-wiring + AT reposition + routing all executed. Commit `405864a` landed the PCB source; gerbers + drill + CPL + BOM exported; DRC clean. Still useful as the historical reference for the step 2.11 gerber-export procedure and the documented word-center LED coordinates. |
+| `2026-04-17-usb-c-breakout-removal.md` | Cermant USB-C breakout removed from schematic + PCB + BOM. Guide also describes the now-abandoned panel-mount pigtail approach; final design uses a captive Micro-USB-to-USB-C cable through a grommet. |
+
 ## Why keep these at all?
 
 Three reasons:

@@ -158,6 +158,12 @@ Filament not yet ordered? Bambu PLA Basic black + one of (white/cream/any
 color) covers every part. 1 kg of each is more than enough for both
 clocks' internals with plenty of room for calibration prints and mistakes.
 
+**Not printed:** the diffuser stack (adhesive-backed diffusion film +
+2-3 mm opal cast acrylic) is purchased, not 3D-printed. Sourcing is
+tracked in `TODO.md` §Supplies still to order. An earlier PETG-print
+iteration was rejected because Chelsea's 2015 clock used PETG and still
+shows LED hot spots.
+
 ---
 
 ## What's blocked on physical parts arriving

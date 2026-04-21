@@ -73,17 +73,10 @@
 ### USB-C breakout board — **$3-5** × 1 — *no longer on the final PCB, still useful for breadboard bring-up*
 
 - **What it is:** A small board that breaks out a USB-C connector's pins to through-hole pads you can wire to.
-- **Status in the final design:** Superseded. The final PCB powers everything through the ESP32 module's native micro-USB (see `docs/hardware/usb-c-breakout-removal-guide.md`). The user-facing USB-C port on the back panel is provided by a panel-mount pigtail (see next entry), not this breakout.
+- **Status in the final design:** Superseded. The final PCB powers everything through the ESP32 module's native micro-USB; the user-facing USB-C port on the back panel is the far end of a captive Micro-USB-to-USB-C cable exiting through a grommet. Historical rework record: `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`.
 - **Why it's still on the buy list:** Handy for the Phase 2 breadboard bring-up — lets you feed 5V/GND to the rail without relying on the ESP32 module's micro-USB while you're still probing things. Also a generic USB-C dev tool worth having.
 - **What to look for:** "USB-C breakout 5.1k CC resistor" board — no PD chip needed. The 5.1k resistors on the CC pins request 5V default-profile power.
 - **Sourcing:** Amazon "USB-C breakout 5.1k" search. Adafruit has a fancy version for $5.
-
-### USB-C panel mount to micro-USB pigtail — **$6-10** × 2
-
-- **What it is:** A short cable (15-30 cm) with a USB-C female connector on one end (designed for panel mounting — has a nut and O-ring for fastening through a back-panel hole) and a micro-USB male plug on the other end.
-- **Why this clock needs it:** Provides the user-facing USB-C port on the back panel. Plugs internally into the ESP32 module's native micro-USB, so both power and firmware flashing flow through the module.
-- **What to look for:** Explicitly labeled USB 2.0 **data** (not charge-only). Internal conductors 22-24 AWG for power (thin cheap pigtails use 28 AWG and sag under current). CC resistor pull-downs on the USB-C side so the adapter enumerates as a USB-C device.
-- **Sourcing:** Adafruit (product "USB-C to Micro B Female Panel Mount"), Amazon, Digi-Key. Two needed — one per clock. Order one for the Emory build first; validate before ordering Nora's.
 
 ### Tactile switches (6×6mm) — **$3 for a pack of 20** × 1 pack
 

@@ -1,7 +1,7 @@
 # Captive portal scan fix
 
-**Status:** v1 — ready for implementation
-**Scope:** delta against shipped `2026-04-16-captive-portal-design.md`. That doc remains the captive portal's design of record; this doc covers only the three changes below and why they're needed.
+**Status:** v2 — shipped 2026-04-20; §Bench verification findings added after on-device testing uncovered additional defects
+**Scope:** delta against shipped `2026-04-16-captive-portal-design.md`. That doc remains the captive portal's design of record; this doc covers the changes shipped on 2026-04-20 and the rationale behind each.
 
 ## Problem
 
@@ -265,8 +265,85 @@ startPolling();
 
 None.
 
+## Bench verification findings (2026-04-20)
+
+On-device testing of the v1 plan on an iPhone uncovered six additional defects and one design gap. All fixed in the same commit series as the v1 scope. Documented here so the history is traceable; the original spec scope (three changes + testing plan) was correctly implemented and shipped.
+
+### BV1 — CSRF token regenerated on every GET `/`
+
+`render_form()` assigned `current_csrf = rand_hex(16)` on every call, including the one iOS's captive-portal assistant triggers when it re-probes `/hotspot-detect.html` in the background and follows our 302 → `/`. The user's open form tab's CSRF went stale; submit returned 400 "Let's try that again — the form timed out" despite correct input.
+
+**Fix:** seed CSRF once in `web::begin()` and leave it stable for the AP session. Drop the regeneration from `render_form()`. Security impact is negligible — CSRF is scoped to the AP itself, which is the trust boundary for a captive portal.
+
+**Commit:** `8a391a3` — `fix(wifi_provision): stop regenerating CSRF on every form GET`
+
+### BV2 — UI cycling between "Press Audio" page and the form
+
+After submitting, the iOS captive popup periodically re-fetches `/hotspot-detect.html` to detect captive-portal resolution. Our handler 302-redirects to `/`. The popup navigates back to `/` → `handle_root` served the FORM (not the waiting page) → user's "Press Audio" view was replaced with the fresh form every ~30 seconds.
+
+**Fix:** made `handle_root` state-aware. A `submit_accepted` flag (set in `handle_submit`, cleared at each `web::begin()` call) controls which page `/` serves. Once the user has submitted, `/` serves the waiting page regardless of who's requesting it — iOS probes, manual reloads, or direct navigation all land on the stable "Press Audio" view.
+
+**Commit:** `a87b2b2` — `fix(wifi_provision): revert grace window, add state-aware routing`
+
+### BV3 — Mojibake in the waiting page
+
+Em-dashes (`—`) and ellipses (`…`) in the inline HTML for the waiting page rendered as `â€"` and similar on iOS. The hand-rolled HTML didn't declare `<meta charset="utf-8">` and the response lacked a `charset=utf-8` content-type.
+
+**Fix:** added charset header, charset meta tag, and replaced literal em-dash / ellipsis with HTML entities (`&mdash;`, plain `...`) as defense in depth.
+
+**Commit:** `1867457` — `fix(wifi_provision): charset=utf-8 + meaningful ApActive status`
+
+### BV4 — "Ready." default status was meaningless after failure
+
+`confirmation_message()`'s `default:` branch returned "Ready." — displayed to the user when state is `ApActive` after a failed validation. Meaningless; user was confused about what happened.
+
+**Fix:** added an explicit `ApActive` case returning "Didn't connect. Check your password and try again." The `/status` page only polls after a successful form POST, so reaching `ApActive` on that page unambiguously means "returned from failed validation" — safe to say so.
+
+**Commit:** `1867457` (same as BV3)
+
+### BV5 — Grace-window experiment broke STA reliability
+
+Initial attempt to give the user "Connected!" feedback in the browser: keep AP up during `Validating` by using `WIFI_AP_STA` throughout, with a 5-second Online grace window before tearing down the AP. ESP32's AP_STA mode forces both sides onto the STA's channel; when `WiFi.begin()` located the home WiFi on a non-channel-1 channel, the AP was forced to move, dropping the iPhone's association. Worse, the STA connection itself became unreliable on known-good credentials in this mode.
+
+**Fix:** reverted `start_validating()` to the pre-v1 pattern: `stop_ap()` → `WiFi.disconnect(wifioff=true)` → `WiFi.mode(WIFI_STA)` → `WiFi.begin()`. Clean mode transitions, reliable STA.
+
+Compensate for the lost UX feedback by (a) setting `last_error` on validation failure so the form re-renders with "Didn't connect..." when the AP comes back, and (b) rewriting the waiting page to FRONT-LOAD the success signal explanation instead of burying it in fine print.
+
+**Commit:** `a87b2b2`
+
+### BV6 — `VALIDATING_TIMEOUT_MS` (30 s) too tight
+
+A first-try STA handshake occasionally took longer than 30 s on a mildly congested 2.4 GHz band, producing an intermittent "Didn't connect" error. Retry almost always succeeded.
+
+**Fix:** bumped timeout to 60 s. Pure reliability win; no downside on fast networks because success fires as soon as `WiFi.status() == WL_CONNECTED`.
+
+**Commit:** `e829c8f` — `chore: serial_capture helper + bump validation timeout to 60s`
+
+### BV7 — Waiting-page copy buried the success signal
+
+Even with BV2 fixed (no more cycling), the user saw the page vanish on successful provisioning and wasn't sure whether it had worked. The fine-print explanation of "the WordClock-Setup network will disappear from your phone — that's the success signal" was too visually de-emphasized.
+
+**Fix:** rewrote the waiting page with a highlighted success-green panel listing "What happens next" as four numbered steps, including "this page will close by itself — that's the success signal" as step 2. Previous fine-print language preserved but now acts as supporting detail.
+
+**Commit:** `e0be85c` — `feat(captive-portal): rewrite waiting page with explicit success signal`
+
+## Updated files touched list (rolls up v1 + bench-verification commits)
+
+| File | Change |
+|---|---|
+| `firmware/lib/wifi_provision/src/wifi_provision.cpp` | WIFI_AP_STA, max_connection=4, 60s validation timeout, heartbeat log, last_error on failure |
+| `firmware/lib/wifi_provision/src/web_server.cpp` | CSRF-stability, state-aware handle_root, waiting-page rewrite, charset fixes, set_error API |
+| `firmware/assets/captive-portal/form.html.template` | `/scan` polling + timeout + Refresh |
+| `firmware/assets/captive-portal/gen_form_html.py` | preview mock parameterized + charset-safe injection point |
+| `firmware/assets/captive-portal/tests/test_gen_form_html.py` | 6 Tier 1 structural tests |
+| `firmware/assets/captive-portal/tests/test_form_behavior.py` | NEW — 5 Tier 2 Playwright tests |
+| `firmware/assets/captive-portal/tests/conftest.py` | NEW — Playwright fixtures + local HTTP server |
+| `firmware/assets/captive-portal/tests/requirements.txt` | NEW |
+| `firmware/scripts/serial_capture.py` | NEW — bench diagnostic helper |
+| `firmware/test/hardware_checks/wifi_provision_checks.md` | #11-#13 appended |
+
 ## References
 
 - Parent captive-portal spec: `docs/superpowers/specs/2026-04-16-captive-portal-design.md`
 - Parent captive-portal plan (archived): `docs/archive/plans/2026-04-16-captive-portal-implementation.md`
-- Bench bring-up session context: bring-up session 2026-04-20 (Steps 1-6 of `docs/hardware/breadboard-bring-up-guide.md` all passed; Step 7 revealed these defects)
+- Bench bring-up session context: 2026-04-20. Steps 1-6 of `docs/hardware/breadboard-bring-up-guide.md` passed first-try; Step 7 revealed the original three defects (v1 scope) and surfaced the seven bench-verification findings above. Full provisioning flow verified end-to-end on iPhone with a real home WiFi network.

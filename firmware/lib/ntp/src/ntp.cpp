@@ -18,6 +18,8 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_random.h>
+#include <sys/time.h>     // settimeofday() — syncs ESP32 system clock so
+                          // time(nullptr) returns real epoch after NTP
 #include <cstdint>
 #include "ntp.h"
 #include "ntp/schedule.h"
@@ -122,6 +124,16 @@ void loop() {
     }
 
     wc::rtc::set_from_epoch(epoch);
+    // Also sync the ESP32's internal system clock so time(nullptr) returns
+    // real epoch seconds. wifi_provision::seconds_since_last_sync() uses
+    // time(nullptr) to age-compare against the NVS last_sync stamp — if
+    // the system clock isn't set, time() returns seconds-since-boot and
+    // the comparison makes the render loop in main.cpp permanently blank
+    // the display. Bench-discovered 2026-04-20.
+    struct timeval tv;
+    tv.tv_sec = static_cast<time_t>(epoch);
+    tv.tv_usec = 0;
+    settimeofday(&tv, nullptr);
     wc::wifi_provision::touch_last_sync(static_cast<uint64_t>(epoch));
 
     ever_synced = true;

@@ -4,7 +4,7 @@ Live working list of what's left. The original phase-by-phase roadmap
 lives in `docs/archive/specs/2026-04-15-activity-blocking-graph.md` for
 historical reference; this file supersedes it.
 
-## Status (2026-04-20)
+## Status (2026-04-21)
 
 | Workstream | State |
 |---|---|
@@ -14,8 +14,9 @@ historical reference; this file supersedes it.
 | Face SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
 | Frame SVGs | **Ordered from Ponoko** — Emory Maple 6.4 mm, Nora Walnut 6.4 mm (bare shells, no cutouts) |
 | Back-panel SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
-| PCB layout | Cermant USB-C removed. Mounting holes verified. **Awaiting final review + JLCPCB submit** (gated on breadboard bring-up). |
+| PCB layout + PCBA | **Ordered from JLCPCB 2026-04-21** — 5 units, top-side PCBA for 35× WS2812B-V6 (LCSC C52917433), hand-soldering bottom. Photo Confirmation enabled. FedEx on customer account. ETA ~12–20 days. |
 | Parts (ESP32, LEDs, MAX98357A, DS3231, speaker, USB breakout) | **Arrived 2026-04-17.** On hand, ready for bench work. |
+| 1×6 right-angle female sockets for DS3231 / HW-125 | **Ordered from Amazon 2026-04-21, 10-pack** — arriving 2026-04-23. |
 | Bambu Lab A1 3D printer | **Arriving 2026-04-24 to 2026-04-27.** Standoff STL pre-generated, waiting for printer + filament. |
 | 3D internals (button caps, speaker cradle, light blocker) | Not started — blocked on physical component measurements. |
 
@@ -29,7 +30,7 @@ historical reference; this file supersedes it.
   in `firmware/lib/wifi_provision/`.
 - **USB path: captive cable.** A 3-6 ft Micro-USB-to-USB-C cable lives permanently inside the clock, plugged into the ESP32 module's micro-USB port, exiting through a 6 mm grommeted hole at the bottom-right of the back panel. No adapter, no pigtail, no panel-mount hardware. Historical rework record: `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`.
 - **Back panel removable** via 4 × M3 brass corner screws threading into hex spacers epoxied into the frame corners. Unlimited removal cycles; serves the 40-year CR2032 replacement cadence.
-- **Daughterboard orientation:** DS3231 + HW-125 install with battery holder / SD slot facing the back panel (silkscreen markers on the PCB will enforce this).
+- **Daughterboard orientation:** DS3231 + HW-125 plug in via right-angle 1×6 female sockets on B.Cu, so the daughterboard PCBs lie parallel to the main board extending away from the pad column (DS3231 body extends west, clear of ESP32; HW-125 body extends east into unused space). Right-angle geometry enforces orientation mechanically — no silkscreen marker needed. Swap was applied 2026-04-21; affected `J_RTC1` and `J_SD1` footprints in `hardware/word-clock.kicad_pcb` + `.kicad_sch`.
 
 ---
 
@@ -227,10 +228,9 @@ spec+plan pair when its turn comes up. Modules to write:
 
 ## PCB finalization + order
 
-- [ ] **Add silkscreen markers for daughterboard orientation.** Print "BATTERY →" next to `J_RTC1` and "SD →" next to `J_SD1` on the main PCB silkscreen. Prevents assembly-time orientation errors.
-- [ ] **Optional: revise PCB if breadboard reveals pin conflicts or noise issues** (documented failure modes in pinout.md).
-- [ ] **Re-export gerbers + drill + CPL + BOM.** Same process as `docs/archive/hardware/2026-04-15-kicad-rework.md` step 2.11.
-- [ ] **Submit to JLCPCB** for fab + assembly. 5-unit MOQ. Lead time 2-3 weeks realistic + shipping.
+- [x] **Daughterboard orientation solved via horizontal sockets (2026-04-21).** Swapped `J_RTC1` and `J_SD1` footprints from `PinHeader_1x06_P2.54mm_Vertical` to `Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Horizontal`. DS3231 uses `rot=0°` with un-mirrored coords (body extends west, clear of ESP32 at east); HW-125 uses `rot=180°` with Y-mirrored coords (body extends east). Pad global positions preserved in both — no routing changes needed. One cosmetic DRC warning ("does not match library copy") excluded, documented as KiCad GitLab issue #18399/#16501. Silkscreen markers no longer needed — geometry enforces orientation.
+- [x] **Re-export gerbers + drill + CPL + BOM (2026-04-21).** Gerbers zipped as `hardware/word-clock-gerbers-2026-04-21.zip` (gitignored). PCBA files: `hardware/word-clock-cpl.csv` + `.xlsx`, `hardware/word-clock-pcba-bom.csv` + `.xlsx` (gitignored).
+- [x] **Submit to JLCPCB (2026-04-21).** 5-unit order, top-side PCBA. LED part: WS2812B-V6 (LCSC C52917433, extended). Options: Tented vias (not epoxy), HASL lead-free, green solder mask, Remove Mark, Photo Confirmation YES, Depanel before delivery YES, Flying Probe Fully Test. Shipping: customer FedEx account. Total JLCPCB charge ~$50–70 + ~$30–80 FedEx freight + customs.
 
 ## 3D-printed internals (after printer calibrated + parts in hand)
 
@@ -275,6 +275,9 @@ spots.
       spec §Light channel material override) + 1 kg any color for other
       internals. Bambu PLA Basic is the zero-thinking default. (~$40)
 - [ ] Rubber grommet, 6 mm inner diameter (or sized to the cable OD) — (~$3)
+- [x] **1×6 right-angle female sockets (2.54 mm pitch) — ordered 2026-04-21.**
+      10-pack from Amazon for both J_RTC1 (DS3231) and J_SD1 (HW-125).
+      Arriving 2026-04-23. Extras cover spares for 40-year horizon.
 - [x] **Adhesive-backed LED diffusion film — ordered.** Selens 3-pack, 7.9×11.82",
       0.16 mm thick, self-adhesive (Amazon ASIN B0D2D42XPG). One sheet per face
       + one spare for application practice. Thickness matches spec's 0.2 mm

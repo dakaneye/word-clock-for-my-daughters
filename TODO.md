@@ -240,8 +240,8 @@ spec+plan pair when its turn comes up. Modules to write:
       the STL. 20 mm post + 2 mm glue flange + 2 mm locating stub (fits
       3.2 mm PCB hole). Run the script; slice in Bambu Studio when the
       printer lands.
-- [ ] **Button actuator caps (×3)** — tiered cylinders that slide through the 6.5 mm panel holes, bridging the ~14 mm air gap to the tact switch plungers. ~30 min part.
-- [ ] **Speaker cradle** — cup with 2 mount-tab screw holes matching the speaker (~37 mm tab spacing, measure exactly from the physical part), glued to the back panel interior behind the vent. Worth printing vs gluing the speaker directly because the speakers are cheap ($2.50 each, 4-pack) while a replacement back panel is ~$50 — cradle keeps the speaker swappable without wasting wood. ~1-2 hrs to design.
+- [x] **Button actuator caps (×3) — design shipped 2026-04-21** as `enclosure/3d/button_cap.py`. Plunger dia 3.52 mm + 1.5 mm extension measured on a physical switch; air-gap budget 15.5 mm derived from standoff (22 mm) - typical SW_PUSH_6mm body (5 mm) - plunger extension (1.5 mm). Stem deliberately 0.5 mm short of the air gap so the plunger floats free when released (better rattle than pre-activated). One un-measured assumption: switch body height above PCB (5 mm estimate). Verify on real hardware after PCB arrives and adjust `STEM_HEIGHT_MM` if needed. Slice + print when Bambu A1 lands.
+- [x] **Speaker mount — no 3D-printed part after all.** Speaker has 2 integral M3-compatible mounting flanges 37 mm apart (measured 2026-04-21). Plan: glue 2× M3 × 10 mm hex spacers (from the corner-mount 10-pack already on order) to the back panel interior behind the vent, 37 mm apart. Speaker flange screws onto the spacer tops from the interior side. Brass-on-epoxy joint outlasts PLA-on-epoxy for the 40-year horizon, and the speaker stays removable for future replacement. Need to add 4× M3 × 6-8 mm short machine screws (2 per clock) to a future Amazon order.
 - [ ] **Light channel honeycomb** — walls isolating each word's LED pocket, 35 LED pockets, snap fits to PCB, height ~18 mm. Substantial part; budget several hours of iteration. May be easier in Fusion/Onshape than scripted.
 
 ## Diffuser stack (purchased, not printed)
@@ -269,6 +269,8 @@ spots.
 
 - [ ] M3 × 10 mm brass hex spacers, 5 mm AF, F-F — 10-pack (~$8)
 - [ ] M3 × 12 mm countersunk (or pan-head) brass machine screws — (~$5)
+- [ ] M3 × 6-8 mm machine screws, ~20-pack — (~$3) — for mounting
+      speakers to the epoxied hex standoffs on the back panel interior
 - [ ] 2-part structural epoxy (JB Weld or E6000) — (~$8)
 - [ ] Micro-USB-to-USB-C cable, 3-6 ft — 1 per clock (~$6 each)
 - [ ] PLA filament — 1 kg black (required for light channel — see laser-cut

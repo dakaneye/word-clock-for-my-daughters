@@ -54,39 +54,51 @@ void loop() {
     wc::ntp::loop();               // sync scheduler; no-op when not Online
     wc::audio::loop();             // pump I²S when Playing; auto-fire check when Idle
 
-    // Render the clock face whenever we have trustworthy time — i.e.,
-    // at least one successful NTP sync has happened on this device
-    // (seconds_since_last_sync() != UINT32_MAX). That signal also
-    // implies wifi_provision::begin() ran setenv/tzset, so
-    // localtime_r() inside rtc::now() returns fields in the user's
-    // zone. We deliberately DO NOT gate on state() == Online:
-    // the parent spec §Time sync promises the clock free-runs on the
-    // DS3231 during WiFi drops / reconnects / captive-portal re-entry.
-    //
-    // Blank falls through when the device has never synced — first-
-    // ever boot or a post-reset-to-captive NVS wipe. In that window
-    // the TZ isn't set either, so painting anything from rtc::now()
-    // would show UTC (or DS3231 lost-power defaults), which is worse
-    // than blank.
-    uint32_t sync_age = wc::wifi_provision::seconds_since_last_sync();
-    if (sync_age != UINT32_MAX) {
-        auto dt = wc::rtc::now();
-        wc::display::RenderInput in{};
-        in.year   = dt.year;
-        in.month  = dt.month;
-        in.day    = dt.day;
-        in.hour   = dt.hour;
-        in.minute = dt.minute;
-        in.now_ms = millis();
-        in.seconds_since_sync = sync_age;
-        in.birthday = {CLOCK_BIRTH_MONTH, CLOCK_BIRTH_DAY,
-                       CLOCK_BIRTH_HOUR,  CLOCK_BIRTH_MINUTE};
-        wc::display::show(wc::display::render(in));
-    } else {
-        // Pre-first-sync: blank. Captive portal is running here;
-        // displaying UTC (or DS3231 lost-power garbage) would be
-        // more confusing than a dark face while Dad provisions.
-        wc::display::show(wc::display::Frame{});
+    // Throttle display rendering to ~30 Hz. At full loop speed (~1 kHz,
+    // given the delay(1) below) the display was re-rendering 1000× per
+    // second — pure waste, plus saturating the ESP32 enough that the
+    // UART serial output became garbled during bench-tests. 30 Hz is
+    // plenty for the only animated element (birthday rainbow, 60 s
+    // period) and comfortable for button/audio CPU budget.
+    static uint32_t last_render_ms = 0;
+    const uint32_t now = millis();
+    if (now - last_render_ms >= 33) {
+        last_render_ms = now;
+
+        // Render the clock face whenever we have trustworthy time — i.e.,
+        // at least one successful NTP sync has happened on this device
+        // (seconds_since_last_sync() != UINT32_MAX). That signal also
+        // implies wifi_provision::begin() ran setenv/tzset, so
+        // localtime_r() inside rtc::now() returns fields in the user's
+        // zone. We deliberately DO NOT gate on state() == Online:
+        // the parent spec §Time sync promises the clock free-runs on the
+        // DS3231 during WiFi drops / reconnects / captive-portal re-entry.
+        //
+        // Blank falls through when the device has never synced — first-
+        // ever boot or a post-reset-to-captive NVS wipe. In that window
+        // the TZ isn't set either, so painting anything from rtc::now()
+        // would show UTC (or DS3231 lost-power defaults), which is worse
+        // than blank.
+        uint32_t sync_age = wc::wifi_provision::seconds_since_last_sync();
+        if (sync_age != UINT32_MAX) {
+            auto dt = wc::rtc::now();
+            wc::display::RenderInput in{};
+            in.year   = dt.year;
+            in.month  = dt.month;
+            in.day    = dt.day;
+            in.hour   = dt.hour;
+            in.minute = dt.minute;
+            in.now_ms = now;
+            in.seconds_since_sync = sync_age;
+            in.birthday = {CLOCK_BIRTH_MONTH, CLOCK_BIRTH_DAY,
+                           CLOCK_BIRTH_HOUR,  CLOCK_BIRTH_MINUTE};
+            wc::display::show(wc::display::render(in));
+        } else {
+            // Pre-first-sync: blank. Captive portal is running here;
+            // displaying UTC (or DS3231 lost-power garbage) would be
+            // more confusing than a dark face while Dad provisions.
+            wc::display::show(wc::display::Frame{});
+        }
     }
 
     delay(1);  // yield to IDLE for watchdog + WiFi

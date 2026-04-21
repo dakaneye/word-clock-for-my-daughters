@@ -19,6 +19,8 @@ hardware/*.gbrjob
 hardware/*.drl
 hardware/word-clock-*.pdf
 hardware/word-clock-*.csv
+hardware/word-clock-*.xlsx
+hardware/word-clock-gerbers-*.zip
 hardware/word-clock.csv
 hardware/ERC.rpt
 hardware/DRC.rpt

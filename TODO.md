@@ -273,9 +273,9 @@ spots.
       speakers to the epoxied hex standoffs on the back panel interior
 - [ ] 2-part structural epoxy (JB Weld or E6000) — (~$8)
 - [ ] Micro-USB-to-USB-C cable, 3-6 ft — 1 per clock (~$6 each)
-- [ ] PLA filament — 1 kg black (required for light channel — see laser-cut
-      spec §Light channel material override) + 1 kg any color for other
-      internals. Bambu PLA Basic is the zero-thinking default. (~$40)
+- [x] **PLA filament — on hand 2026-04-21.** Black PLA for the light channel
+      (required to block inter-pocket light bleed) + secondary color for
+      internals. Ready for day-1 printing when the Bambu A1 arrives.
 - [ ] Rubber grommet, 6 mm inner diameter (or sized to the cable OD) — (~$3)
 - [x] **1×6 right-angle female sockets (2.54 mm pitch) — ordered 2026-04-21.**
       10-pack from Amazon for both J_RTC1 (DS3231) and J_SD1 (HW-125).

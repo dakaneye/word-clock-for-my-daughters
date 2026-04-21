@@ -56,12 +56,66 @@ wire everything together. Full bench procedure with wiring + test sketches:
 lives in `docs/hardware/pinout.md`. See
 `docs/superpowers/plans/2026-04-14-daughters-clocks-implementation.md` §Phase 2.
 
-- [ ] **ESP32 alone** — blink sketch. Confirms power + flashing path work on the real module.
-- [ ] **I²C + DS3231** — scanner sketch finds address `0x68`.
-- [ ] **MicroSD** — SPI file-listing sketch.
-- [ ] **MAX98357A + speaker** — 440 Hz tone test.
-- [ ] **WS2812B chain (1-3 LEDs via 74HCT245 level shifter)** — FastLED rainbow. Tests the 3.3 V → 5 V level-shift path that the PCB uses.
-- [ ] **Full integration — all peripherals on one breadboard.** All Phase 2 modules (below) running together. Real de-risk before submitting the PCB.
+- [x] **ESP32 alone** — blink sketch. Confirms power + flashing path work on the real module. Verified 2026-04-20 via `firmware/test-sketches/01_blink`.
+- [x] **I²C + DS3231** — scanner sketch finds address `0x68` (and `0x57` for the onboard AT24C32 EEPROM). Verified 2026-04-20 via `firmware/test-sketches/02_i2c_scan`.
+- [x] **MicroSD** — SPI file-listing sketch lists `lullaby.wav` + `birth.wav` with correct byte counts. Verified 2026-04-20 via `firmware/test-sketches/03_sd_list`.
+- [x] **MAX98357A + speaker** — 440 Hz tone audible. Verified 2026-04-20 via `firmware/test-sketches/04_tone`.
+- [x] **WS2812B chain (1 LED via 74HCT245 level shifter)** — FastLED RGB cycle verified 2026-04-20 via `firmware/test-sketches/05_fastled`. Full 25-LED chain NOT tested — see §Bench verification gaps below.
+- [x] **Full integration — all peripherals on one breadboard.** Complete end-to-end provisioning + display + audio + button flow verified 2026-04-20. Shipped 8 firmware fixes during bench-test (documented in `docs/superpowers/specs/2026-04-20-captive-portal-scan-fix-design.md` §Bench verification findings). See §Bench verification gaps below for what was NOT exercised.
+
+## Bench verification gaps (2026-04-20)
+
+Items intentionally not tested during the bench-bring-up session, for deferral or never-testable-on-breadboard reasons:
+
+### Not testable without time-travel / seasonal conditions
+
+- **Birthday auto-fire** — the audio module should auto-play `birth.wav`
+  exactly at the birth minute (Emory: Oct 6 18:10) and exactly once per
+  year (NVS-gated). Covered by unit tests in `test_audio_fire_guard` but
+  not exercised on hardware.
+- **Birthday rainbow + decor words** (HAPPY, BIRTH, DAY, NAME animated) — requires birthday or RTC fast-forward. Pure-logic renderer tested via
+  `test_display_renderer_golden`.
+- **Holiday palette** — date-specific accent colors on holidays (Halloween,
+  Valentine's, etc.). Pure-logic tested; hardware verification awaits
+  opportunistic date rollover or an RTC fast-forward drill.
+- **Stale-sync amber tint** — >24 h since last NTP sync triggers amber
+  overlay. Pure-logic tested; needs 24 h disconnected or hack the NVS
+  last_sync value.
+
+### Not testable without more hardware
+
+- **Full 25-LED strip** — only 1 LED was physically wired for bench.
+  Signal integrity, power delivery, color fidelity, and light-channel
+  diffusion at scale are all unverified. **This is the single biggest
+  coverage gap** — the answer to "does the clock actually look right"
+  lives in this test. Ideally run after JLCPCB assembly lands.
+- **PCB itself** — all bench work was breadboard. PCB is ready for
+  submission but hasn't been fabbed.
+- **Enclosure assembly** — face, frame, back panel, 3D-printed internals
+  not yet integrated. See `docs/hardware/assembly-plan.md` for sequence.
+
+### Skipped by deliberate choice (tested indirectly or low-risk)
+
+- **WiFi drop + reconnect** — firmware logic exists
+  (`wifi_provision::loop()` handles WL_CONNECTED → StaConnecting
+  transition) but not exercised by unplugging the home router. Low
+  priority; state-machine unit tests cover the logic.
+- **SD card absent / corrupt** — `audio::begin()` logs an error but
+  shouldn't crash. Not hardware-verified. Low-risk in production since
+  the SD card is inside a sealed enclosure.
+- **Validation failure UX** — the "Didn't connect. Check your password"
+  inline error path. Hit accidentally once during bench and appeared to
+  work; not verified with a deliberately-wrong-password test.
+- **Multi-device captive AP** — `max_connection=4` firmware change is in
+  place but never verified with 2+ devices simultaneously connected.
+  Regression-safe since the prior default was 1 and we raised it.
+- **AP 10-minute timeout** — AP shuts down after 10 min of no successful
+  provisioning. Logic tested via state machine; never actually waited
+  10 min on bench.
+- **Confirmation 60-second timeout** — window to press Audio after
+  submitting form. Logic tested; not hardware-verified.
+- **30-day burn-in on Emory** — real-time, non-compressible. Gate on
+  post-assembly, not bench.
 
 ## Phase 2 firmware modules (built during breadboard bring-up)
 

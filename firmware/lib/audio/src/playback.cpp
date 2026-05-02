@@ -25,7 +25,8 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
         if (state == State::Playing && track == Track::LullabyOne) {
             return {A::SwitchFile, kLullabyTwoPath, State::Playing, Track::LullabyTwo};
         }
-        // Playing/LullabyTwo, Playing/Birth, or anomalous (Idle/None) — close and idle.
+        // LullabyTwo or Birth EOF — close and idle.
+        // (Any other combination is unreachable by construction; defensive default.)
         return {A::CloseFile, nullptr, State::Idle, Track::None};
 
     case K::BirthdayFired:

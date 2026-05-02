@@ -78,6 +78,7 @@ void test_idle_stop_stays_idle(void) {
         make_event(PlaybackEvent::Kind::StopRequested));
     TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::None),
                       static_cast<int>(t.action));
+    TEST_ASSERT_NULL(t.path);
     TEST_ASSERT_EQUAL(static_cast<int>(State::Idle), static_cast<int>(t.next_state));
     TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
 }
@@ -94,8 +95,10 @@ void test_idle_birthday_opens_birth(void) {
 }
 
 void test_playing_lullaby_birthday_switches_to_birth(void) {
-    // Both lullaby1 and lullaby2 should be interrupted by birthday.
-    for (Track t_in : {Track::LullabyOne, Track::LullabyTwo}) {
+    // All three Playing tracks should be interrupted by birthday.
+    // Playing/Birth is unreachable in practice (NVS gate), but the state
+    // machine handles it defensively with a benign re-open.
+    for (Track t_in : {Track::LullabyOne, Track::LullabyTwo, Track::Birth}) {
         PlaybackTransition t = next_transition(
             State::Playing, t_in,
             make_event(PlaybackEvent::Kind::BirthdayFired));

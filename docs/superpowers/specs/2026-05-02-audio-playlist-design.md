@@ -149,10 +149,11 @@ Native tests cover the transition table:
 | Idle             | BirthdayFired          | OpenFile     | Playing    | Birth         |
 | Playing/*        | BirthdayFired          | SwitchFile   | Playing    | Birth         |
 
-Note: `Playing/Birth + BirthdayFired` is a `None`-action no-op — the
-NVS year-stamp gate ensures the auto-fire guard doesn't return true a
-second time within the same calendar year, so this row exists for
-defensive completeness rather than runtime expectation.
+Note: `Playing/Birth + BirthdayFired` returns `SwitchFile` to re-open
+`birth.wav` from the start. The NVS year-stamp gate ensures the
+auto-fire guard doesn't return true a second time within the same
+calendar year, so this row is unreachable in practice; the SwitchFile
+behavior is benign defense-in-depth.
 
 ### Adapter responsibilities (`audio.cpp`)
 
@@ -217,7 +218,7 @@ modules require no changes.
 | `lullaby2.wav` missing after lullaby1 EOF | Transition to Idle | `[audio] error: file /lullaby2.wav not found` |
 | `birth.wav` missing on auto-fire | Transition to Idle; NVS stamp persists; no retry this year | `[audio] error: file /birth.wav not found` |
 | Any file's WAV header invalid | Transition to Idle | Existing `parse_wav_header` error code logged |
-| `i2s_write` returns non-OK error | Transition to Idle | Existing `[audio] error: i2s_write err=...` line |
+| `i2s_write` returns non-OK error | Dispatched as FileEnded (graceful degrade): on lullaby1 advances to lullaby2; on lullaby2 / birth.wav transitions to Idle | Existing `[audio] error: i2s_write err=...` line |
 | SD card removed mid-playback | `current_file_.read` returns ≤0 → treated as EOF → transitions per state machine | Existing `finished` log line |
 
 ## Test plan

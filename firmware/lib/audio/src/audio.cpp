@@ -151,7 +151,11 @@ static void dispatch_event(PlaybackEvent::Kind kind) {
         break;
     }
     case A::SwitchFile:
-        if (current_file_) current_file_.close();
+        if (current_file_) {
+            Serial.printf("[audio] switching (played %u bytes)\n",
+                          static_cast<unsigned>(bytes_played_));
+            current_file_.close();
+        }
         io_ok = open_file_for_playback(t.path);
         break;
     }

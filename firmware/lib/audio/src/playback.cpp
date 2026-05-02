@@ -37,9 +37,10 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
             return {A::OpenFile, BIRTH_PATH, State::Playing, Track::Birth};
         }
         // Playing/* — switch to birth, interrupting whatever was playing.
-        // Playing/Birth + BirthdayFired is a no-op the NVS gate prevents
-        // from ever reaching here, but if it did, SwitchFile would
-        // re-open birth.wav from the start, which is benign.
+        // Includes the Playing/Birth case: the NVS year-stamp gate
+        // prevents BirthdayFired from re-firing within the same year, so
+        // this row is unreachable in practice; if it did fire, SwitchFile
+        // would re-open birth.wav from the start, which is benign.
         return {A::SwitchFile, BIRTH_PATH, State::Playing, Track::Birth};
     }
     return {A::None, nullptr, state, track};

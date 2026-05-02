@@ -66,14 +66,27 @@ PANEL_SIZE_MM = 192.0
 BORDER_MM = 7.1                     # PCB-frame → panel-frame translation
 FRAME_THICKNESS_MM = 6.4            # frame-strip wall thickness
 
-# Fastener geometry. Machine screws go through the back panel at the 4
-# corners, into M3 brass hex spacers (5 mm across flats × 10 mm long,
-# female-female threaded) that are epoxied into each interior corner of
-# the frame. The spacer provides the machine thread, independent of the
-# frame's 6.4 mm wall thickness — no threaded insert needed.
+# Fastener geometry. M3 × 1/2" or 5/8" wood screws go through the back
+# panel at the 4 corners and thread directly into the 6.4 mm hardwood
+# frame wall. The 4 mm inset places each screw center inside the wall
+# thickness (not in the interior corner space), so the screw bites into
+# wood. Pre-drill the frame wall ~2 mm pilot before driving wood screws
+# into hardwood.
+#
+# Original plan (abandoned 2026-04-25): M3 hex spacers epoxied into the
+# frame's interior corners with a 10 mm inset, machine screws threading
+# into the spacers. That geometry was inconsistent with the 4 mm inset
+# baked into this script — a 4 mm inset puts the screw center IN the
+# wall, not in the interior corner. Rather than re-cut the panels at a
+# 10 mm inset, we kept the cut panels and switched to wood-screws-into-
+# wall, which the 4 mm inset happens to suit. See
+# `docs/hardware/assembly-plan.md` Phase G for the assembly procedure.
 SCREW_CLEARANCE_MM = 3.3            # M3 clearance hole
 SCREW_CORNER_INSET_MM = 4.0         # center of each corner screw hole,
-                                     # measured in from BOTH adjacent edges
+                                     # measured in from BOTH adjacent edges;
+                                     # falls inside the 6.4 mm frame wall
+                                     # by design (wood screws thread into
+                                     # the wall material directly)
 
 # User-pressed button access. QTEATAK tact switch spec:
 #   body 6 × 6 × 5 mm + plunger 1.1 mm above body = 6.1 mm above PCB.
@@ -85,10 +98,21 @@ BUTTON_HOLE_DIA_MM = 6.5
 
 # USB cable exit. Single Micro-USB-to-USB-C cable permanently resides
 # inside the clock, plugged into the ESP32 module's native Micro USB port,
-# with its USB-C end routed out through this grommeted hole. A standard
-# rubber grommet sized for a 6 mm panel hole (ID ~3 mm, matched to the
-# cable OD) protects the cable at the wood edge.
-USB_CABLE_EXIT_DIA_MM = 6.0
+# with its USB-C end routed out through this hole. The hole is sized to
+# clear the USB connector overmold (~12-15 mm) so the cable can be
+# threaded through during assembly without splicing or desoldering;
+# strain relief is provided by an internal cable P-clip screwed to the
+# back-panel interior 2-3 cm in from the hole. A loose-fit rubber
+# grommet covers the wood edge for cosmetics + dust blocking but
+# doesn't grip the cable.
+#
+# History: original spec was 6 mm (matched to cable OD with a tight
+# grommet). Discovered 2026-04-25 that the 6 mm grommet hole was too
+# small for any USB connector overmold to thread through — design
+# changed to drill-bigger + internal P-clip. The Ponoko-cut panels are
+# at 6 mm and need to be drilled out to 16 mm with a 5/8" step bit at
+# assembly. Future re-cuts use this 16 mm value.
+USB_CABLE_EXIT_DIA_MM = 16.0
 
 # Speaker vent — 5×5 grid of 2 mm holes at 4 mm pitch ≈ 16 mm square vent.
 SPEAKER_VENT_ROWS = 5

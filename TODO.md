@@ -4,21 +4,24 @@ Live working list of what's left. The original phase-by-phase roadmap
 lives in `docs/archive/specs/2026-04-15-activity-blocking-graph.md` for
 historical reference; this file supersedes it.
 
-## Status (2026-04-21)
+## Status (2026-04-25)
 
 | Workstream | State |
 |---|---|
 | Firmware Phase 1 (pure logic) | **Done** — tagged `phase-1-complete` |
 | Firmware Phase 2 — all modules | **Done native-side** — `wifi_provision`, `buttons`, `display`, `rtc`, `ntp`, `audio` all shipped; `main.cpp` wires them together. 173/173 native Unity tests + 17/17 captive-portal pytest (Tier 1 structural + Tier 2 Playwright) green. Bench bring-up Steps 1-6 passed 2026-04-20; Step 7 (captive portal) shipped three scan fixes; awaiting on-device re-verification of the scan fixes. |
 | Bench / printer prep | Bambu Studio installed, build123d venv ready (`enclosure/3d/`), PCB standoff STL generated. See `docs/hardware/3d-printing-setup.md`. |
-| Face SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
-| Frame SVGs | **Ordered from Ponoko** — Emory Maple 6.4 mm, Nora Walnut 6.4 mm (bare shells, no cutouts) |
-| Back-panel SVGs | **Ordered from Ponoko** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm |
-| PCB layout + PCBA | **Ordered from JLCPCB 2026-04-21** — 5 units, top-side PCBA for 35× WS2812B-V6 (LCSC C52917433), hand-soldering bottom. Photo Confirmation enabled. FedEx on customer account. ETA ~12–20 days. |
+| Face SVGs | **Delivered 2026-04-24** — Emory Maple 3.2 mm, Nora Walnut 3.2 mm. Nora's faceplate lost one O and part of a W during unboxing; super-glued back on — holds, imperfect but acceptable as character. |
+| Frame SVGs | **Delivered 2026-04-24** — Emory Maple 6.4 mm, Nora Walnut 6.4 mm (bare shells, no cutouts). Nora's frame: corner 1 epoxied with Gorilla 5-min epoxy 2026-04-24 (initially failed at 5 min unclamp, re-glued with proper 30+ min clamp time); 3 corners + Emory frame still to go. |
+| Back-panel SVGs | **Delivered 2026-04-24.** Emory Maple 3.2 mm, Nora Walnut 3.2 mm. **Two design bugs caught 2026-04-25 and resolved without re-cutting** — see "Decisions locked 2026-04-25". |
+| PCB layout + PCBA | **Ordered from JLCPCB 2026-04-21** — 5 units, top-side PCBA for 35× WS2812B-V6 (LCSC C52917433), hand-soldering bottom. Photo Confirmation enabled. FedEx on customer account. In production. |
 | Parts (ESP32, LEDs, MAX98357A, DS3231, speaker, USB breakout) | **Arrived 2026-04-17.** On hand, ready for bench work. |
-| 1×6 right-angle female sockets for DS3231 / HW-125 | **Ordered from Amazon 2026-04-21, 10-pack** — arriving 2026-04-23. |
+| 1×6 right-angle female sockets for DS3231 / HW-125 | **Delivered 2026-04-24.** 10-pack, on hand. |
+| Screws, standoffs, epoxy, grommets | **Delivered 2026-04-24.** M3 hex spacers, M3 machine screws, Gorilla 5-min epoxy (in use on Nora frame now), 6 mm rubber grommets — all on hand. **Note:** the M3 × 12 mm machine screws planned for back-panel attachment are now superseded by M3 wood screws; the existing screws can be repurposed. |
+| Diffuser stack (Selens film only — acrylic held in reserve) | **Diffusion film validated 2026-04-26 as sole diffuser.** Bench test with single LED + 18 mm test pocket showed near-zero hot spots through film alone, but 5 mm lateral light bleed when opal acrylic was added (the acrylic's bead-scattered transmission spreads light laterally, defeating the channel walls). Decision: **drop the acrylic from the production stack**, channel walls go directly to film. Acrylic sheets ($37) shelved as backup if hot spots appear during full-clock assembly — fix would be per-pocket cuts + walls extending through the acrylic level. |
 | Bambu Lab A1 3D printer | **Arriving 2026-04-24 to 2026-04-27.** Standoff STL pre-generated, waiting for printer + filament. |
-| 3D internals (button caps, speaker cradle, light blocker) | Not started — blocked on physical component measurements. |
+| 3D internals — PCB standoffs + button caps | STL designs done; print when A1 lands. |
+| 3D internals — light channel | **Deferred.** Design parametric in frame interior + PCB outline; need physical measurements (frame post-cure, PCB post-arrival) before locking the envelope. See "Decisions locked 2026-04-25" + Open questions. |
 
 ## Architecture (decisions locked this session)
 
@@ -28,9 +31,27 @@ historical reference; this file supersedes it.
   `DNSServer` + `WebServer` + NVS-backed credentials. Avoids supply-chain
   dependency and gives full control over the per-kid palette. Shipped
   in `firmware/lib/wifi_provision/`.
-- **USB path: captive cable.** A 3-6 ft Micro-USB-to-USB-C cable lives permanently inside the clock, plugged into the ESP32 module's micro-USB port, exiting through a 6 mm grommeted hole at the bottom-right of the back panel. No adapter, no pigtail, no panel-mount hardware. Historical rework record: `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`.
-- **Back panel removable** via 4 × M3 brass corner screws threading into hex spacers epoxied into the frame corners. Unlimited removal cycles; serves the 40-year CR2032 replacement cadence.
+- **USB path: captive cable.** A 3-6 ft Micro-USB-to-USB-C cable lives permanently inside the clock, plugged into the ESP32 module's micro-USB port, exiting through a back-panel hole at the bottom-right. No adapter, no pigtail, no panel-mount hardware. The hole gets drilled out from 6 mm to 16 mm at assembly so the connector overmold passes through; strain relief moves to an internal cable P-clip (the 16 mm hole is too loose for a grommet to grip). Historical rework record: `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`. See "Decisions locked 2026-04-25" for the cable-port spec change rationale.
+- **Back panel removable** via 4 × M3 × 1/2"–5/8" wood screws threaded directly into the 6.4 mm hardwood frame wall at the existing 4 mm-inset corner positions (pre-drilled ~2 mm pilots). The 4 mm panel inset places the screw centers in the wall thickness, so screws bite into wood. Wood-screws-into-hardwood handles ~10-15 open/close cycles before threads loosen — for a 5-year battery cadence over 40 years (8 cycles), well within tolerance. (Original plan — hex spacers epoxied into interior corners + machine screws — abandoned 2026-04-25; the 4 mm panel inset made spacer-in-corner placement impossible.)
 - **Daughterboard orientation:** DS3231 + HW-125 plug in via right-angle 1×6 female sockets on B.Cu, so the daughterboard PCBs lie parallel to the main board extending away from the pad column (DS3231 body extends west, clear of ESP32; HW-125 body extends east into unused space). Right-angle geometry enforces orientation mechanically — no silkscreen marker needed. Swap was applied 2026-04-21; affected `J_RTC1` and `J_SD1` footprints in `hardware/word-clock.kicad_pcb` + `.kicad_sch`.
+
+## Decisions locked 2026-04-25
+
+- **Cable port: drill 6 → 16 mm at assembly + grommet + internal P-clip.** The original 6 mm grommet hole was too small for any USB connector overmold (~12-15 mm) to thread through. Splicing/desoldering rejected (failure point inside a 40-year build); split grommet rejected (sourcing). Resolution: drill the existing panels from 6 mm → 16 mm with a 5/8" step bit during Phase F2 assembly, install a loose-fit larger grommet for cosmetics, provide actual strain relief with a small cable P-clip screwed to the back-panel interior 2-3 cm in. Updated `enclosure/scripts/render_back_panel.py:USB_CABLE_EXIT_DIA_MM` to 16.0 for any future re-cuts. Updated assembly plan Phase F.
+- **Back panel attachment: M3 wood screws into frame wall (no hex spacers, no Phase C).** Discovered `enclosure/scripts/render_back_panel.py:SCREW_CORNER_INSET_MM = 4.0` puts screw centers inside the 6.4 mm frame wall — incompatible with the original "hex spacer in interior corner" plan. Resolution: wood-screws-into-wall makes the 4 mm inset correct (screws bite into wood thanks to the wall placement). Pre-drill 2 mm pilots before driving 1/2"–5/8" M3 wood screws. Updated assembly plan: Phase C removed, Phase G rewritten. Updated `render_back_panel.py` fastener comment block.
+- **Light channel: deferred until measurements.** A 2 mm error in the channel envelope causes light leak between word pockets; nominal frame interior (179.2) and PCB outline (177.8) numbers are paper specs subject to ±0.5 mm laser-cut tolerance + ±0.2 mm JLCPCB tolerance + wood expansion. Resolution: do not write `light_channel.py` until both numbers are measured with calipers. Channel design constraints: single piece (not segmented), envelope = (smaller frame inner) − 3 to 4 mm, passive PCB-edge locator tabs (not snap-fit, no fatigue), foam (1 mm) or putty seal at top edge against opal acrylic, 13×13 cell partition matching `firmware/lib/core/src/grid.cpp` word spans (per-kid NAME pocket variant), wall height TBD pending diffuser-stack validation.
+- **Speaker mount: 2 × M3 hex spacers epoxied to back panel (no 3D-printed cradle).** Already settled 2026-04-21 — speaker has integral M3-compatible mounting flanges 37 mm apart. Captured here for completeness.
+- **Frame-corner adhesive: Gorilla 5-min epoxy is acceptable substitute for Titebond III on box joints, but NOT for face-to-frame.** Box joints get most of their strength from finger-joint geometry; epoxy works given proper clamp time. Face-to-frame is a flat-on-flat perimeter joint where epoxy's 3 min open time fights alignment + makes squeeze-out harder to clean — Titebond III required for that step.
+
+## Decisions locked 2026-04-26
+
+- **Diffuser stack: film only, no opal acrylic.** Bench-tested 2026-04-26 with the printed 18 mm test pocket (`enclosure/3d/light_channel_test_pocket.py`) over a single lit WS2812B at full white brightness:
+  - Pocket + opal acrylic + diffusion film → ~5 mm of lateral light bleed radiating outside the pocket perimeter (acrylic's bead-scattered transmission spreads light laterally inside the 3.2 mm sheet)
+  - Pocket + film alone (no acrylic) → near-zero hot spots, diffusion looks fine
+  - Conclusion: the acrylic was solving a problem (LED hot spots) that the film alone already handles at 18 mm of LED-to-film distance, AND the acrylic was the source of the lateral bleed that would have caused inter-letter light leakage. Drop it from the production stack.
+  - Production light channel walls extend from PCB top directly to the diffusion film bottom (~17.84 mm tall, derived from frame depth 48 − back panel 3.2 − standoff 22 − PCB 1.6 − film 0.16). Foam strip at wall tops compensates for PLA flatness tolerance. Per-pocket acrylic + wall extension was an alternative considered; deferred as a backup mitigation if hot spots emerge during full-clock assembly.
+  - Acrylic sheets ($37 sunk) shelved for future projects or backup. NOT discarded.
+- **Light channel wall height locked at ~17.84 mm.** Was previously TBD pending diffuser-stack validation; now anchored by the no-acrylic decision and the geometric stack-up (PCB top to film bottom).
 
 ---
 
@@ -242,7 +263,7 @@ spec+plan pair when its turn comes up. Modules to write:
       printer lands.
 - [x] **Button actuator caps (×3) — design shipped 2026-04-21** as `enclosure/3d/button_cap.py`. Plunger dia 3.52 mm + 1.5 mm extension measured on a physical switch; air-gap budget 15.5 mm derived from standoff (22 mm) - typical SW_PUSH_6mm body (5 mm) - plunger extension (1.5 mm). Stem deliberately 0.5 mm short of the air gap so the plunger floats free when released (better rattle than pre-activated). One un-measured assumption: switch body height above PCB (5 mm estimate). Verify on real hardware after PCB arrives and adjust `STEM_HEIGHT_MM` if needed. Slice + print when Bambu A1 lands.
 - [x] **Speaker mount — no 3D-printed part after all.** Speaker has 2 integral M3-compatible mounting flanges 37 mm apart (measured 2026-04-21). Plan: glue 2× M3 × 10 mm hex spacers (from the corner-mount 10-pack already on order) to the back panel interior behind the vent, 37 mm apart. Speaker flange screws onto the spacer tops from the interior side. Brass-on-epoxy joint outlasts PLA-on-epoxy for the 40-year horizon, and the speaker stays removable for future replacement. Need to add 4× M3 × 6-8 mm short machine screws (2 per clock) to a future Amazon order.
-- [ ] **Light channel honeycomb** — walls isolating each word's LED pocket, 35 LED pockets, snap fits to PCB, height ~18 mm. Substantial part; budget several hours of iteration. May be easier in Fusion/Onshape than scripted.
+- [ ] **Light channel honeycomb — design deferred until measurements.** Walls isolating each word's LED pocket. The design is substantially more nuanced than the original 1-line description here suggested — see "Decisions locked 2026-04-25" for the full constraint list. Summary: single piece, ~178 × 178 footprint sized off measured frame interior (not the nominal 179.2), height pending diffuser-stack validation, passive PCB-edge locator tabs, foam-or-putty top seal, 13×13 cell partition that exactly matches grid.cpp word spans (per-kid NAME pocket), every filler letter in its own walled cell with no LED. Script lives at `enclosure/3d/light_channel.py` once written. Pre-print measurement tasks documented in `docs/hardware/assembly-plan.md` Phase A.
 
 ## Diffuser stack (purchased, not printed)
 
@@ -267,16 +288,23 @@ spots.
 
 ## Supplies still to order
 
-- [ ] M3 × 10 mm brass hex spacers, 5 mm AF, F-F — 10-pack (~$8)
-- [ ] M3 × 12 mm countersunk (or pan-head) brass machine screws — (~$5)
-- [ ] M3 × 6-8 mm machine screws, ~20-pack — (~$3) — for mounting
-      speakers to the epoxied hex standoffs on the back panel interior
-- [ ] 2-part structural epoxy (JB Weld or E6000) — (~$8)
-- [ ] Micro-USB-to-USB-C cable, 3-6 ft — 1 per clock (~$6 each)
+- [x] **M3 × 10 mm brass hex spacers — on hand 2026-04-24.** 10-pack;
+      2 used per clock for speaker mount, 8 spare (4 originally allocated
+      to back-panel attachment now unused — see Decisions locked 2026-04-25).
+- [x] **M3 × 12 mm countersunk (or pan-head) brass machine screws — on hand 2026-04-24.** Originally for back-panel attachment; superseded by wood screws. Repurpose as needed or set aside.
+- [x] **M3 × 6-8 mm machine screws — on hand 2026-04-24.** For mounting
+      speakers to the epoxied hex standoffs on the back panel interior.
+- [x] **2-part structural epoxy — on hand 2026-04-24.** Gorilla 5-min in use on Nora's frame.
+- [ ] **M3 wood screws, 1/2" or 5/8" pan-head, 4-8 of each length** — for back-panel-into-frame-wall attachment. Pan-head simplest (sits proud); countersunk requires countersinking the 3.2 mm panel which is fiddly at 4 mm corner inset. Order both lengths to test bite depth.
+- [ ] **5/8" step drill bit (HSS, 1/4" hex shank)** — for drilling cable port from 6 mm to 16 mm at assembly. Example: THINKWORK 3/16"-5/8" step bit on Amazon (~$10).
+- [ ] **Cable P-clip, ~5 mm cable OD** — internal strain relief for the USB cable inside the back panel. Hardware store or Amazon (~$3 for a small bag).
+- [x] **Self-adhesive black foam — skipped 2026-04-26.** Was planned as light-channel-to-diffuser-film seal. Bench test (single LED, no acrylic) showed near-zero hot spots without it; full-clock build will gamble on PLA-on-film contact being tight enough. Recovery if first-light shows edge bleed: add foam strips during one disassembly cycle (clock is serviceable).
+- [ ] **Titebond III (or Type II/III wood glue)** — face-to-frame Phase E (do not substitute 5-min epoxy for this joint). Hardware store, ~$8 for an 8 oz bottle.
+- [ ] Micro-USB-to-USB-C cable, 3-6 ft — 1 per clock (~$6 each).
 - [x] **PLA filament — on hand 2026-04-21.** Black PLA for the light channel
       (required to block inter-pocket light bleed) + secondary color for
       internals. Ready for day-1 printing when the Bambu A1 arrives.
-- [ ] Rubber grommet, 6 mm inner diameter (or sized to the cable OD) — (~$3)
+- [x] **Rubber grommets — on hand 2026-04-24.** 6 mm ID. With the cable port now spec'd at 16 mm and strain relief moved to a P-clip, these grommets are oversize for the original 6 mm hole but become loose-fit covers for the drilled-out 16 mm hole — usable but consider ordering ~16 mm grommets if cosmetics matter.
 - [x] **1×6 right-angle female sockets (2.54 mm pitch) — ordered 2026-04-21.**
       10-pack from Amazon for both J_RTC1 (DS3231) and J_SD1 (HW-125).
       Arriving 2026-04-23. Extras cover spares for 40-year horizon.
@@ -292,7 +320,7 @@ spots.
 
 ## Assembly + validation (Emory first, then Nora)
 
-- [x] **Assembly plan document** — end-to-end glue-up + fasten-up sequence at `docs/hardware/assembly-plan.md`. Covers BOM, adhesives, 7-phase assembly, frame-squaring jig notes.
+- [x] **Assembly plan document** — end-to-end glue-up + fasten-up sequence at `docs/hardware/assembly-plan.md`. Covers BOM, adhesives, 6-phase assembly (B/D/E/F/G — Phase C removed 2026-04-25), frame-squaring jig notes, post-cure measurement tasks. Major rewrite 2026-04-25 to reflect cable-port and back-panel-attachment decisions.
 - [x] **Cardboard dry-run** — skipped. Real hardwood already ordered from
       Ponoko (shipping); cardboard test would have validated kerf + box-
       joint fit but the per-sheet cost wasn't worth the 2-3 week delay.
@@ -307,8 +335,34 @@ spots.
 
 ## Open questions (to resolve when the situation demands)
 
-- Light channel depth vs standoff height tradeoff — tune once real
-  component heights are measured + diffuser-stack validation runs.
-- Back-panel screw-head style: countersunk vs pan-head. Drives whether we
-  countersink the 3.2 mm panel (countersunk) or let heads sit proud
-  (pan-head, simpler). Pick during assembly.
+- **Frame interior + PCB outline measurements** — needed before the light
+  channel script can be written. Frame interior measured with calipers
+  on each cured frame, all 4 sides, top/middle/bottom of wall (12
+  measurements per frame); PCB outline measured on each of the 5 JLCPCB
+  boards when they arrive. Smallest frame inner determines channel
+  envelope (= that minus 3-4 mm). If clearance < 0.4 mm, sand frame
+  interior with P220.
+- **Light channel wall height** — locked once diffuser-stack validation
+  runs (single WS2812B + film + opal acrylic at varying heights:
+  15 / 18 / 21 mm) per `TODO.md` Phase D bench task.
+- **Light channel top-edge seal: foam vs putty.** Foam is cleaner (no
+  mess at assembly) but requires applying a strip to every wall edge.
+  Putty (the original prior-art solution) is messier but unforgiving
+  of small gaps. Pick before assembling the first clock.
+- **Light channel PCB-edge fastening: passive locator tabs vs snap-fit
+  clips.** Passive recommended (no PLA fatigue over 40-year service
+  cycles); snap-fit retains channel without compression but stresses
+  cantilevers. Pick during channel design.
+- **Light channel as one print vs print-and-glue assembly.** The full
+  178 × 178 × 18 mm part is 6-8 hours on the A1 and a single failed
+  print wastes that time. Tradeoff: one piece = perfect seal continuity
+  but high failure cost. Pick after first test print of a sample
+  region (NOT a quadrant — see Decisions locked 2026-04-25 on why
+  quadrant testing doesn't validate the seal).
+- **Back-panel screw-head style: pan-head vs countersunk wood screws.**
+  Pan-head sits proud (simpler, less fiddly at the 4 mm inset close to
+  the corner); countersunk requires countersinking the 3.2 mm panel.
+  Pick during assembly; order both lengths to test.
+- **16 mm grommet cosmetics.** Currently planning to use the on-hand
+  6 mm grommets as loose-fit covers for the drilled-out 16 mm hole.
+  If cosmetics matter, order properly-sized 16 mm grommets (~$3).

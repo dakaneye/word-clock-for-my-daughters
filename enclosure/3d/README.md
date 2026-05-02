@@ -1,9 +1,13 @@
 # 3D-printed internals
 
 Scripts that generate STL files for the parts inside the clock case:
-PCB standoff posts, button actuator caps, speaker cradle, light channel.
-Each script is parametric Python via [build123d](https://build123d.readthedocs.io/) —
+PCB standoff posts, button actuator caps, light channel. Each script is
+parametric Python via [build123d](https://build123d.readthedocs.io/) —
 edit a dimension at the top, re-run, get a new STL.
+
+(A 3D-printed speaker cradle was originally planned but dropped 2026-04-21
+once the speaker was found to have integral M3-compatible mounting flanges.
+Speaker mounts to 2× M3 hex spacers epoxied to the back-panel interior.)
 
 ## First-time setup
 
@@ -50,9 +54,8 @@ onboarding, per-part slicer settings, VS Code live-preview workflow.
 | Script | Part | Qty per clock | Design source |
 |---|---|---|---|
 | `pcb_standoff.py` | PCB standoff post | 4 | `docs/hardware/pinout.md` §standoff |
-| (future) `button_cap.py` | Button actuator cap | 3 | `TODO.md` 3D-printed internals |
-| (future) `speaker_cradle.py` | Speaker mount | 1 | `TODO.md` |
-| (future) `light_channel.py` | Honeycomb LED isolator | 1 | `TODO.md` + `docs/superpowers/specs/2026-04-15-laser-cut-face-design.md` §Track 5 |
+| `button_cap.py` | Button actuator cap | 3 | `TODO.md` 3D-printed internals |
+| (future) `light_channel.py` | Honeycomb LED isolator | 1 | `TODO.md` + `docs/superpowers/specs/2026-04-15-laser-cut-face-design.md` §Track 5; design deferred until frame interior + PCB outline are measured |
 
 ## Authoring a new part — the quick shape
 

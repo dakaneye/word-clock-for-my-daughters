@@ -72,7 +72,7 @@ void test_playing_stop_closes_to_idle(void) {
     }
 }
 
-void test_idle_stop_is_noop(void) {
+void test_idle_stop_stays_idle(void) {
     PlaybackTransition t = next_transition(
         State::Idle, Track::None,
         make_event(PlaybackEvent::Kind::StopRequested));
@@ -89,6 +89,6 @@ int main(int, char**) {
     RUN_TEST(test_lullaby2_end_closes_to_idle);
     RUN_TEST(test_birth_end_closes_to_idle);
     RUN_TEST(test_playing_stop_closes_to_idle);
-    RUN_TEST(test_idle_stop_is_noop);
+    RUN_TEST(test_idle_stop_stays_idle);
     return UNITY_END();
 }

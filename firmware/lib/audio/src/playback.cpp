@@ -21,6 +21,7 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
         if (state == State::Playing) {
             return {A::CloseFile, nullptr, State::Idle, Track::None};
         }
+        // Already idle — no-op; main.cpp gates on is_playing() but handled defensively.
         return {A::None, nullptr, State::Idle, Track::None};
 
     case K::FileEnded:

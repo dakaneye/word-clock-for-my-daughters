@@ -113,3 +113,64 @@ Checks 1–7 and 11 must pass before considering the module
 hardware-verified. 8–10 require a controlled pre-set DS3231 and
 may be deferred until a real birthday during burn-in. 12 is
 diagnostic-only.
+
+## Playlist + birthday-interrupts checks (added 2026-05-02)
+
+These checks supersede the original single-file lullaby check from the
+2026-04-18 audio spec. Run them once on each clock during bench
+bring-up, and again after any audio-module firmware change.
+
+### Check P1 — Playlist progression
+1. Idle clock, SD card present with `lullaby1.wav`, `lullaby2.wav`,
+   `birth.wav` at root.
+2. Press the **Audio** button (SW2).
+3. Verify `lullaby1.wav` starts playing audibly.
+4. Wait for `lullaby1.wav` to end without pressing anything.
+5. Verify `lullaby2.wav` starts playing automatically (no input required)
+   within ~1 second of `lullaby1.wav` ending.
+6. Wait for `lullaby2.wav` to end.
+7. Verify the clock returns to silence (Idle) — no further audio.
+
+### Check P2 — Stop during lullaby1 + restart
+1. Press **Audio** to start the playlist.
+2. While `lullaby1.wav` is playing, press **Audio** again.
+3. Verify audio stops immediately.
+4. Press **Audio** again.
+5. Verify `lullaby1.wav` starts playing **from the beginning**, NOT
+   `lullaby2.wav`. (Always-restart-from-lullaby1, per spec design
+   decision 2.)
+
+### Check P3 — Stop during lullaby2 + restart
+1. Press **Audio** to start the playlist; let `lullaby1.wav` finish.
+2. While `lullaby2.wav` is playing, press **Audio**.
+3. Verify audio stops immediately.
+4. Press **Audio** again.
+5. Verify `lullaby1.wav` (NOT `lullaby2.wav`) starts playing from the
+   beginning.
+
+### Check P4 — Birthday interrupts lullaby
+1. Set the clock's RTC to 1 minute before the configured birth minute.
+   (E.g. for Emory: set RTC to October 6, 18:09.) Use a temporary
+   firmware bypass or `rtc::set(...)` from a serial-trigger debug build.
+2. Press **Audio** to start the playlist.
+3. While `lullaby1.wav` is playing, advance RTC to the birth minute
+   (October 6, 18:10).
+4. Verify within ~1 second: `lullaby1.wav` cuts off and `birth.wav`
+   begins playing.
+5. Wait for `birth.wav` to end.
+6. Verify the clock returns to silence — `lullaby1.wav` does NOT resume
+   automatically (per spec).
+7. (Optional) Power-cycle the clock and verify that on the next tick at
+   the birth minute, `birth.wav` does NOT play again — the NVS year
+   stamp is honored across reboot.
+
+### Check P5 — Missing lullaby2.wav graceful handling
+1. Prepare a test SD card with `lullaby1.wav` and `birth.wav` only
+   (no `lullaby2.wav`).
+2. Insert into the clock, power on.
+3. Press **Audio** to start the playlist.
+4. Verify `lullaby1.wav` plays normally.
+5. After `lullaby1.wav` ends, verify the clock returns to silence
+   (Idle). Serial log should show `[audio] error: file /lullaby2.wav not found`.
+6. The clock should NOT crash or hang. Subsequent presses of Audio
+   should still attempt to start `lullaby1.wav`.

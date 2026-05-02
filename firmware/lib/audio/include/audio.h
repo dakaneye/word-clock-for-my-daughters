@@ -26,8 +26,11 @@ void begin(const BirthConfig& birth);
 //   transitions to Playing with birth.wav if the guard passes.
 void loop();
 
-// Open lullaby.wav, validate header, transition Idle → Playing.
-// No-op if already Playing (caller should check is_playing()).
+// Start the 2-song lullaby playlist (lullaby1.wav -> lullaby2.wav).
+// Opens lullaby1.wav and transitions Idle -> Playing. When lullaby1.wav
+// finishes the adapter automatically advances to lullaby2.wav. No-op if
+// already Playing (caller should check is_playing()).
+// Spec: docs/superpowers/specs/2026-05-02-audio-playlist-design.md
 void play_lullaby();
 
 // Close the open file, stop I²S TX, transition Playing → Idle.

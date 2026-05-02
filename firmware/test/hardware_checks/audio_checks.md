@@ -17,7 +17,9 @@ Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
 - Captive-portal flow completed at least once (NVS holds valid
   WiFi creds + TZ; `seconds_since_last_sync()` is non-UINT32_MAX).
 - MicroSD prepared with canonical WAV files at the card root:
-  - `/lullaby.wav` — 44.1 kHz / 16-bit / mono / PCM, ~3 min.
+  - `/lullaby1.wav` — 44.1 kHz / 16-bit / mono / PCM, ~3 min.
+    (Originally `/lullaby.wav`; renamed for the 2026-05-02 playlist refactor.)
+  - `/lullaby2.wav` — same format, ~3 min (added by the 2026-05-02 playlist).
   - `/birth.wav`   — same format, ~30 s.
   - Authoring recipe: Audacity > File > Export > Export as WAV;
     Encoding = "Signed 16-bit PCM", Sample Rate = 44100 Hz,
@@ -37,11 +39,14 @@ Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
    `docs/hardware/pinout.md`.
 
 2. **Lullaby play.** Once the clock is Online, press the audio
-   button. Expect `[audio] play /lullaby.wav` in serial, followed
+   button. Expect `[audio] play /lullaby1.wav` in serial (now
+   `lullaby1.wav` after the 2026-05-02 playlist refactor), followed
    by audible playback through the speaker. Wait for natural EOF;
    expect `[audio] finished (played <N> bytes)` within ~3 min.
    Confirm the clock display continues rendering the current time
-   during playback (display cadence is independent of audio).
+   during playback (display cadence is independent of audio). For
+   playlist progression behavior (lullaby1 → lullaby2 auto-advance),
+   see check P1.
 
 3. **Button-during-playback stops.** Start lullaby. After ~10 s,
    press the audio button again. Expect `[audio] stopped (played
@@ -63,14 +68,17 @@ Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
    silence. Re-seat the card; press the button again → plays
    successfully (no reboot needed).
 
-6. **Missing file graceful.** Rename `/lullaby.wav` →
+6. **Missing file graceful.** Rename `/lullaby1.wav` →
    `/xxx.wav` on the card, re-insert. Press audio button. Expect
-   `[audio] error: file /lullaby.wav not found`; no sound. Stay
-   Idle.
+   `[audio] error: file /lullaby1.wav not found`; no sound. Stay
+   Idle. (Originally `/lullaby.wav`; renamed for the 2026-05-02
+   playlist refactor.)
 
 7. **Invalid WAV graceful.** Place a stereo 48 kHz WAV (or a
-   renamed .mp3) at `/lullaby.wav`. Press audio button. Expect
+   renamed .mp3) at `/lullaby1.wav`. Press audio button. Expect
    `[audio] error: wav header invalid (code=<N>)`; no sound.
+   (Originally `/lullaby.wav`; renamed for the 2026-05-02 playlist
+   refactor.)
 
 8. **Birth auto-fire (simulated).** Pre-set the DS3231 via a
    bring-up sketch to 6:09:50 PM on Oct 6 of the current year
@@ -109,9 +117,11 @@ Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
 
 ## Pass criteria
 
-Checks 1–7 and 11 must pass before considering the module
-hardware-verified. 8–10 require a controlled pre-set DS3231 and
-may be deferred until a real birthday during burn-in. 12 is
+Checks 1–7, 11, and P1–P5 must pass before considering the module
+hardware-verified. P1–P5 are required (not optional) since the
+2026-05-02 playlist + birthday-interrupts refactor changed the
+module's runtime behavior. 8–10 require a controlled pre-set DS3231
+and may be deferred until a real birthday during burn-in. 12 is
 diagnostic-only.
 
 ## Playlist + birthday-interrupts checks (added 2026-05-02)

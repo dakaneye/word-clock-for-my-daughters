@@ -33,8 +33,14 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
         return {A::CloseFile, nullptr, State::Idle, Track::None};
 
     case K::BirthdayFired:
-        // To be implemented in Task 4.
-        return {A::None, nullptr, state, track};
+        if (state == State::Idle) {
+            return {A::OpenFile, kBirthPath, State::Playing, Track::Birth};
+        }
+        // Playing/* — switch to birth, interrupting whatever was playing.
+        // Playing/Birth + BirthdayFired is a no-op the NVS gate prevents
+        // from ever reaching here, but if it did, SwitchFile would
+        // re-open birth.wav from the start, which is benign.
+        return {A::SwitchFile, kBirthPath, State::Playing, Track::Birth};
     }
     return {A::None, nullptr, state, track};
 }

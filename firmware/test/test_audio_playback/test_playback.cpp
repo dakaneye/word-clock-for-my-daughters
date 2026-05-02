@@ -82,6 +82,31 @@ void test_idle_stop_stays_idle(void) {
     TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
 }
 
+void test_idle_birthday_opens_birth(void) {
+    PlaybackTransition t = next_transition(
+        State::Idle, Track::None,
+        make_event(PlaybackEvent::Kind::BirthdayFired));
+    TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::OpenFile),
+                      static_cast<int>(t.action));
+    TEST_ASSERT_EQUAL_STRING("/birth.wav", t.path);
+    TEST_ASSERT_EQUAL(static_cast<int>(State::Playing), static_cast<int>(t.next_state));
+    TEST_ASSERT_EQUAL(static_cast<int>(Track::Birth), static_cast<int>(t.next_track));
+}
+
+void test_playing_lullaby_birthday_switches_to_birth(void) {
+    // Both lullaby1 and lullaby2 should be interrupted by birthday.
+    for (Track t_in : {Track::LullabyOne, Track::LullabyTwo}) {
+        PlaybackTransition t = next_transition(
+            State::Playing, t_in,
+            make_event(PlaybackEvent::Kind::BirthdayFired));
+        TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::SwitchFile),
+                          static_cast<int>(t.action));
+        TEST_ASSERT_EQUAL_STRING("/birth.wav", t.path);
+        TEST_ASSERT_EQUAL(static_cast<int>(State::Playing), static_cast<int>(t.next_state));
+        TEST_ASSERT_EQUAL(static_cast<int>(Track::Birth), static_cast<int>(t.next_track));
+    }
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_idle_play_lullaby_opens_lullaby1);
@@ -90,5 +115,7 @@ int main(int, char**) {
     RUN_TEST(test_birth_end_closes_to_idle);
     RUN_TEST(test_playing_stop_closes_to_idle);
     RUN_TEST(test_idle_stop_stays_idle);
+    RUN_TEST(test_idle_birthday_opens_birth);
+    RUN_TEST(test_playing_lullaby_birthday_switches_to_birth);
     return UNITY_END();
 }

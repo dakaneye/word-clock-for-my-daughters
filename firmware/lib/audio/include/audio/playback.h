@@ -20,16 +20,16 @@ struct PlaybackEvent {
         PlayLullabyRequested,
         StopRequested,
         FileEnded,
-        BirthdayFired,
+        BirthdayFired
     } kind;
 };
 
 struct PlaybackTransition {
     enum class Action : uint8_t {
-        None,         // no I/O; state and track may still change (e.g. Idle stop)
+        None,         // no I/O; state and track are unchanged (noop)
         OpenFile,     // open `path`, start I²S
         CloseFile,    // stop I²S, close current file
-        SwitchFile,   // close current, open `path`
+        SwitchFile    // close current, open `path`
     } action;
     const char* path;     // valid when action is OpenFile or SwitchFile; nullptr otherwise
     State next_state;

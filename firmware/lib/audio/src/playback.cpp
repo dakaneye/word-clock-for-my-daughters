@@ -14,6 +14,7 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
         if (state == State::Idle) {
             return {A::OpenFile, kLullabyOnePath, State::Playing, Track::LullabyOne};
         }
+        // Already playing — ignore; caller must stop first.
         return {A::None, nullptr, state, track};
 
     case K::StopRequested:

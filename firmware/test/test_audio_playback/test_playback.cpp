@@ -107,6 +107,21 @@ void test_playing_lullaby_birthday_switches_to_birth(void) {
     }
 }
 
+void test_playing_play_lullaby_is_noop(void) {
+    // While Playing any track, requesting another lullaby start is a no-op.
+    // (main.cpp converts press-while-playing to Stop, so this row exists
+    // for defensive completeness rather than runtime expectation.)
+    for (Track t_in : {Track::LullabyOne, Track::LullabyTwo, Track::Birth}) {
+        PlaybackTransition t = next_transition(
+            State::Playing, t_in,
+            make_event(PlaybackEvent::Kind::PlayLullabyRequested));
+        TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::None),
+                          static_cast<int>(t.action));
+        TEST_ASSERT_EQUAL(static_cast<int>(State::Playing), static_cast<int>(t.next_state));
+        TEST_ASSERT_EQUAL(static_cast<int>(t_in), static_cast<int>(t.next_track));
+    }
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_idle_play_lullaby_opens_lullaby1);
@@ -117,5 +132,6 @@ int main(int, char**) {
     RUN_TEST(test_idle_stop_stays_idle);
     RUN_TEST(test_idle_birthday_opens_birth);
     RUN_TEST(test_playing_lullaby_birthday_switches_to_birth);
+    RUN_TEST(test_playing_play_lullaby_is_noop);
     return UNITY_END();
 }

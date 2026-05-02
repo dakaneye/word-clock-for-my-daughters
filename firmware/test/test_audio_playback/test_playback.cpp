@@ -24,8 +24,44 @@ void test_idle_play_lullaby_opens_lullaby1(void) {
     TEST_ASSERT_EQUAL(static_cast<int>(Track::LullabyOne), static_cast<int>(t.next_track));
 }
 
+void test_lullaby1_end_switches_to_lullaby2(void) {
+    PlaybackTransition t = next_transition(
+        State::Playing, Track::LullabyOne,
+        make_event(PlaybackEvent::Kind::FileEnded));
+    TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::SwitchFile),
+                      static_cast<int>(t.action));
+    TEST_ASSERT_EQUAL_STRING("/lullaby2.wav", t.path);
+    TEST_ASSERT_EQUAL(static_cast<int>(State::Playing), static_cast<int>(t.next_state));
+    TEST_ASSERT_EQUAL(static_cast<int>(Track::LullabyTwo), static_cast<int>(t.next_track));
+}
+
+void test_lullaby2_end_closes_to_idle(void) {
+    PlaybackTransition t = next_transition(
+        State::Playing, Track::LullabyTwo,
+        make_event(PlaybackEvent::Kind::FileEnded));
+    TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::CloseFile),
+                      static_cast<int>(t.action));
+    TEST_ASSERT_NULL(t.path);
+    TEST_ASSERT_EQUAL(static_cast<int>(State::Idle), static_cast<int>(t.next_state));
+    TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
+}
+
+void test_birth_end_closes_to_idle(void) {
+    PlaybackTransition t = next_transition(
+        State::Playing, Track::Birth,
+        make_event(PlaybackEvent::Kind::FileEnded));
+    TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::CloseFile),
+                      static_cast<int>(t.action));
+    TEST_ASSERT_NULL(t.path);
+    TEST_ASSERT_EQUAL(static_cast<int>(State::Idle), static_cast<int>(t.next_state));
+    TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_idle_play_lullaby_opens_lullaby1);
+    RUN_TEST(test_lullaby1_end_switches_to_lullaby2);
+    RUN_TEST(test_lullaby2_end_closes_to_idle);
+    RUN_TEST(test_birth_end_closes_to_idle);
     return UNITY_END();
 }

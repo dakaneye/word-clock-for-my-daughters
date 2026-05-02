@@ -194,17 +194,41 @@ void begin(const BirthConfig& birth) {
 void loop() {
     if (!started) return;
 
+    // Auto-fire check runs every tick regardless of state — birthday
+    // can interrupt a playing lullaby per spec design decision 1
+    // (docs/superpowers/specs/2026-05-02-audio-playlist-design.md).
+    if (sd_ok) {
+        auto dt = wc::rtc::now();
+        NowFields nf{ dt.year, dt.month, dt.day, dt.hour, dt.minute };
+        bool time_known =
+            (wc::wifi_provision::seconds_since_last_sync() != UINT32_MAX);
+        // already_playing=false: birthday should fire even if a lullaby
+        // is playing. The NVS year stamp prevents re-firing within the
+        // same calendar year.
+        if (should_auto_fire(nf, birth_, last_birth_year_,
+                             time_known, /*already_playing=*/false)) {
+            Serial.printf("[audio] play birth.wav (year=%u)\n", nf.year);
+            // Stamp NVS FIRST. If birth.wav fails to open later, the
+            // stamp persists and we don't retry this year — matches
+            // original spec's intent (once the system "decides" to fire,
+            // don't double-up later in the year).
+            if (!nvs_write_last_birth_year(nf.year)) {
+                Serial.println("[audio] error: NVS stamp FAILED; skipping birth.wav this tick");
+                return;
+            }
+            last_birth_year_ = nf.year;
+            dispatch_event(PlaybackEvent::Kind::BirthdayFired);
+            return;  // don't pump audio in same tick as switch
+        }
+    }
+
+    // Pump audio if Playing.
     if (state_ == State::Playing) {
-        // Pump: read chunk, gain, non-blocking write.
         int n = current_file_.read(read_buf_, sizeof(read_buf_));
         if (n <= 0) {
             dispatch_event(PlaybackEvent::Kind::FileEnded);
             return;
         }
-        // Round down to even: 16-bit PCM is 2 bytes/sample. Canonical
-        // WAVs always yield even reads, but a truncated/corrupt file
-        // could return odd n; we'd otherwise feed half a sample into
-        // I²S. Discard at most 1 trailing byte.
         n &= ~1;
         if (n == 0) {
             dispatch_event(PlaybackEvent::Kind::FileEnded);
@@ -223,38 +247,9 @@ void loop() {
             return;
         }
         if (written < static_cast<size_t>(n)) {
-            // Ring full — rewind the SD cursor so we retry next tick.
             current_file_.seek(current_file_.position() - (n - written));
         }
         bytes_played_ += written;
-        return;
-    }
-
-    // Idle: check birthday auto-fire.
-    if (!sd_ok) return;
-    // audio::loop() reads rtc::now() directly here — deliberate
-    // deviation from the display module's data-injection pattern
-    // (display takes NowFields via RenderInput from main.cpp). The
-    // auto-fire check runs only when Idle and only needs RTC once
-    // per minute-ish; pushing it through main.cpp would make
-    // main.cpp read rtc on every tick whether audio cares or not.
-    auto dt = wc::rtc::now();
-    NowFields nf{ dt.year, dt.month, dt.day, dt.hour, dt.minute };
-    bool time_known =
-        (wc::wifi_provision::seconds_since_last_sync() != UINT32_MAX);
-    // state_ is Idle here by construction (outer guard returned on Playing).
-    // Pass false literally — should_auto_fire's already_playing param is
-    // for callers who might invoke it from a non-idle context.
-    if (should_auto_fire(nf, birth_, last_birth_year_,
-                         time_known, /*already_playing=*/false)) {
-        Serial.printf("[audio] play birth.wav (year=%u)\n", nf.year);
-        // Stamp NVS FIRST, gate playback on the write succeeding.
-        if (!nvs_write_last_birth_year(nf.year)) {
-            Serial.println("[audio] error: NVS stamp FAILED; skipping birth.wav this tick");
-            return;
-        }
-        last_birth_year_ = nf.year;
-        dispatch_event(PlaybackEvent::Kind::BirthdayFired);
     }
 }
 

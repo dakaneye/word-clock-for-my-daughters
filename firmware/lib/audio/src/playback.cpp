@@ -18,8 +18,10 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
         return {A::None, nullptr, state, track};
 
     case K::StopRequested:
-        // To be implemented in Task 3.
-        return {A::None, nullptr, state, track};
+        if (state == State::Playing) {
+            return {A::CloseFile, nullptr, State::Idle, Track::None};
+        }
+        return {A::None, nullptr, State::Idle, Track::None};
 
     case K::FileEnded:
         if (state == State::Playing && track == Track::LullabyOne) {

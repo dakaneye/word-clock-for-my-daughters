@@ -1,6 +1,7 @@
 // firmware/test/test_audio_playback/test_playback.cpp
 #include <unity.h>
 #include <cstring>
+#include <initializer_list>
 #include "audio/playback.h"
 
 using namespace wc::audio;
@@ -57,11 +58,37 @@ void test_birth_end_closes_to_idle(void) {
     TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
 }
 
+void test_playing_stop_closes_to_idle(void) {
+    // Test for each Track value to confirm the transition is uniform.
+    for (Track t_in : {Track::LullabyOne, Track::LullabyTwo, Track::Birth}) {
+        PlaybackTransition t = next_transition(
+            State::Playing, t_in,
+            make_event(PlaybackEvent::Kind::StopRequested));
+        TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::CloseFile),
+                          static_cast<int>(t.action));
+        TEST_ASSERT_NULL(t.path);
+        TEST_ASSERT_EQUAL(static_cast<int>(State::Idle), static_cast<int>(t.next_state));
+        TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
+    }
+}
+
+void test_idle_stop_is_noop(void) {
+    PlaybackTransition t = next_transition(
+        State::Idle, Track::None,
+        make_event(PlaybackEvent::Kind::StopRequested));
+    TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::None),
+                      static_cast<int>(t.action));
+    TEST_ASSERT_EQUAL(static_cast<int>(State::Idle), static_cast<int>(t.next_state));
+    TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_idle_play_lullaby_opens_lullaby1);
     RUN_TEST(test_lullaby1_end_switches_to_lullaby2);
     RUN_TEST(test_lullaby2_end_closes_to_idle);
     RUN_TEST(test_birth_end_closes_to_idle);
+    RUN_TEST(test_playing_stop_closes_to_idle);
+    RUN_TEST(test_idle_stop_is_noop);
     return UNITY_END();
 }

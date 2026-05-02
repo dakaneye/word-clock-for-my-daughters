@@ -27,7 +27,7 @@ namespace wc::audio {
 
 static constexpr i2s_port_t   I2S_PORT          = I2S_NUM_0;
 static constexpr size_t       SD_READ_CHUNK     = 1024;   // bytes; 512 samples
-// File paths now live in audio/playback.h: kLullabyOnePath, kLullabyTwoPath, kBirthPath.
+// File paths now live in audio/playback.h: LULLABY_ONE_PATH, LULLABY_TWO_PATH, BIRTH_PATH.
 static constexpr const char*  NVS_NAMESPACE     = "audio";
 static constexpr const char*  NVS_KEY_LAST_YEAR = "last_birth_year";
 

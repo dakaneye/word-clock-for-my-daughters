@@ -38,9 +38,9 @@ struct PlaybackTransition {
 
 // SD card paths. Static const string literals — safe to return as
 // const char* from next_transition() without lifetime concerns.
-inline constexpr const char* kLullabyOnePath = "/lullaby1.wav";
-inline constexpr const char* kLullabyTwoPath = "/lullaby2.wav";
-inline constexpr const char* kBirthPath      = "/birth.wav";
+inline constexpr const char* LULLABY_ONE_PATH = "/lullaby1.wav";
+inline constexpr const char* LULLABY_TWO_PATH = "/lullaby2.wav";
+inline constexpr const char* BIRTH_PATH       = "/birth.wav";
 
 // Pure. Returns the transition to execute for the given event in the
 // given state. The caller (ESP32 adapter or test) is responsible for

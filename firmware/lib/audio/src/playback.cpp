@@ -12,7 +12,7 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
     switch (event.kind) {
     case K::PlayLullabyRequested:
         if (state == State::Idle) {
-            return {A::OpenFile, kLullabyOnePath, State::Playing, Track::LullabyOne};
+            return {A::OpenFile, LULLABY_ONE_PATH, State::Playing, Track::LullabyOne};
         }
         // Already playing — ignore; caller must stop first.
         return {A::None, nullptr, state, track};
@@ -26,7 +26,7 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
 
     case K::FileEnded:
         if (state == State::Playing && track == Track::LullabyOne) {
-            return {A::SwitchFile, kLullabyTwoPath, State::Playing, Track::LullabyTwo};
+            return {A::SwitchFile, LULLABY_TWO_PATH, State::Playing, Track::LullabyTwo};
         }
         // LullabyTwo or Birth EOF — close and idle.
         // (Any other combination is unreachable by construction; defensive default.)
@@ -34,13 +34,13 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
 
     case K::BirthdayFired:
         if (state == State::Idle) {
-            return {A::OpenFile, kBirthPath, State::Playing, Track::Birth};
+            return {A::OpenFile, BIRTH_PATH, State::Playing, Track::Birth};
         }
         // Playing/* — switch to birth, interrupting whatever was playing.
         // Playing/Birth + BirthdayFired is a no-op the NVS gate prevents
         // from ever reaching here, but if it did, SwitchFile would
         // re-open birth.wav from the start, which is benign.
-        return {A::SwitchFile, kBirthPath, State::Playing, Track::Birth};
+        return {A::SwitchFile, BIRTH_PATH, State::Playing, Track::Birth};
     }
     return {A::None, nullptr, state, track};
 }

@@ -1,5 +1,7 @@
 # Audio Firmware Module — Design Spec
 
+> **Note:** Single-file lullaby playback and the "birthday suppressed during lullaby" behavior described in this spec are superseded by [`2026-05-02-audio-playlist-design.md`](./2026-05-02-audio-playlist-design.md). The rest of this document (I²S setup, NVS stamping, gain control, file format) remains current.
+
 Date: 2026-04-18
 
 ## Overview

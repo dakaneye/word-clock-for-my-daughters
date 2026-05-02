@@ -16,6 +16,7 @@
 #include <driver/i2s.h>
 #include <cstdint>
 #include "audio.h"              // pulls in audio/fire_guard.h transitively
+#include "audio/playback.h"
 #include "audio/wav.h"
 #include "audio/gain.h"
 #include "rtc.h"
@@ -26,19 +27,19 @@ namespace wc::audio {
 
 static constexpr i2s_port_t   I2S_PORT          = I2S_NUM_0;
 static constexpr size_t       SD_READ_CHUNK     = 1024;   // bytes; 512 samples
-static constexpr const char*  LULLABY_PATH      = "/lullaby.wav";
-static constexpr const char*  BIRTH_PATH        = "/birth.wav";
+// File paths now live in audio/playback.h: kLullabyOnePath, kLullabyTwoPath, kBirthPath.
 static constexpr const char*  NVS_NAMESPACE     = "audio";
 static constexpr const char*  NVS_KEY_LAST_YEAR = "last_birth_year";
 
 // Compile-time guard for CLOCK_AUDIO_GAIN_Q8 lives in audio/gain.h
 // (which defines a default of 256 if no config header overrides it).
 
-enum class State : uint8_t { Idle, Playing };
+// State and Track are defined in audio/playback.h.
 
 static bool        started              = false;
 static bool        sd_ok                = false;
 static State       state_               = State::Idle;
+static Track       track_               = Track::None;
 static BirthConfig birth_               = {};
 static uint16_t    last_birth_year_     = 0;
 static File        current_file_;
@@ -96,33 +97,75 @@ static bool i2s_install() {
 
 // --- State transitions -------------------------------------------
 
-static void transition_to_playing(const char* path) {
+// Open path on SD, validate WAV header, seek to data, reset byte counter.
+// Returns true if the file is ready to pump samples; false on any error.
+// Caller owns the state machine update — this function does NOT mutate
+// state_ / track_.
+static bool open_file_for_playback(const char* path) {
     current_file_ = SD.open(path, FILE_READ);
     if (!current_file_) {
         Serial.printf("[audio] error: file %s not found\n", path);
-        return;  // stay Idle
+        return false;
     }
     uint8_t header[WAV_CANONICAL_HEADER_LEN];
     size_t  got = current_file_.read(header, sizeof(header));
     ParseResult hdr = parse_wav_header(header, got);
     if (hdr.error != WavParseError::Ok) {
-        Serial.printf("[audio] error: wav header invalid (code=%u)\n",
-                      static_cast<unsigned>(hdr.error));
+        Serial.printf("[audio] error: wav header invalid (code=%u) for %s\n",
+                      static_cast<unsigned>(hdr.error), path);
         current_file_.close();
-        return;  // stay Idle
+        return false;
     }
-    current_file_.seek(hdr.data_offset);  // safety; should already be here
+    current_file_.seek(hdr.data_offset);
     bytes_played_ = 0;
-    state_ = State::Playing;
     Serial.printf("[audio] play %s\n", path);
+    return true;
 }
 
-static void transition_to_idle(const char* reason) {
-    if (current_file_) current_file_.close();
-    i2s_zero_dma_buffer(I2S_PORT);
-    state_ = State::Idle;
-    Serial.printf("[audio] %s (played %u bytes)\n",
-                  reason, static_cast<unsigned>(bytes_played_));
+// Drive the state machine for the given event. Calls next_transition()
+// from the pure-logic playback module, executes the returned action,
+// and updates state_/track_ on success. On file-open failure, drops to
+// Idle as a safe fallback.
+static void dispatch_event(PlaybackEvent::Kind kind) {
+    PlaybackTransition t = next_transition(state_, track_, PlaybackEvent{kind});
+    using A = PlaybackTransition::Action;
+
+    bool io_ok = true;
+    switch (t.action) {
+    case A::None:
+        // No I/O. State/track may still update (e.g. Idle stop is a no-op
+        // but stays Idle). Apply below.
+        break;
+    case A::OpenFile:
+        io_ok = open_file_for_playback(t.path);
+        break;
+    case A::CloseFile: {
+        if (current_file_) current_file_.close();
+        i2s_zero_dma_buffer(I2S_PORT);
+        const char* reason =
+            (kind == PlaybackEvent::Kind::FileEnded)    ? "finished" :
+            (kind == PlaybackEvent::Kind::StopRequested) ? "stopped"  :
+                                                            "closed";
+        Serial.printf("[audio] %s (played %u bytes)\n",
+                      reason, static_cast<unsigned>(bytes_played_));
+        break;
+    }
+    case A::SwitchFile:
+        if (current_file_) current_file_.close();
+        io_ok = open_file_for_playback(t.path);
+        break;
+    }
+
+    if (!io_ok) {
+        // SD open / WAV parse failed — bail to Idle.
+        i2s_zero_dma_buffer(I2S_PORT);
+        state_ = State::Idle;
+        track_ = Track::None;
+        return;
+    }
+
+    state_ = t.next_state;
+    track_ = t.next_track;
 }
 
 // --- Public API --------------------------------------------------
@@ -155,7 +198,7 @@ void loop() {
         // Pump: read chunk, gain, non-blocking write.
         int n = current_file_.read(read_buf_, sizeof(read_buf_));
         if (n <= 0) {
-            transition_to_idle("finished");
+            dispatch_event(PlaybackEvent::Kind::FileEnded);
             return;
         }
         // Round down to even: 16-bit PCM is 2 bytes/sample. Canonical
@@ -164,7 +207,7 @@ void loop() {
         // I²S. Discard at most 1 trailing byte.
         n &= ~1;
         if (n == 0) {
-            transition_to_idle("finished");
+            dispatch_event(PlaybackEvent::Kind::FileEnded);
             return;
         }
         apply_gain_q8(reinterpret_cast<int16_t*>(read_buf_),
@@ -176,7 +219,7 @@ void loop() {
                                   &written, /*ticks=*/0);
         if (err != ESP_OK) {
             Serial.printf("[audio] error: i2s_write err=%d\n", err);
-            transition_to_idle("aborted");
+            dispatch_event(PlaybackEvent::Kind::FileEnded);
             return;
         }
         if (written < static_cast<size_t>(n)) {
@@ -211,20 +254,18 @@ void loop() {
             return;
         }
         last_birth_year_ = nf.year;
-        transition_to_playing(BIRTH_PATH);
+        dispatch_event(PlaybackEvent::Kind::BirthdayFired);
     }
 }
 
 void play_lullaby() {
-    if (!started || !sd_ok)    return;
-    if (state_ != State::Idle) return;
-    transition_to_playing(LULLABY_PATH);
+    if (!started || !sd_ok) return;
+    dispatch_event(PlaybackEvent::Kind::PlayLullabyRequested);
 }
 
 void stop() {
-    if (!started)                  return;
-    if (state_ != State::Playing)  return;
-    transition_to_idle("stopped");
+    if (!started) return;
+    dispatch_event(PlaybackEvent::Kind::StopRequested);
 }
 
 bool is_playing() {

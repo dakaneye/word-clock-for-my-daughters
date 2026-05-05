@@ -44,12 +44,14 @@ swaps). Inward over-press is now limited by the tact switch's own
 travel rather than a head-on-panel hard stop.
 
 All dimensions in millimeters. Sources:
-  - Tact switch plunger diameter (3.52 mm) + height above switch body
-    (1.5 mm) measured from a physical switch 2026-04-21.
+  - Tact switch geometry: DAOKI 6x6x4.3 mm 4-pin THT — total height
+    4.3 mm. Plunger stands 1.6 mm above the body face (measured from
+    the user's physical switch); body alone is therefore 2.7 mm.
+    Plunger diameter 3.52 mm measured 2026-04-21.
   - Back-panel hole (6.5 mm) and panel thickness (3.2 mm) from
     `enclosure/scripts/render_back_panel.py`.
   - Air-gap budget: standoff 22 mm (base 2 + post 20) minus switch
-    body ~5 mm minus plunger extension 1.5 mm = ~15.5 mm.
+    body 2.7 mm minus plunger extension 1.6 mm = 17.7 mm.
 
 Print in PLA. Recommended orientation: neck down (cap's press face on
 the build plate). The flange overhang above the neck is ~0.9 mm per
@@ -68,14 +70,17 @@ from pathlib import Path
 # Tune these if a re-measure disagrees.
 
 PLUNGER_DIA_MM            = 3.52  # measured
-PLUNGER_HEIGHT_ABOVE_BODY =  1.5  # measured, approx
+PLUNGER_HEIGHT_ABOVE_BODY =  1.6  # measured: plunger protrudes 1.6 mm
+                                  # above the body's top face. The cap
+                                  # pocket needs to wrap around this
+                                  # height, not just kiss the tip.
 
 # From render_back_panel.py + pcb_standoff.py:
 PANEL_HOLE_DIA_MM   =  6.5
 PANEL_THICKNESS_MM  =  3.2
 STANDOFF_LIFT_MM    = 22.0  # base 2 + post 20 (stub sits inside PCB)
-SWITCH_BODY_HEIGHT  =  5.0  # typical SW_PUSH_6mm body above PCB; verify
-                            # against your physical switches before committing
+SWITCH_BODY_HEIGHT  =  2.7  # body alone (4.3 mm total - 1.6 mm plunger).
+                            # Verify with calipers if your switches differ.
 
 # Air gap from panel interior to plunger tip = standoff lift - body - plunger height
 AIR_GAP_MM = STANDOFF_LIFT_MM - SWITCH_BODY_HEIGHT - PLUNGER_HEIGHT_ABOVE_BODY
@@ -98,19 +103,33 @@ NECK_HEIGHT_MM     = PANEL_THICKNESS_MM + 2.5  # 5.7 mm — 2.5 mm proud at rest
 FLANGE_DIA_MM      = 8.0
 FLANGE_HEIGHT_MM   = 1.0
 
-# Stem: bridges the air gap to the plunger. Sized 0.2 mm shorter than
-# the measured air gap so the cap is free to float when released
-# (avoids pre-activating the switch at rest) but the press feels crisp
-# rather than mushy — first 0.2 mm of press closes the gap, then 0.5 mm
-# depresses the plunger.
+# Stem: bridges the air gap to the plunger AND extends slightly BELOW
+# the plunger tip at rest, so the bottom of the stem (the pocket
+# entrance) wraps AROUND the plunger rather than just resting on top
+# of it. Without this capture, the cap can slide laterally off the
+# plunger when pressed even slightly off-axis.
+#
+# AT_REST_CAPTURE: how far the plunger sits inside the pocket when the
+# cap is at rest (flange against panel interior, spring force holding
+# it up). 0.6 mm = ~37% of the 1.6 mm plunger height, deep enough to
+# feel positively engaged with PLA ±0.2 mm tolerance.
+AT_REST_CAPTURE_MM = 0.6
 STEM_DIA_MM        = 5.0
-STEM_HEIGHT_MM     = AIR_GAP_MM - FLANGE_HEIGHT_MM - 0.2
+STEM_HEIGHT_MM     = AIR_GAP_MM - FLANGE_HEIGHT_MM + AT_REST_CAPTURE_MM
 
-# Pocket at the bottom of the stem — fits over the plunger tip.
+# Pocket at the bottom of the stem — wraps around the plunger.
+# Pocket depth must exceed AT_REST_CAPTURE so the plunger tip doesn't
+# touch the pocket ceiling at rest (would pre-press the switch).
+#
+# Click budget at full press: pocket ceiling needs to descend onto the
+# plunger tip (POCKET_DEPTH - AT_REST_CAPTURE), then push it 0.3 mm
+# to the click. Total cap travel for click = D - K + 0.3.
+# Travel before stem bottoms on switch body = plunger_height - K = 1.0
+# (with K = 0.6). For click before bottom-out: D + 0.3 < 1.6, i.e.
+# D < 1.3. POCKET_DEPTH = 1.0 leaves 0.3 mm margin AND keeps the
+# plunger tip 0.4 mm clear of the ceiling at rest.
 POCKET_DIA_MM      = PLUNGER_DIA_MM + 0.3  # 0.15 mm clearance per side
-POCKET_DEPTH_MM    = 3.0   # was 2.0 — deeper pocket better captures the
-                           # plunger if cap-to-plunger lateral alignment
-                           # is off by the worst-case tolerance stack
+POCKET_DEPTH_MM    = 1.0
 
 # ─── Geometry ────────────────────────────────────────────────────
 # Stack from bottom (build-plate) to top: NECK → FLANGE → STEM.

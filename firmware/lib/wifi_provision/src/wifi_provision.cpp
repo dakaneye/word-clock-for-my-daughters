@@ -254,6 +254,13 @@ void loop() {
                     sm.handle(Event::ValidationFailed);
                     start_ap();
                 } else {
+                    // Apply TZ to the live session. start_sta() sets TZ from
+                    // NVS on every warm boot, but the first-provision path
+                    // never calls start_sta() — it goes Validating -> Online
+                    // directly. Without this, localtime_r returns UTC until
+                    // the next reboot.
+                    setenv("TZ", pending.tz.c_str(), 1);
+                    tzset();
                     pending = {};
                     sta_backoff_ms = STA_BACKOFF_INITIAL_MS;
                     sm.handle(Event::ValidationSucceeded);

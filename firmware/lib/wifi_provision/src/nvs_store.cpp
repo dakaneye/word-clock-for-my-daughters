@@ -93,18 +93,36 @@ bool write(const FormBody& body) {
     return sentinel > 0;
 }
 
+// Cache for last_sync. Avoids hitting NVS on every call — main.cpp's render
+// loop and the audio loop call seconds_since_last_sync() at >30 Hz, and
+// each NVS open against a non-existent namespace logs a NOT_FOUND error
+// to Serial. Pre-cache: 100+ NVS ops/sec floods serial AND starves the
+// captive-portal HTTP/DNS server of CPU/flash time, causing the AP to
+// be unresponsive on first boot.
+static bool     last_sync_cached_ = false;
+static uint64_t last_sync_cache_  = 0;
+
 // Internal — external callers go through wc::wifi_provision::touch_last_sync.
 bool touch_last_sync(uint64_t unix_seconds) {
     if (!open_writable()) return false;
     bool ok = prefs().putULong64("last_sync", unix_seconds) > 0;
     close();
+    if (ok) {
+        last_sync_cache_  = unix_seconds;
+        last_sync_cached_ = true;
+    }
     return ok;
 }
 
 uint64_t last_sync() {
-    if (!open_readable()) return 0;
-    uint64_t v = prefs().getULong64("last_sync", 0);
-    close();
+    if (last_sync_cached_) return last_sync_cache_;
+    uint64_t v = 0;
+    if (open_readable()) {
+        v = prefs().getULong64("last_sync", 0);
+        close();
+    }
+    last_sync_cache_  = v;
+    last_sync_cached_ = true;
     return v;
 }
 
@@ -112,6 +130,10 @@ void clear() {
     if (!open_writable()) return;
     prefs().clear();
     close();
+    // Invalidate last_sync cache; next read returns 0 from now on (until
+    // a fresh touch_last_sync writes a new value).
+    last_sync_cache_  = 0;
+    last_sync_cached_ = true;
 }
 
 } // namespace wc::wifi_provision::nvs_store

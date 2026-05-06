@@ -26,12 +26,14 @@ bool started = false;
 void begin() {
     if (started) return;
     FastLED.addLeds<WS2812B, PIN_LED_DATA, GRB>(leds, LED_COUNT);
-    // Runtime layer-2 defense on the palette power budget. If a
-    // palette tune ever emits a frame that would pull more than
-    // 1.8 A on the strip, FastLED scales brightness down
-    // automatically — belt-and-suspenders for the build-time
-    // test_palette_power_budget invariant.
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, 1800);
+    // 5 V / 3 A USB-C wall adapter, minus headroom for ESP32 (~300 mA
+    // peak with WiFi) + MAX98357A audio amp (~500 mA during playback)
+    // + safety margin = 1700 mA cap on the LED strip. FastLED auto-
+    // scales brightness proportionally if a frame would exceed this,
+    // so worst-case "all 63 LEDs lit at warm white" (~2.58 A nominal)
+    // dims to ~66% to fit. Typical time displays (~25-40 LEDs lit)
+    // never hit the cap. For 5 V / 2 A adapters, drop this to 1200 mA.
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, 1700);
     FastLED.clear();
     FastLED.show();
     started = true;

@@ -14,9 +14,6 @@
 #include <SD.h>
 #include <Preferences.h>
 #include <driver/i2s.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/queue.h>
 #include <cstdint>
 #include "audio.h"              // pulls in audio/fire_guard.h transitively
 #include "audio/playback.h"
@@ -48,17 +45,6 @@ static uint16_t    last_birth_year_     = 0;
 static File        current_file_;
 static uint32_t    bytes_played_        = 0;
 static uint8_t     read_buf_[SD_READ_CHUNK];
-
-// Pinned-to-core-0 audio pump task. Decouples SD-read + i2s_write from the
-// Arduino main loop on core 1, where display rendering / WiFi / I²C bus
-// activity would otherwise starve the audio task and cause buffer
-// underruns (slow / glitchy playback). Events from the main thread
-// (play_lullaby / stop, called from the button handler) are queued into
-// `event_queue` and processed exclusively by the audio task — single-
-// writer model, no mutex needed for `state_` / `track_` / `current_file_`.
-static TaskHandle_t   audio_task_h     = nullptr;
-static QueueHandle_t  event_queue      = nullptr;
-static void audio_task(void* arg);  // forward decl — definition is below begin()
 
 // --- NVS helpers -------------------------------------------------
 
@@ -207,25 +193,9 @@ void begin(const BirthConfig& birth) {
     }
     last_birth_year_ = nvs_read_last_birth_year();
     started = true;
-
-    // Spawn dedicated audio task pinned to core 0. Capacity 8 events is
-    // generous — button handler can post at most ~10 Hz (debounce-limited)
-    // and the task drains the queue every 1 ms tick, so the queue is
-    // virtually always empty.
-    event_queue = xQueueCreate(8, sizeof(PlaybackEvent::Kind));
-    xTaskCreatePinnedToCore(
-        audio_task,
-        "audio",
-        /*stack_words=*/8192,
-        /*arg=*/nullptr,
-        /*priority=*/configMAX_PRIORITIES - 4,  // higher than Arduino loop
-        &audio_task_h,
-        /*core=*/0);
 }
 
-// Body of the audio loop. Runs only on the dedicated audio task (core 0).
-// Performs the auto-fire birthday check + pumps audio data when Playing.
-static void pump_audio() {
+void loop() {
     if (!started) return;
 
     // Auto-fire check runs every tick regardless of state — birthday
@@ -287,39 +257,14 @@ static void pump_audio() {
     }
 }
 
-// Audio pump task — pinned to core 0. Drains the event queue (events
-// posted from the button handler on core 1), then runs pump_audio().
-// Tight 1 ms tick keeps i2s_write fed regardless of what core 1 is doing.
-static void audio_task(void* /*arg*/) {
-    PlaybackEvent::Kind ev;
-    for (;;) {
-        // Drain all pending events (fast path: queue empty → no events).
-        while (xQueueReceive(event_queue, &ev, 0) == pdTRUE) {
-            dispatch_event(ev);
-        }
-        pump_audio();
-        vTaskDelay(pdMS_TO_TICKS(1));
-    }
-}
-
-// Public loop() is a no-op now — main.cpp still calls it for backward
-// compat with the prior single-loop architecture, but the actual work
-// happens on the dedicated audio task pinned to core 0.
-void loop() { /* handled by audio_task on core 0 */ }
-
 void play_lullaby() {
-    if (!started || !sd_ok || !event_queue) return;
-    PlaybackEvent::Kind k = PlaybackEvent::Kind::PlayLullabyRequested;
-    // Non-blocking: if queue is full (shouldn't happen — see queue size
-    // rationale in begin()), drop the request rather than block the
-    // button handler.
-    xQueueSend(event_queue, &k, 0);
+    if (!started || !sd_ok) return;
+    dispatch_event(PlaybackEvent::Kind::PlayLullabyRequested);
 }
 
 void stop() {
-    if (!started || !event_queue) return;
-    PlaybackEvent::Kind k = PlaybackEvent::Kind::StopRequested;
-    xQueueSend(event_queue, &k, 0);
+    if (!started) return;
+    dispatch_event(PlaybackEvent::Kind::StopRequested);
 }
 
 bool is_playing() {

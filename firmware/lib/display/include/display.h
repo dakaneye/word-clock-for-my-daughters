@@ -12,8 +12,9 @@
 
 namespace wc::display {
 
-// Initialize FastLED (addLeds<WS2812B, PIN_LED_DATA, GRB>(leds, 35))
-// and set the 1.8 A runtime power ceiling. Idempotent.
+// Initialize FastLED (addLeds<WS2812B, PIN_LED_DATA, GRB>(leds, LED_COUNT))
+// and set the 1700 mA runtime power ceiling (sized for a 3 A USB-C
+// supply). Idempotent.
 void begin();
 
 // Push a rendered Frame to the LED strip (copies the Frame into the

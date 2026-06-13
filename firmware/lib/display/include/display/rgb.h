@@ -19,7 +19,7 @@ constexpr bool operator!=(const Rgb& a, const Rgb& b) {
     return !(a == b);
 }
 
-inline constexpr uint8_t LED_COUNT = 35;
+inline constexpr uint8_t LED_COUNT = 63;
 
 using Frame = std::array<Rgb, LED_COUNT>;
 

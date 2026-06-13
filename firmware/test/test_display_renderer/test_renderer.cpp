@@ -259,9 +259,28 @@ void test_dim_boundary_matches_dim_schedule(void) {
     TEST_ASSERT_EQUAL_UINT8(100, f[index_of(WordId::IT)].b);
 }
 
+void test_multi_led_word_fills_its_span(void) {
+    // make_input() is 14:00 -> "IT IS TWO OCLOCK IN THE AFTERNOON".
+    // OCLOCK spans 2 LEDs and AFTERNOON 3; every LED in a lit word's
+    // span must carry that word's color so long words light evenly —
+    // not just the first LED of the span.
+    const Frame f = render(make_input());
+    for (WordId w : {WordId::OCLOCK, WordId::AFTERNOON}) {
+        const LedSpan s = span_of(w);
+        TEST_ASSERT_GREATER_THAN_UINT8(1, s.count);  // genuinely multi-LED
+        for (uint8_t k = 0; k < s.count; ++k) {
+            const Rgb c = f[s.start + k];
+            TEST_ASSERT_EQUAL_UINT8(255, c.r);
+            TEST_ASSERT_EQUAL_UINT8(170, c.g);
+            TEST_ASSERT_EQUAL_UINT8(100, c.b);
+        }
+    }
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_unlit_word_is_black);
+    RUN_TEST(test_multi_led_word_fills_its_span);
     RUN_TEST(test_warm_white_default);
     RUN_TEST(test_holiday_palette_replaces_warm_white);
     RUN_TEST(test_stale_sync_replaces_warm_white_on_time_words);

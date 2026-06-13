@@ -77,7 +77,13 @@ Frame render(const RenderInput& in) {
             color = warm_white();
         }
 
-        frame[index_of(w)] = apply_dim(color, bright_u8);
+        // A word may span several physical LEDs; light them all the
+        // same color so long words illuminate evenly.
+        const LedSpan span = span_of(w);
+        const Rgb dimmed = apply_dim(color, bright_u8);
+        for (uint8_t k = 0; k < span.count; ++k) {
+            frame[span.start + k] = dimmed;
+        }
     }
     return frame;
 }

@@ -3,7 +3,7 @@
 
 Run these after the full breadboard bring-up reaches
 `docs/hardware/breadboard-bring-up-guide.md` §Step 9. Full WS2812B
-chain (35 LEDs) on GPIO 13 through the 74HCT245 level shifter +
+chain (63 LEDs) on GPIO 13 through the 74HCT245 level shifter +
 300 Ω series resistor + 1000 µF bulk cap.
 
 Flash: `pio run -e emory -t upload`
@@ -110,7 +110,7 @@ powering off your router or moving out of range.
       display (no birthday). Expected: ~500-700 mA at typical
       lit-word count (~7 words).
 - [ ] Measure during a synthetic palette that hits the 700-sum
-      per-entry cap on all 35 LEDs (e.g., temporarily patch
+      per-entry cap on all 63 LEDs (e.g., temporarily patch
       warm_white() to return `{255, 230, 215}` and reflash).
       Expected: current stays under ~1.8 A because
       `FastLED.setMaxPowerInVoltsAndMilliamps` is enforcing.
@@ -120,6 +120,6 @@ powering off your router or moving out of range.
 
 - [ ] Let the clock run for 1 h on the warm-white readout. No
       hang, no flash corruption, no serial reset messages.
-- [ ] Watch for any color drift across the 35 LEDs — all lit
+- [ ] Watch for any color drift across the 63 LEDs — all lit
       words should read visually identical. A single off-color
       LED suggests a bad pixel or a misaligned word pocket.

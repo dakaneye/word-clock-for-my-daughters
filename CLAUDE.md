@@ -84,6 +84,7 @@ CI runs `pio run -e {emory,nora}` + `pio test -e native --verbose` on every PR (
 - PCB part choices are constrained by JLCPCB PCBA (LCSC basic parts preferred). BOM in `hardware/word-clock.csv`.
 - The face SVGs' letter grid must match `firmware/lib/core/src/grid.cpp` — grid is the source of truth.
 - LED positions in the PCB must match the face grid. When moving letters, update both.
+- Power/ground split: B.Cu is a solid +5V plane (LED VCC reaches it via per-LED vias). There is no B.Cu GND plane — a single back layer cannot carry both full planes. GND is carried by the F.Cu zone; fragmentation from F.Cu data tracks is bridged with short F.Cu GND jumpers, not B.Cu stitching vias.
 - Locked decisions this cycle: frame is a bare shell, buttons press through the back panel, captive cable exits through a grommeted hole, back panel removable via M3 brass spacers for 40-year CR2032 replacement cadence.
 
 ## Git

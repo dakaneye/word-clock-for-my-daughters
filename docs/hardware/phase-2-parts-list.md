@@ -1,5 +1,11 @@
 # Phase 2 Parts List — Breadboard Bring-Up
 
+> **⚠ HISTORICAL — completed breadboard buy-list (2026-04, all parts on hand).**
+> Kept for reference. The production board is now 63 LEDs and the authoritative
+> BOM lives in `hardware/fab/word-clock-bom.csv` (see `hardware/fab/README.md`
+> for the as-built LED substitution). The roadmap table below is from April and
+> is superseded by `TODO.md`.
+
 **Gate:** Before Phase 2 of `docs/superpowers/plans/2026-04-14-daughters-clocks-implementation.md` can start. Phase 1 firmware logic is complete; this order unblocks hardware bring-up on a breadboard (no PCB yet).
 
 **Budget:** ~$60-85 total for one breadboard kit. Only one set needed — Emory and Nora use the same hardware, differing only by compile-time config.

@@ -300,10 +300,11 @@ together; now it does.
       tight first, all 4, before any torquing.
 - [ ] **G11: Torque in cross-pattern** (diagonal, not around the
       perimeter) to snug-not-gorilla-tight. The compression sandwich is
-      now engaged: face → diffusion film → opal acrylic → light channel
-      top edge (foam-sealed) → channel walls → PCB → standoffs → back
-      panel. Wood screws hold all of it in tension against the frame
-      walls.
+      now engaged: face → diffusion film → light channel top edge
+      (foam-sealed) → channel walls → PCB → standoffs → back panel.
+      Wood screws hold all of it in tension against the frame walls.
+      (No opal acrylic — the production diffuser stack is film-only as
+      of 2026-04-26; see the diffuser note above.)
 - [ ] **G12: Power on via USB-C.** Flashing and daily operation use this
       port. If anything behaves wrong, loosen all 4 screws, lift back
       panel, debug; the clock is fully serviceable.
@@ -348,10 +349,13 @@ starting Nora.
 Run these while epoxy cures — they're not blocked on the main sequence:
 
 - Re-record voice memos if any earlier pass is stale
-- Confirm SD card is FAT32 with the two audio files at root: `lullaby.wav`
-  and `birth.wav`, 16-bit PCM 44.1 kHz mono little-endian (per `TODO.md`
-  Phase 2 decisions; design pivoted from MP3 to uncompressed WAV during
-  the audio-module spec pass to drop the MP3 decoder dependency)
+- Confirm SD card is FAT32 with the three audio files at root:
+  `lullaby1.wav`, `lullaby2.wav`, and `birth.wav`, 16-bit PCM 44.1 kHz
+  mono little-endian (per the 2026-05-02 audio-playlist design; the
+  lullaby is now a two-track playlist that auto-advances, and the
+  birthday message interrupts an in-progress lullaby). Design pivoted
+  from MP3 to uncompressed WAV during the audio-module spec pass to drop
+  the MP3 decoder dependency.
 
 ---
 

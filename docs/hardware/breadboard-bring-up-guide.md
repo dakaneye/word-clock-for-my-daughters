@@ -1,5 +1,13 @@
 # Breadboard Bring-Up Guide
 
+> **⚠ HISTORICAL — completed breadboard phase (2026-04-20).** This records the
+> breadboard bring-up that validated every subsystem before the PCB. It is kept
+> for reference but is **not current production guidance**: the design has since
+> moved to a **63-LED board** (not 25) and **uncompressed WAV audio**
+> (`lullaby1.wav` / `lullaby2.wav` / `birth.wav`, not the MP3 test sketches
+> shown below). For on-PCB bring-up follow `firmware/test/hardware_checks/*.md`
+> and `docs/hardware/pre-fab-review.md`.
+
 How to take the Phase 2 parts order and validate every subsystem on a
 breadboard before committing to the final PCB. Step-by-step, one peripheral
 at a time, with known-good test sketches.

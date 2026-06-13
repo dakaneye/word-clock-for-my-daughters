@@ -57,11 +57,11 @@
 
 - **Input:** USB-C from the back panel via a captive Micro-USB-to-USB-C cable (3-6 ft) permanently plugged into the ESP32 module's on-board micro-USB port; the USB-C end exits through a back-panel cable hole at the bottom-right. The hole is 16 mm (drilled out from the as-cut 6 mm during assembly) so the USB connector overmold can thread through; strain relief comes from an internal cable P-clip screwed to the back-panel interior 2-3 cm in from the hole, not the grommet. No panel-mount adapter, no pigtail, no breakout board. The CP2102 bridge on the module handles enumeration for firmware flashing; the module's 5V pin feeds the main +5V rail. The Cermant USB-C breakout that originally appeared on the schematic was removed before submission; the rework record is archived at `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`. Power negotiation is now whatever the module's micro-USB input does (no PD chip anywhere; relies on the 5V/2A charger delivering full rated current).
 - **Power budget (worst case):**
-  - WS2812B 25 LEDs full white: 1.5A @ 5V = 7.5W
+  - WS2812B 63 LEDs full white: ~3.8A @ 5V unconstrained — but firmware caps total LED draw at 1700 mA via `FastLED.setMaxPowerInVoltsAndMilliamps(5, 1700)` (sized for a 3 A USB-C supply, leaving headroom for the ESP32 + amp).
   - ESP32 WiFi active peak: ~500 mA @ 5V (after 3.3V reg) = 2.5W
   - MAX98357A at full 3W audio: ~600 mA @ 5V = 3W
-  - **Combined peak: ~2.6A / 13W** — exceeds a strict-spec USB-C source.
-- **Mitigation:** real use case avoids peak coincidence (bedtime dim = 10% LEDs; audio rare). Typical draw <700 mA. If sag is observed, cap LED brightness in firmware to ~60% or add per-LED current limit.
+  - **Combined peak with the 1700 mA LED cap: ~2.8A / 14W** — within a 3 A USB-C supply.
+- **Mitigation:** the FastLED power cap auto-scales global brightness so the strip never exceeds 1700 mA no matter how many words are lit; bedtime dim plus rare audio keep typical draw well below peak (<700 mA).
 - **5V rail:** powers WS2812B strip directly, plus MAX98357A.
 - **3.3V rail:** from ESP32 dev board's onboard regulator (AMS1117-3.3). Powers DS3231, microSD breakout, MAX98357A logic, button pullups.
 - **Decoupling:** 100nF ceramic on every IC's Vcc pin (added on PCB, not breadboard).

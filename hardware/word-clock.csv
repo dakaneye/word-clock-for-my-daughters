@@ -1,0 +1,11 @@
+Designators,Qty per clock,Part,Value,Footprint,LCSC,Notes
+"D1-D6,D8-D64",63,WS2812B-V6,Addressable RGB LED,LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm,C52917433,"As-built LED, JLC-placed. Design originally specced WS2812B-B/W (C114586); V6 substituted at order time — see hardware/fab/README.md. D7 intentionally unused (63 LEDs)."
+"C1,C3-C23",22,Ceramic capacitor,100nF,Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm,,"THT decoupling, one per IC Vcc. Hand-soldered."
+C2,1,Electrolytic capacitor,1000µF / 10V,Capacitor_THT:CP_Radial_D10.0mm_P5.00mm,,"Bulk cap at LED 5V input. Hand-soldered."
+R1,1,Resistor,300 Ω,Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,,"LED data series resistor. Hand-soldered."
+J_RTC1,1,DS3231 ZS-042 RTC module,—,word-clock:Daughtercard_RTC_DS3231,,"Amazon module on right-angle 1x6 socket. Remove the battery-charge resistor (CR2032 is not rechargeable)."
+J_SD1,1,HW-125 microSD module,—,word-clock:Daughtercard_SD_HW125,,"Amazon module on right-angle 1x6 socket."
+J_AMP1,1,MAX98357A I2S amp breakout,—,word-clock:Daughtercard_AMP_MAX98357A,,"Amazon module. Hand-soldered."
+"SW1,SW2,SW3",3,Tactile push switch 6mm,—,Button_Switch_THT:SW_PUSH_6mm,,"Minute / Audio / Hour. Bottom-side, pressed through the back panel."
+U1,1,ESP32 DevKit (CP2102, 38-pin),—,ESP32_DevKit_V1:ESP32_38Pin,,"Generic ESP32-WROOM-32 dev module (AITRIP). Inspect VBUS for a polyfuse before power."
+U2,1,74HCT245,Octal bus transceiver,Package_DIP:DIP-20_W7.62mm,,"3.3V→5V level shifter for LED data. DIP-20, hand-soldered."

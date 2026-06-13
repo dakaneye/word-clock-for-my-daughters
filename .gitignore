@@ -1,6 +1,7 @@
 .DS_Store
 .superpowers/
 build/
+hardware-mcp-workspace/
 *.hex
 *.elf
 .pio/
@@ -25,6 +26,19 @@ hardware/word-clock.csv
 hardware/ERC.rpt
 hardware/DRC.rpt
 report.txt
+
+# KiCad validation + MCP-tooling outputs (regenerated each time).
+# hardware/fab/ keeps the as-ordered package (zip + cpl + bom) tracked,
+# but its unzipped loose gerbers are regenerable.
+hardware/output/
+hardware/regen/
+hardware/fab/gerbers/
+*.rpt
+
+# KiCad working backups — history lives in git, not in dated copies.
+hardware/*.bak*
+hardware/*.broken*
+hardware/*.pre-*
 
 # Enclosure generator
 enclosure/scripts/fonts/

@@ -3,7 +3,7 @@ Designators,Qty per clock,Part,Value,Footprint,LCSC,Notes
 "C1,C3-C23",22,Ceramic capacitor,100nF,Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm,,"THT decoupling, one per IC Vcc. Hand-soldered."
 C2,1,Electrolytic capacitor,1000µF / 10V,Capacitor_THT:CP_Radial_D10.0mm_P5.00mm,,"Bulk cap at LED 5V input. Hand-soldered."
 R1,1,Resistor,300 Ω,Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal,,"LED data series resistor. Hand-soldered."
-J_RTC1,1,DS3231 ZS-042 RTC module,—,word-clock:Daughtercard_RTC_DS3231,,"Amazon module on right-angle 1x6 socket. Remove the battery-charge resistor (CR2032 is not rechargeable)."
+J_RTC1,1,DS3231 ZS-042 RTC module,—,word-clock:Daughtercard_RTC_DS3231,,"Amazon module on right-angle 1x6 socket. KEEP the trickle-charge resistor — inert at 3.3V VCC (1N4148 reverse-biased); CR2032 protected by the 5-year replacement cadence, not a desolder (decision 2026-04-20)."
 J_SD1,1,HW-125 microSD module,—,word-clock:Daughtercard_SD_HW125,,"Amazon module on right-angle 1x6 socket."
 J_AMP1,1,MAX98357A I2S amp breakout,—,word-clock:Daughtercard_AMP_MAX98357A,,"Amazon module. Hand-soldered."
 "SW1,SW2,SW3",3,Tactile push switch 6mm,—,Button_Switch_THT:SW_PUSH_6mm,,"Minute / Audio / Hour. Bottom-side, pressed through the back panel."

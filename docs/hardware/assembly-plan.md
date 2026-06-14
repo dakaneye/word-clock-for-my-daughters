@@ -72,9 +72,10 @@ can run in parallel.
 - [ ] **Print 3D internals.**
   - PCB standoff posts × 4
   - Button actuator caps × 3
-  - Light-channel honeycomb × 1 — *deferred until frame interior + PCB
-    outline are measured (see measurement task above); design is
-    parametric in those numbers*
+  - Light-channel honeycomb × 1 — **printed** (2026-06, at the 177.8 mm
+    nominal envelope; `enclosure/3d/light_channel.py`). Dry-fit to the
+    delivered PCB and the glued frame interior before final assembly;
+    re-print only if frame clearance or LED-pocket centering is off.
 - [ ] **Face sub-assembly (D below) can happen now** — doesn't block on anything else.
 - [ ] **Cut captive USB cable to internal length.** Measure from back-panel
       cable hole position to ESP32's micro-USB port with ~50 mm slack.

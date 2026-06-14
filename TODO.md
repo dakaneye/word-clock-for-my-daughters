@@ -59,11 +59,27 @@ board closes the "does it actually look right" question. Sketches live in
 
 ## Still to buy
 
+**Board THT passives — never purchased (gate the first bench check; order now).**
+The April inventory predates the 35→63-LED respin and the on-PCB decoupling
+work, so these were never bought. Quantities are for two clocks.
+
+- [ ] **74HCT245, DIP-20 ×2** (buy 4–5 for spares) — the LED level shifter; D1
+      won't light without it. HCT family specifically, not HC.
+- [ ] **100nF ceramic disc caps ×44** (buy a 100-pack) — 22 per board, one per
+      IC Vcc. Footprint `C_Disc_D5.0mm_W2.5mm_P5.00mm`.
+- [ ] **1000µF / 10V radial electrolytic ×2** (buy spares) — C2 bulk cap; skipping
+      it risks frying LEDs on first power-up.
+- [ ] **300 Ω axial resistor** — R1 LED-data series resistor; verify the salvaged
+      assortment has it or buy a pack (470 Ω is an acceptable fallback).
+
+**Enclosure consumables (shipping lead time — order now).**
+
 - [ ] **M3 wood screws, 1/2" + 5/8" pan-head** — back-panel-into-frame-wall.
 - [ ] **5/8" step drill bit (HSS, 1/4" hex)** — drill cable port 6 → 16 mm.
 - [ ] **Cable P-clip, ~5 mm OD** — internal USB strain relief.
 - [ ] **Titebond III** — face-to-frame joint (do NOT substitute 5-min epoxy here).
-- [ ] **Micro-USB-to-USB-C cable, 3–6 ft** — one per clock (the captive cable).
+- [ ] **Micro-USB-to-USB-C cable, 3–6 ft** — one per clock (the captive cable;
+      micro-USB end to match the ESP32 module, NOT USB-C-to-USB-C).
 
 ## Parallel tracks (non-blocking, re-doable)
 

@@ -187,7 +187,7 @@ Follow this sequence when the parts arrive. **Do not skip steps.** Each check ta
 1. **Visual inspection.** Every breakout on a clean table. Verify no shipping damage, no bent pins, no foreign material.
 2. **Multimeter: USB-C breakout.** Plug USB-C, verify 5.0V ±0.25V between 5V pad and GND pad. Verify CC1 and CC2 pads each show ~5.1kΩ to GND (unplugged). If either reading is wildly off — different board batch. Stop.
 3. **Multimeter: DS3231 module.** With no battery installed:
-   - Locate the 200Ω charging resistor (series between Vcc and battery+). Remove it.
+   - Do **NOT** remove the 200Ω trickle-charge resistor (decision 2026-04-20, §1 above): at 3.3V VCC the 1N4148 is reverse-biased so it's inert with a fresh cell. The CR2032 is protected by the 5-year replacement cadence, not a desolder.
    - Verify SDA-to-Vcc and SCL-to-Vcc pullup resistance — typically 4.7k-10k. Note value for later; if present, **do not add external pullups to the PCB**.
    - Install a fresh CR2032 (+ side up).
 4. **Multimeter: MAX98357A.** Verify GAIN pad (center) is not shorted to anything by default (floating → 9dB). Verify SD pad has a weak pulldown to GND (~100k) or weak pullup to Vin (1MΩ on Adafruit).

@@ -96,7 +96,17 @@ void begin() {
 }
 
 DateTime now() {
+    static DateTime last_good{2000, 1, 1, 0, 0, 0};
+    static bool     have_good = false;
+
     ::DateTime dt_utc = ds3231.now();       // RTClib's DateTime
+    if (!dt_utc.isValid()) {
+        // An I²C NAK / bus glitch leaves RTClib's read buffer
+        // uninitialized, and isValid() rejects the out-of-range fields.
+        // Return the last good reading (the face freezes for a tick)
+        // rather than decoding garbage and painting a wrong time.
+        return have_good ? last_good : DateTime{2000, 1, 1, 0, 0, 0};
+    }
     DateTime utc{
         static_cast<uint16_t>(dt_utc.year()),
         static_cast<uint8_t>(dt_utc.month()),
@@ -111,7 +121,9 @@ DateTime now() {
     time_t t = static_cast<time_t>(utc_epoch);
     struct tm local_tm{};
     localtime_r(&t, &local_tm);             // reads TZ state, no mutation
-    return from_tm(local_tm);
+    last_good  = from_tm(local_tm);
+    have_good  = true;
+    return last_good;
 }
 
 void set_from_epoch(uint32_t unix_seconds) {

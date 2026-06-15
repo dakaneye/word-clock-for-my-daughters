@@ -40,9 +40,14 @@ struct RenderInput {
     BirthdayConfig birthday;
 };
 
-// Stale-sync threshold. Above this value, amber replaces warm white
-// on lit time words (holidays and birthday decor still win).
-inline constexpr uint32_t STALE_SYNC_THRESHOLD_S = 86'400;  // 24 h
+// Stale-sync threshold. Above this value, amber replaces warm white on
+// lit time words (holidays and birthday decor still win). MUST exceed the
+// maximum normal NTP resync interval: next_deadline_after_success()
+// schedules the next sync at 24 h + up to +30 min jitter (plus retry
+// slack), so a 24 h threshold tinted a perfectly healthy clock amber for
+// ~30 min before every daily resync. 48 h clears that while still flagging
+// a genuinely stale clock (a multi-day connectivity outage).
+inline constexpr uint32_t STALE_SYNC_THRESHOLD_S = 172'800;  // 48 h
 
 // Pure function. Given the inputs, returns the final per-LED Frame
 // ready to push to the strip (dim multiplier already applied).

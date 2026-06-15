@@ -80,7 +80,7 @@ void test_holiday_palette_replaces_warm_white(void) {
 
 void test_stale_sync_replaces_warm_white_on_time_words(void) {
     RenderInput in = make_input();
-    in.seconds_since_sync = 90'000;   // > 86'400
+    in.seconds_since_sync = 200'000;   // > 172'800 (48 h) — genuinely stale
     const Frame f = render(in);
     const Rgb it = f[index_of(WordId::IT)];
     TEST_ASSERT_EQUAL_UINT8(255, it.r);
@@ -90,14 +90,25 @@ void test_stale_sync_replaces_warm_white_on_time_words(void) {
 
 void test_stale_sync_boundary(void) {
     RenderInput in = make_input();
-    in.seconds_since_sync = 86'400;    // NOT stale (strict >)
+
+    // A healthy clock resyncs every ~24 h (+/-30 min jitter), so a gap
+    // inside that normal cadence must NOT tint amber. This is the bug
+    // fixed by raising STALE_SYNC_THRESHOLD_S above the resync interval.
+    in.seconds_since_sync = 90'000;    // 25 h — within normal cadence
     Frame f = render(in);
     Rgb it = f[index_of(WordId::IT)];
     TEST_ASSERT_EQUAL_UINT8(255, it.r);
     TEST_ASSERT_EQUAL_UINT8(170, it.g);
     TEST_ASSERT_EQUAL_UINT8(100, it.b);
 
-    in.seconds_since_sync = 86'401;    // IS stale
+    in.seconds_since_sync = 172'800;   // exactly 48 h — NOT stale (strict >)
+    f = render(in);
+    it = f[index_of(WordId::IT)];
+    TEST_ASSERT_EQUAL_UINT8(255, it.r);
+    TEST_ASSERT_EQUAL_UINT8(170, it.g);
+    TEST_ASSERT_EQUAL_UINT8(100, it.b);
+
+    in.seconds_since_sync = 172'801;   // one second past 48 h — IS stale
     f = render(in);
     it = f[index_of(WordId::IT)];
     TEST_ASSERT_EQUAL_UINT8(255, it.r);
@@ -109,7 +120,7 @@ void test_stale_sync_does_not_override_holiday(void) {
     RenderInput in = make_input();
     in.month = 10;
     in.day   = 31;
-    in.seconds_since_sync = 90'000;  // stale
+    in.seconds_since_sync = 200'000;  // stale (> 48 h)
     const Frame f = render(in);
     // IT still shows Halloween orange, not amber.
     const Rgb it = f[index_of(WordId::IT)];
@@ -186,7 +197,7 @@ void test_stale_sync_does_not_override_birthday_decor(void) {
     RenderInput in = make_input();
     in.month = 10;
     in.day   = 6;
-    in.seconds_since_sync = 90'000;   // stale
+    in.seconds_since_sync = 200'000;   // stale (> 48 h)
     const Frame f = render(in);
     // Decor words still rainbow (priority 1 wins over stale).
     for (WordId w : {WordId::HAPPY, WordId::BIRTH, WordId::DAY, WordId::NAME}) {

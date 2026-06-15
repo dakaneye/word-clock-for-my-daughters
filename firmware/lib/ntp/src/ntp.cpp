@@ -79,13 +79,21 @@ void begin() {
 
 void loop() {
     if (!started) return;
+
+    // Advance the wrap-extended monotonic clock EVERY tick, before any
+    // early return. now_ms_extended() accumulates (millis() - prev_millis),
+    // which stays correct only if called at least once per ~49.7-day millis()
+    // wrap. The audio-playing / not-Online early returns below would
+    // otherwise skip it for weeks during a long outage, letting that delta
+    // wrap and corrupt the deadline math.
+    uint64_t now = now_ms_extended();
+
     if (wc::audio::is_playing()) return;   // defer sync; ~1s forceUpdate
                                            // would underrun I²S DMA
     if (wc::wifi_provision::state() != wc::wifi_provision::State::Online) {
         return;
     }
 
-    uint64_t now = now_ms_extended();
     if (now < next_deadline_ms && (ever_synced || consecutive_failures > 0)) {
         return;  // not yet
     }

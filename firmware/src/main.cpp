@@ -74,11 +74,14 @@ void loop() {
         // the parent spec §Time sync promises the clock free-runs on the
         // DS3231 during WiFi drops / reconnects / captive-portal re-entry.
         //
-        // Blank falls through when the device has never synced — first-
-        // ever boot or a post-reset-to-captive NVS wipe. In that window
-        // the TZ isn't set either, so painting anything from rtc::now()
-        // would show UTC (or DS3231 lost-power defaults), which is worse
-        // than blank.
+        // Blank falls through only when there is no trustworthy time:
+        // never provisioned (NVS last_sync == 0 — first-ever boot or a
+        // post-reset-to-captive wipe, where TZ is unset too), or the
+        // DS3231 lost power so rtc::begin() declined to seed the system
+        // clock. A warm boot with a good coin cell seeds time(nullptr)
+        // from the DS3231 in rtc::begin(), so the face shows (stale,
+        // amber-tinted) DS3231 time immediately — even with WiFi down —
+        // instead of going dark.
         uint32_t sync_age = wc::wifi_provision::seconds_since_last_sync();
         if (sync_age != UINT32_MAX) {
             auto dt = wc::rtc::now();

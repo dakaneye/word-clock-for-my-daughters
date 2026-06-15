@@ -14,6 +14,7 @@
 #include <Wire.h>
 #include <RTClib.h>
 #include <time.h>
+#include <sys/time.h>   // settimeofday() — seed the system clock from the DS3231
 #include <cstdlib>
 #include "rtc.h"
 #include "rtc/advance.h"
@@ -63,6 +64,28 @@ void begin() {
         Serial.println("[rtc] ERROR: DS3231 not found on I²C bus");
         // Intentionally continue — lets the rest of the firmware
         // keep running on bad-time rather than halting.
+    } else if (ds3231.lostPower()) {
+        // OSF set: the oscillator stopped (chip never set, or the coin
+        // cell died). The stored time is the 2000-01-01 default / garbage,
+        // so do NOT seed the system clock from it — leave time(nullptr)
+        // boot-relative so the render gate stays blank until NTP re-syncs
+        // rather than painting a wrong year.
+        Serial.println("[rtc] DS3231 lost power — time invalid, awaiting NTP");
+    } else {
+        // Seed the ESP32 system clock from the battery-backed DS3231 so
+        // time(nullptr) returns a real UTC epoch from the very first loop,
+        // BEFORE any NTP sync this session. Without this, a warm boot while
+        // WiFi is unavailable leaves wifi_provision::seconds_since_last_sync()
+        // pinned at UINT32_MAX and main.cpp blanks the face forever — even
+        // though the DS3231 holds correct time — breaking the documented
+        // "free-run on the DS3231 during WiFi drops" promise.
+        ::DateTime n = ds3231.now();
+        if (n.isValid()) {
+            struct timeval tv{};
+            tv.tv_sec  = static_cast<time_t>(n.unixtime());  // chip stores UTC
+            tv.tv_usec = 0;
+            settimeofday(&tv, nullptr);
+        }
     }
     if (getenv("TZ") == nullptr) {
         Serial.println("[rtc] warning: TZ env var unset at begin() "

@@ -126,14 +126,20 @@ uint64_t last_sync() {
     return v;
 }
 
-void clear() {
-    if (!open_writable()) return;
-    prefs().clear();
-    close();
-    // Invalidate last_sync cache; next read returns 0 from now on (until
-    // a fresh touch_last_sync writes a new value).
+// Returns true iff the namespace was opened and cleared. reset_to_captive()
+// logs a warning on false so a wipe that silently failed (NVS open error) is
+// diagnosable rather than leaving stale credentials that survive the restart.
+bool clear() {
+    bool ok = open_writable();
+    if (ok) {
+        prefs().clear();
+        close();
+    }
+    // Invalidate last_sync cache regardless; next read returns 0 from now on
+    // (until a fresh touch_last_sync writes a new value).
     last_sync_cache_  = 0;
     last_sync_cached_ = true;
+    return ok;
 }
 
 } // namespace wc::wifi_provision::nvs_store

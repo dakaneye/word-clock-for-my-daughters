@@ -34,8 +34,10 @@ static ConfirmationStatus get_status;
 // True after a successful form POST has routed to AwaitingConfirmation.
 // Makes handle_root serve the waiting page instead of resetting the user
 // back to the form when iOS's captive popup re-probes /hotspot-detect.html
-// (which 302s back to /). Cleared by wifi_provision on validation failure
-// via reset_submit_state() so subsequent / loads show the form again.
+// (which 302s back to /). Cleared by wifi_provision via reset_submit_state()
+// on a confirmation timeout or validation failure, so subsequent / loads
+// show the form (with the error banner) again instead of the stuck
+// "Press Audio" waiting page.
 static bool submit_accepted = false;
 
 static std::string rand_hex(size_t bytes) {
@@ -271,12 +273,22 @@ void begin(SubmitHandler submit_cb, ConfirmationStatus status_cb) {
     // Fresh AP session — clear submit state from any previous lifecycle.
     submit_accepted = false;
 
-    server().on("/", HTTP_GET, handle_root);
-    server().on("/submit", HTTP_POST, handle_submit);
-    server().on("/scan", HTTP_GET, handle_scan);
-    server().on("/status", HTTP_GET, handle_status);
-    server().on("/hotspot-detect.html", HTTP_GET, handle_ios_probe);
-    server().onNotFound(handle_wildcard);
+    // Register URI handlers exactly once for the process lifetime. The
+    // WebServer is a static singleton and server().on() appends to its
+    // handler list without de-duping, so calling begin() again on every
+    // captive re-entry (validation failure, reset) would leak a fresh set
+    // of handlers each time. stop()/begin() toggles the listening socket
+    // only — the registered handlers persist on the object.
+    static bool handlers_registered = false;
+    if (!handlers_registered) {
+        server().on("/", HTTP_GET, handle_root);
+        server().on("/submit", HTTP_POST, handle_submit);
+        server().on("/scan", HTTP_GET, handle_scan);
+        server().on("/status", HTTP_GET, handle_status);
+        server().on("/hotspot-detect.html", HTTP_GET, handle_ios_probe);
+        server().onNotFound(handle_wildcard);
+        handlers_registered = true;
+    }
     server().begin();
 
     // Pre-seed the scan so the dropdown populates immediately.
@@ -292,11 +304,17 @@ void stop() {
     server().stop();
 }
 
-// Called from wifi_provision's loop() on validation failures so the next
-// render_form() call surfaces the error inline. Takes an `std::string` by
-// value to keep the ABI simple; callers can pass literals.
-void set_error(const std::string& msg) {
-    last_error = msg;
+// Called from wifi_provision when returning to the captive form after a
+// confirmation timeout or a validation failure. Clears submit_accepted so
+// GET / serves the form again (not the stuck "Press Audio" waiting page)
+// and seeds the inline error banner that the next render_form() surfaces.
+// reset_rate_limit clears the per-AP submit counter for a benign return
+// (confirmation timeout — the user never actually tried a password) but
+// NOT for a real wrong-password validation failure.
+void reset_submit_state(const std::string& error_msg, bool reset_rate_limit) {
+    submit_accepted = false;
+    last_error      = error_msg;
+    if (reset_rate_limit) submit_count = 0;
 }
 
 } // namespace wc::wifi_provision::web

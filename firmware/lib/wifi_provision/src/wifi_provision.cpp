@@ -16,6 +16,7 @@
 #include <WiFi.h>
 #include <IPAddress.h>
 #include <time.h>
+#include <string>
 #include "wifi_provision.h"
 #include "wifi_provision/state_machine.h"
 #include "wifi_provision/form_parser.h"
@@ -29,7 +30,7 @@ namespace wc::wifi_provision::nvs_store {
     bool write(const FormBody& body);
     bool touch_last_sync(uint64_t unix_seconds);
     uint64_t last_sync();
-    void clear();
+    bool clear();
 }
 
 namespace wc::wifi_provision::dns_hijack {
@@ -43,7 +44,7 @@ namespace wc::wifi_provision::web {
                std::function<std::string()> status);
     void loop();
     void stop();
-    void set_error(const std::string& msg);
+    void reset_submit_state(const std::string& msg, bool reset_rate_limit);
 }
 
 namespace wc::wifi_provision {
@@ -64,6 +65,11 @@ static constexpr uint32_t VALIDATING_HEARTBEAT_MS = 2UL * 1000UL;
 // In-flight credentials held while awaiting Audio-button confirmation or
 // doing a trial connection. Never written to NVS until Validating succeeds.
 static FormBody pending;
+
+// Reason-specific message shown for the ApActive state via /status and the
+// form banner. Distinguishes a fresh AP ("Ready."), a confirmation timeout,
+// and a validation failure — the state alone can't tell them apart.
+static std::string ap_status_msg = "Ready.";
 
 static constexpr uint32_t AP_TIMEOUT_MS           = 10UL * 60UL * 1000UL;
 static constexpr uint32_t CONFIRMATION_TIMEOUT_MS = 60UL * 1000UL;
@@ -109,7 +115,7 @@ static std::string confirmation_message() {
         case State::AwaitingConfirmation: return "Waiting for Audio button...";
         case State::Validating:           return "Connecting...";
         case State::Online:               return "Connected!";
-        case State::ApActive:             return "Didn't connect. Check your password and try again.";
+        case State::ApActive:             return ap_status_msg;
         default:                          return "Ready.";
     }
 }
@@ -128,6 +134,15 @@ static void start_ap() {
     dns_hijack::begin(ip);
     web::begin(
         [](const FormBody& body) {
+            // Only a submit while genuinely in ApActive starts the
+            // confirmation flow. A duplicate POST arriving while already
+            // AwaitingConfirmation (an iOS re-probe, a second browser tab)
+            // must not silently swap the pending credentials or reset the
+            // 60 s timer — FormSubmitted is a no-op transition there anyway.
+            if (sm.state() != State::ApActive) {
+                Serial.println("[wifi_provision] ignoring submit; not in ApActive");
+                return;
+            }
             pending = body;
             sm.handle(Event::FormSubmitted);
             awaiting_started_at = millis();
@@ -147,15 +162,29 @@ static void stop_ap() {
     ap_started_at = 0;
 }
 
+static String sta_ssid;
+static String sta_pw;
+static bool   sta_creds_loaded = false;
+
 static void start_sta() {
-    auto creds = nvs_store::read();
-    setenv("TZ", creds.tz.c_str(), 1);
-    tzset();
+    // Read credentials from NVS and apply the POSIX TZ exactly once per
+    // process. Backoff retries and WiFi-drop reconnects reuse the cached
+    // copy rather than re-reading NVS + calling tzset() on every attempt:
+    // the stored creds never change while running (reset_to_captive()
+    // restarts the chip), so re-reading them each retry is pure waste.
+    if (!sta_creds_loaded) {
+        auto creds = nvs_store::read();
+        sta_ssid = creds.ssid;
+        sta_pw   = creds.pw;
+        setenv("TZ", creds.tz.c_str(), 1);
+        tzset();
+        sta_creds_loaded = true;
+    }
     WiFi.mode(WIFI_STA);
-    WiFi.begin(creds.ssid.c_str(), creds.pw.c_str());
+    WiFi.begin(sta_ssid.c_str(), sta_pw.c_str());
     last_sta_attempt_at = millis();
     Serial.printf("[wifi_provision] STA attempt to %s (backoff=%ums)\n",
-                  creds.ssid.c_str(), sta_backoff_ms);
+                  sta_ssid.c_str(), sta_backoff_ms);
 }
 
 static void start_validating() {
@@ -178,6 +207,19 @@ static void start_validating() {
     last_validating_heartbeat_at = 0;
     Serial.printf("[wifi_provision] validating credentials for SSID=%s\n",
                   pending.ssid.c_str());
+}
+
+// Shared exit path for both validation failures (NVS write failed, or the
+// trial connection timed out): drop pending creds, tear WiFi down, return to
+// the captive AP with an accurate inline error, and keep the wrong-password
+// attempt counted against the per-AP rate limit.
+static void fail_validation(const char* msg) {
+    pending = {};
+    WiFi.disconnect(/* wifioff = */ true);
+    ap_status_msg = msg;
+    sm.handle(Event::ValidationFailed);
+    start_ap();
+    web::reset_submit_state(msg, /*reset_rate_limit=*/false);
 }
 
 void begin() {
@@ -225,12 +267,18 @@ void loop() {
                 Serial.println("[wifi_provision] audio confirm timeout");
                 sm.handle(Event::ConfirmationTimeout);
                 pending = {};
-                // Note: ap_started_at is intentionally NOT reset here. The
-                // 10-minute AP lifetime runs from the first AP start; a
-                // submit-then-timeout cycle doesn't extend the broadcast
-                // window. stop_ap()/start_ap() aren't called because the AP
-                // hardware stayed up throughout AwaitingConfirmation — the
-                // state returns to ApActive with DNS + web already serving.
+                // Return the captive UI to the form with an accurate message:
+                // the user simply didn't press Audio — this is NOT a password
+                // failure — and clear the stuck "Press Audio" waiting page.
+                // Confirmation timeouts don't count against the submit rate
+                // limit. ap_started_at is intentionally NOT reset (the
+                // 10-minute AP lifetime runs from first AP start), and
+                // stop_ap()/start_ap() aren't called because the AP hardware
+                // stayed up throughout AwaitingConfirmation — DNS + web keep
+                // serving as the state returns to ApActive.
+                ap_status_msg = "Timed out waiting for the Audio button. "
+                                "Submit the form again.";
+                web::reset_submit_state(ap_status_msg, /*reset_rate_limit=*/true);
             }
             break;
         }
@@ -248,11 +296,7 @@ void loop() {
                               pending.ssid.c_str());
                 if (!nvs_store::write(pending)) {
                     Serial.println("[wifi_provision] ERROR: NVS write failed; retrying captive");
-                    pending = {};
-                    WiFi.disconnect(/* wifioff = */ true);
-                    web::set_error("Couldn't save credentials. Please try again.");
-                    sm.handle(Event::ValidationFailed);
-                    start_ap();
+                    fail_validation("Couldn't save credentials. Please try again.");
                 } else {
                     // Apply TZ to the live session. start_sta() sets TZ from
                     // NVS on every warm boot, but the first-provision path
@@ -267,11 +311,7 @@ void loop() {
                 }
             } else if (now - validating_started_at > VALIDATING_TIMEOUT_MS) {
                 Serial.println("[wifi_provision] validation timeout; back to captive");
-                pending = {};
-                WiFi.disconnect(/* wifioff = */ true);
-                web::set_error("Didn't connect. Check your password and try again.");
-                sm.handle(Event::ValidationFailed);
-                start_ap();
+                fail_validation("Didn't connect. Check your password and try again.");
             }
             break;
         }
@@ -312,7 +352,11 @@ void reset_to_captive() {
     // transition in-place.
     Serial.println("[wifi_provision] reset_to_captive: clearing NVS + restarting");
     Serial.flush();
-    nvs_store::clear();
+    if (!nvs_store::clear()) {
+        Serial.println("[wifi_provision] WARNING: NVS clear failed; "
+                       "credentials may persist across the restart");
+        Serial.flush();
+    }
     ESP.restart();
     // not reached
 }

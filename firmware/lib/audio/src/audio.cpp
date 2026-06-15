@@ -38,12 +38,14 @@ static constexpr const char*  NVS_KEY_LAST_YEAR = "last_birth_year";
 
 static bool        started              = false;
 static bool        sd_ok                = false;
+static bool        i2s_ok               = false;
 static State       state_               = State::Idle;
 static Track       track_               = Track::None;
 static BirthConfig birth_               = {};
 static uint16_t    last_birth_year_     = 0;
 static File        current_file_;
 static uint32_t    bytes_played_        = 0;
+static uint32_t    data_remaining_      = 0;   // bytes left in the WAV data chunk
 static uint8_t     read_buf_[SD_READ_CHUNK];
 
 // --- NVS helpers -------------------------------------------------
@@ -117,7 +119,8 @@ static bool open_file_for_playback(const char* path) {
         return false;
     }
     current_file_.seek(hdr.data_offset);
-    bytes_played_ = 0;
+    bytes_played_   = 0;
+    data_remaining_ = hdr.data_size_bytes;   // stop at the data chunk, not file EOF
     Serial.printf("[audio] play %s\n", path);
     return true;
 }
@@ -141,7 +144,13 @@ static void dispatch_event(PlaybackEvent::Kind kind) {
         break;
     case A::CloseFile: {
         if (current_file_) current_file_.close();
-        i2s_zero_dma_buffer(I2S_PORT);
+        // Cut the DMA immediately only on an explicit stop. On natural
+        // end-of-file let the ~93 ms already queued in the I²S DMA play
+        // out (tx_desc_auto_clear fills silence after) instead of
+        // truncating the final note.
+        if (kind == PlaybackEvent::Kind::StopRequested) {
+            i2s_zero_dma_buffer(I2S_PORT);
+        }
         const char* reason =
             (kind == PlaybackEvent::Kind::FileEnded)    ? "finished" :
             (kind == PlaybackEvent::Kind::StopRequested) ? "stopped"  :
@@ -155,6 +164,13 @@ static void dispatch_event(PlaybackEvent::Kind kind) {
             Serial.printf("[audio] switching (played %u bytes)\n",
                           static_cast<unsigned>(bytes_played_));
             current_file_.close();
+        }
+        // A birthday interrupting a playing lullaby must not bleed the
+        // lullaby's queued DMA tail into birth.wav — cut it. A normal
+        // lullaby1 -> lullaby2 advance (FileEnded) keeps the tail for a
+        // gapless transition.
+        if (kind == PlaybackEvent::Kind::BirthdayFired) {
+            i2s_zero_dma_buffer(I2S_PORT);
         }
         io_ok = open_file_for_playback(t.path);
         break;
@@ -178,8 +194,9 @@ void begin(const BirthConfig& birth) {
     if (started) return;
     birth_ = birth;
 
-    if (!i2s_install()) {
-        Serial.println("[audio] begin: I2S install FAILED (subsequent i2s_write calls will fail)");
+    i2s_ok = i2s_install();
+    if (!i2s_ok) {
+        Serial.println("[audio] begin: I2S install FAILED — audio disabled until next boot");
     }
     // Log BEFORE the SD.begin call so a corrupt-FAT hang (SD.begin
     // spinning on SPI bus polling) is diagnosable from serial — the
@@ -198,42 +215,70 @@ void begin(const BirthConfig& birth) {
 void loop() {
     if (!started) return;
 
-    // Auto-fire check runs every tick regardless of state — birthday
-    // can interrupt a playing lullaby per spec design decision 1
-    // (docs/superpowers/specs/2026-05-02-audio-playlist-design.md).
-    if (sd_ok) {
-        auto dt = wc::rtc::now();
-        NowFields nf{ dt.year, dt.month, dt.day, dt.hour, dt.minute };
-        bool time_known =
-            (wc::wifi_provision::seconds_since_last_sync() != UINT32_MAX);
-        // already_playing=false: birthday should fire even if a lullaby
-        // is playing. The NVS year stamp prevents re-firing within the
-        // same calendar year.
-        if (should_auto_fire(nf, birth_, last_birth_year_,
-                             time_known, /*already_playing=*/false)) {
-            Serial.printf("[audio] play birth.wav (year=%u)\n", nf.year);
-            // Stamp NVS FIRST. If birth.wav fails to open later, the
-            // stamp persists and we don't retry this year — matches
-            // original spec's intent (once the system "decides" to fire,
-            // don't double-up later in the year).
-            if (!nvs_write_last_birth_year(nf.year)) {
-                Serial.println("[audio] error: NVS stamp FAILED; skipping birth.wav this tick");
-                return;
+    // SD remount retry: a mount failure at boot would otherwise latch
+    // audio off until the next power cycle. Retry on a slow cadence so a
+    // late / reseated card recovers. SD.begin() can block on a bad bus,
+    // so never retry faster than every 30 s.
+    if (!sd_ok) {
+        static uint32_t last_sd_retry_ms = 0;
+        uint32_t nowm = millis();
+        if (last_sd_retry_ms == 0 || nowm - last_sd_retry_ms >= 30'000u) {
+            last_sd_retry_ms = nowm;
+            sd_ok = SD.begin(PIN_SD_CS);
+            if (sd_ok) Serial.println("[audio] SD remounted");
+        }
+    }
+
+    // Auto-fire check — a birthday can interrupt a playing lullaby (spec
+    // design decision 1), so it is NOT gated on Idle. Throttled: it only
+    // needs minute resolution, and rtc::now() is a blocking I²C read —
+    // running it every ~1 ms loop tick for the device's life loads the
+    // bus and adds jitter. A 10 s cadence still catches the 60 s
+    // birth-minute window.
+    if (sd_ok && i2s_ok) {
+        static uint32_t last_autofire_ms = 0;
+        uint32_t nowm = millis();
+        if (last_autofire_ms == 0 || nowm - last_autofire_ms >= 10'000u) {
+            last_autofire_ms = nowm;
+            auto dt = wc::rtc::now();
+            NowFields nf{ dt.year, dt.month, dt.day, dt.hour, dt.minute };
+            bool time_known =
+                (wc::wifi_provision::seconds_since_last_sync() != UINT32_MAX);
+            // already_playing=false: birthday fires even mid-lullaby.
+            if (should_auto_fire(nf, birth_, last_birth_year_,
+                                 time_known, /*already_playing=*/false)) {
+                Serial.printf("[audio] birthday fire (year=%u)\n", nf.year);
+                dispatch_event(PlaybackEvent::Kind::BirthdayFired);
+                // Stamp the NVS year ONLY after birth.wav actually opened
+                // (state_ == Playing). A missing/corrupt birth.wav drops
+                // dispatch to Idle; leaving the year unstamped lets the
+                // next check retry until the message really plays once,
+                // rather than silently burning the birthday.
+                if (state_ == State::Playing) {
+                    if (!nvs_write_last_birth_year(nf.year)) {
+                        Serial.println("[audio] warning: NVS birth-year stamp failed");
+                    }
+                    last_birth_year_ = nf.year;
+                }
+                return;  // don't pump in the same tick as the switch
             }
-            last_birth_year_ = nf.year;
-            dispatch_event(PlaybackEvent::Kind::BirthdayFired);
-            return;  // don't pump audio in same tick as switch
         }
     }
 
     // Pump audio if Playing.
     if (state_ == State::Playing) {
-        int n = current_file_.read(read_buf_, sizeof(read_buf_));
-        if (n <= 0) {
+        size_t want = sizeof(read_buf_);
+        if (data_remaining_ < want) want = data_remaining_;
+        if (want == 0) {                   // reached end of the WAV data chunk
             dispatch_event(PlaybackEvent::Kind::FileEnded);
             return;
         }
-        n &= ~1;
+        int n = current_file_.read(read_buf_, want);
+        if (n <= 0) {                      // physical EOF (truncated/lying header)
+            dispatch_event(PlaybackEvent::Kind::FileEnded);
+            return;
+        }
+        n &= ~1;                           // whole 16-bit samples only
         if (n == 0) {
             dispatch_event(PlaybackEvent::Kind::FileEnded);
             return;
@@ -246,19 +291,25 @@ void loop() {
                                   static_cast<size_t>(n),
                                   &written, /*ticks=*/0);
         if (err != ESP_OK) {
-            Serial.printf("[audio] error: i2s_write err=%d\n", err);
-            dispatch_event(PlaybackEvent::Kind::FileEnded);
+            // A real I²S fault — not a benign full DMA buffer, which
+            // returns ESP_OK with written==0. Stop cleanly instead of
+            // treating it as FileEnded, which would advance the playlist
+            // to the next track.
+            Serial.printf("[audio] error: i2s_write err=%d — stopping\n", err);
+            dispatch_event(PlaybackEvent::Kind::StopRequested);
             return;
         }
         if (written < static_cast<size_t>(n)) {
+            // DMA was full; re-read the unwritten source bytes next tick.
             current_file_.seek(current_file_.position() - (n - written));
         }
-        bytes_played_ += written;
+        data_remaining_ -= written;
+        bytes_played_   += written;
     }
 }
 
 void play_lullaby() {
-    if (!started || !sd_ok) return;
+    if (!started || !sd_ok || !i2s_ok) return;
     dispatch_event(PlaybackEvent::Kind::PlayLullabyRequested);
 }
 

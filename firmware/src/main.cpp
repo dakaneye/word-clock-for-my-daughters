@@ -84,7 +84,17 @@ void loop() {
         // instead of going dark.
         uint32_t sync_age = wc::wifi_provision::seconds_since_last_sync();
         if (sync_age != UINT32_MAX) {
-            auto dt = wc::rtc::now();
+            // rtc::now() is a blocking I²C read and the face only changes
+            // per minute, so cache it and re-read at ~1 Hz rather than on
+            // every 33 ms render tick. The rainbow animation uses now_ms
+            // (millis) and still advances every frame.
+            static wc::rtc::DateTime cached_dt{};
+            static uint32_t last_rtc_ms = 0;
+            if (last_rtc_ms == 0 || now - last_rtc_ms >= 1000) {
+                last_rtc_ms = now;
+                cached_dt = wc::rtc::now();
+            }
+            const wc::rtc::DateTime& dt = cached_dt;
             wc::display::RenderInput in{};
             in.year   = dt.year;
             in.month  = dt.month;

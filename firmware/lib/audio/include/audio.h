@@ -19,11 +19,14 @@ namespace wc::audio {
 void begin(const BirthConfig& birth);
 
 // Drives the state machine. Call from main.cpp's loop().
-// - When Playing: reads the next PCM chunk from SD, applies Q8
-//   gain, writes to I²S with 0 timeout. On EOF / error: closes
-//   file, transitions to Idle.
-// - When Idle: runs should_auto_fire() against rtc::now();
-//   transitions to Playing with birth.wav if the guard passes.
+// - Auto-fire (every state, throttled to ~10 s): runs should_auto_fire()
+//   against rtc::now(). A birthday can interrupt a playing lullaby, so the
+//   check is NOT gated on Idle. The NVS year is stamped only after
+//   birth.wav opens, so a missing file does not burn the birthday.
+// - When Playing: reads the next PCM chunk (clamped to the WAV data
+//   chunk) from SD, applies Q8 gain, writes to I²S with 0 timeout. On
+//   end-of-data closes the file and transitions to Idle; a real I²S
+//   write fault stops cleanly without advancing the playlist.
 void loop();
 
 // Start the 2-song lullaby playlist (lullaby1.wav -> lullaby2.wav).

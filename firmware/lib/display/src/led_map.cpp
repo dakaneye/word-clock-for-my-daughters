@@ -56,6 +56,12 @@ constexpr std::array<LedSpan, 35> kSpans = {{
     /* NAME      */ {40, 2},  // 40-41
 }};
 
+// One span per word — catch a WordId enum change that forgets to update
+// this table (grid.cpp is the source of truth) at compile time rather than
+// reading past the array end at runtime via span_of()/index_of().
+static_assert(kSpans.size() == static_cast<std::size_t>(WordId::COUNT),
+              "kSpans must have exactly one entry per WordId");
+
 } // namespace
 
 LedSpan span_of(WordId w) {

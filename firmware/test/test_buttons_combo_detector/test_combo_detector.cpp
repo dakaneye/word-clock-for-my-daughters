@@ -119,6 +119,34 @@ void test_armed_timer_starts_on_simultaneous_press_not_first_press(void) {
     TEST_ASSERT_TRUE(c.step(true, true, 19000));
 }
 
+// The 10s timer must survive the millis() uint32 rollover. Arming near
+// UINT32_MAX (0xFFFFFE00 = armed_since_ 512ms before wrap) and advancing
+// now_ms past the wrap to a small value, the unsigned subtraction
+// (now_ms - armed_since_) yields the true elapsed via modular arithmetic.
+// 512 + 9488 == 10000, so the combo must fire exactly at now_ms = 9488.
+void test_fires_across_millis_rollover(void) {
+    ComboDetector c;
+    const uint32_t start = 0xFFFFFE00u;  // 512ms before UINT32_MAX wrap
+    TEST_ASSERT_FALSE(c.step(true, true, start));
+    // Just before the wrap: elapsed 256ms, far below threshold.
+    TEST_ASSERT_FALSE(c.step(true, true, 0xFFFFFF00u));
+    // Past the wrap, elapsed 9999ms (512 + 9487) — one tick short.
+    TEST_ASSERT_FALSE(c.step(true, true, 9487u));
+    // elapsed 10000ms (512 + 9488) — fires on this tick.
+    TEST_ASSERT_TRUE(c.step(true, true, 9488u));
+}
+
+// Across the rollover the combo still fires exactly once: no refire on
+// subsequent ticks past threshold.
+void test_does_not_refire_after_rollover_fire(void) {
+    ComboDetector c;
+    const uint32_t start = 0xFFFFFE00u;
+    c.step(true, true, start);
+    TEST_ASSERT_TRUE(c.step(true, true, 9488u));   // fires once
+    TEST_ASSERT_FALSE(c.step(true, true, 9489u));  // held — no refire
+    TEST_ASSERT_FALSE(c.step(true, true, 20000u));
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_fires_after_10s_of_both_held);
@@ -130,5 +158,7 @@ int main(int, char**) {
     RUN_TEST(test_in_combo_false_after_fire_and_release);
     RUN_TEST(test_fires_again_after_full_release_and_rearm);
     RUN_TEST(test_armed_timer_starts_on_simultaneous_press_not_first_press);
+    RUN_TEST(test_fires_across_millis_rollover);
+    RUN_TEST(test_does_not_refire_after_rollover_fire);
     return UNITY_END();
 }

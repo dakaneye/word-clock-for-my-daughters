@@ -72,6 +72,42 @@ void test_is_pressed_reflects_debounced_state(void) {
     TEST_ASSERT_FALSE(d.is_pressed()); // now stable released
 }
 
+// A press whose stability window straddles the millis() UINT32_MAX rollover
+// still commits at exactly 25ms elapsed. candidate_since_ sits at 2^32-6, so
+// the post-wrap timestamps compute elapsed via unsigned subtraction.
+void test_press_commits_across_millis_rollover(void) {
+    Debouncer d(0xFFFFFFFF - 5);          // candidate_since_ = 2^32-6, released
+    TEST_ASSERT_FALSE(d.step(true, 0xFFFFFFFF - 5)); // raw goes pressed pre-wrap
+    TEST_ASSERT_FALSE(d.step(true, 9));   // wrapped; elapsed 15 < 25
+    TEST_ASSERT_FALSE(d.step(true, 18));  // wrapped; elapsed 24 < 25
+    TEST_ASSERT_TRUE(d.step(true, 19));   // wrapped; elapsed 25 — commits
+}
+
+// A bounce that resets the timer just before the rollover boundary restarts
+// the 25ms window at the wrapped-side timestamp, not the absolute one.
+void test_bounce_across_rollover_resets_window(void) {
+    Debouncer d(0xFFFFFFFF - 30);              // candidate_since_ = 2^32-31, released
+    TEST_ASSERT_FALSE(d.step(true, 0xFFFFFFFF - 30));  // pressed — window starts
+    TEST_ASSERT_FALSE(d.step(false, 0xFFFFFFFF - 20)); // bounce released — resets
+    TEST_ASSERT_FALSE(d.step(true, 0xFFFFFFFF - 10));  // pressed again — resets to 2^32-11
+    TEST_ASSERT_FALSE(d.step(true, 13));      // wrapped; elapsed 24 < 25
+    TEST_ASSERT_TRUE(d.step(true, 14));       // wrapped; elapsed 25 — commits
+}
+
+// is_pressed() settles correctly when both the press and the subsequent
+// release windows straddle the rollover boundary.
+void test_is_pressed_settles_across_rollover(void) {
+    Debouncer d(0xFFFFFFFF - 5);
+    d.step(true, 0xFFFFFFFF - 5);
+    TEST_ASSERT_FALSE(d.is_pressed());  // pressed but elapsed 0
+    d.step(true, 19);                   // wrapped; elapsed 25
+    TEST_ASSERT_TRUE(d.is_pressed());   // now stable pressed
+    d.step(false, 30);                  // raw released — window starts at 30
+    TEST_ASSERT_TRUE(d.is_pressed());   // not yet stable
+    d.step(false, 55);                  // elapsed 25 — release commits
+    TEST_ASSERT_FALSE(d.is_pressed());
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_press_commits_after_25ms_stable);
@@ -80,5 +116,8 @@ int main(int, char**) {
     RUN_TEST(test_release_does_not_fire_edge);
     RUN_TEST(test_second_press_after_release_fires);
     RUN_TEST(test_is_pressed_reflects_debounced_state);
+    RUN_TEST(test_press_commits_across_millis_rollover);
+    RUN_TEST(test_bounce_across_rollover_resets_window);
+    RUN_TEST(test_is_pressed_settles_across_rollover);
     return UNITY_END();
 }

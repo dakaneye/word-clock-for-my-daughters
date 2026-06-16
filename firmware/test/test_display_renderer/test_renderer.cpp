@@ -116,6 +116,61 @@ void test_stale_sync_boundary(void) {
     TEST_ASSERT_EQUAL_UINT8( 30, it.b);
 }
 
+void test_movable_holiday_mlk_replaces_warm_white(void) {
+    // MLK Day is the 3rd Monday of January — a year-dependent date the
+    // fixed-date Halloween test never exercises. For 2027 that lands on
+    // Jan 18 (verified against nth_weekday_of_month). MLK_PURPLE is a
+    // single-color palette, so every lit time word takes {128, 0, 180}.
+    RenderInput in = make_input();
+    in.year  = 2027;
+    in.month = 1;
+    in.day   = 18;
+    in.hour  = 14;     // full-bright; no dim scaling
+    const Frame f = render(in);
+    for (WordId w : {WordId::IT, WordId::IS}) {
+        const Rgb c = f[index_of(w)];
+        TEST_ASSERT_EQUAL_UINT8(128, c.r);
+        TEST_ASSERT_EQUAL_UINT8(  0, c.g);
+        TEST_ASSERT_EQUAL_UINT8(180, c.b);
+    }
+}
+
+void test_movable_holiday_easter_replaces_warm_white(void) {
+    // Easter is fully computed (Meeus/Jones/Butcher) — the most
+    // year-dependent palette path. For 2027 it falls on Mar 28
+    // (verified against gregorian_easter). EASTER_PASTEL cycles 4
+    // colors by enum index: IT (enum 0) → {255,180,200},
+    // IS (enum 1) → {180,220,255}.
+    RenderInput in = make_input();
+    in.year  = 2027;
+    in.month = 3;
+    in.day   = 28;
+    in.hour  = 14;     // full-bright; no dim scaling
+    const Frame f = render(in);
+    const Rgb it = f[index_of(WordId::IT)];
+    TEST_ASSERT_EQUAL_UINT8(255, it.r);
+    TEST_ASSERT_EQUAL_UINT8(180, it.g);
+    TEST_ASSERT_EQUAL_UINT8(200, it.b);
+    const Rgb is = f[index_of(WordId::IS)];
+    TEST_ASSERT_EQUAL_UINT8(180, is.r);
+    TEST_ASSERT_EQUAL_UINT8(220, is.g);
+    TEST_ASSERT_EQUAL_UINT8(255, is.b);
+}
+
+void test_never_synced_sentinel_renders_amber(void) {
+    // UINT32_MAX is the boot-time "never synced this session" sentinel
+    // from wifi_provision::seconds_since_last_sync(). It vastly exceeds
+    // STALE_SYNC_THRESHOLD_S, so time words must render amber on a
+    // non-holiday, non-birthday date.
+    RenderInput in = make_input();   // May 15 2027, no holiday/birthday
+    in.seconds_since_sync = UINT32_MAX;
+    const Frame f = render(in);
+    const Rgb it = f[index_of(WordId::IT)];
+    TEST_ASSERT_EQUAL_UINT8(255, it.r);
+    TEST_ASSERT_EQUAL_UINT8(120, it.g);
+    TEST_ASSERT_EQUAL_UINT8( 30, it.b);
+}
+
 void test_stale_sync_does_not_override_holiday(void) {
     RenderInput in = make_input();
     in.month = 10;
@@ -294,7 +349,10 @@ int main(int, char**) {
     RUN_TEST(test_multi_led_word_fills_its_span);
     RUN_TEST(test_warm_white_default);
     RUN_TEST(test_holiday_palette_replaces_warm_white);
+    RUN_TEST(test_movable_holiday_mlk_replaces_warm_white);
+    RUN_TEST(test_movable_holiday_easter_replaces_warm_white);
     RUN_TEST(test_stale_sync_replaces_warm_white_on_time_words);
+    RUN_TEST(test_never_synced_sentinel_renders_amber);
     RUN_TEST(test_stale_sync_boundary);
     RUN_TEST(test_stale_sync_does_not_override_holiday);
     RUN_TEST(test_birthday_rainbow_on_decor_only);

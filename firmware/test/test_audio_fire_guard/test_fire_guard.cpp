@@ -61,6 +61,45 @@ void test_fire_already_playing(void) {
         /*already_playing=*/true));
 }
 
+// --- Multi-year re-fire (the keepsake promise: fires every birthday) ---
+
+// Year Y, last_fired_year < Y, at the birth minute -> fires.
+void test_fire_first_year_2030(void) {
+    NowFields n = make_now(2030, 10, 6, 18, 10);
+    TEST_ASSERT_TRUE(should_auto_fire(n, EMORY,
+        /*last_fired_year=*/2029, true, false));
+}
+
+// Same year after firing (last_fired_year == Y) -> suppressed for rest of Y.
+void test_fire_suppressed_rest_of_year(void) {
+    NowFields n = make_now(2030, 10, 6, 18, 10);
+    TEST_ASSERT_FALSE(should_auto_fire(n, EMORY,
+        /*last_fired_year=*/2030, true, false));
+}
+
+// Year Y+1 at the birth minute, last_fired_year still Y -> re-fires next year.
+void test_fire_refires_next_year_2031(void) {
+    NowFields n = make_now(2031, 10, 6, 18, 10);
+    TEST_ASSERT_TRUE(should_auto_fire(n, EMORY,
+        /*last_fired_year=*/2030, true, false));
+}
+
+// Far end of the 40-year horizon: year 2069 fires, suppressed once fired.
+void test_fire_horizon_2069(void) {
+    NowFields n = make_now(2069, 10, 6, 18, 10);
+    TEST_ASSERT_TRUE(should_auto_fire(n, EMORY,
+        /*last_fired_year=*/2068, true, false));
+    TEST_ASSERT_FALSE(should_auto_fire(n, EMORY,
+        /*last_fired_year=*/2069, true, false));
+}
+
+// And re-fires the following year (2070) with last_fired_year lagging at 2069.
+void test_fire_horizon_refires_2070(void) {
+    NowFields n = make_now(2070, 10, 6, 18, 10);
+    TEST_ASSERT_TRUE(should_auto_fire(n, EMORY,
+        /*last_fired_year=*/2069, true, false));
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_fire_happy_path);
@@ -71,5 +110,10 @@ int main(int, char**) {
     RUN_TEST(test_fire_already_fired_this_year);
     RUN_TEST(test_fire_unknown_time);
     RUN_TEST(test_fire_already_playing);
+    RUN_TEST(test_fire_first_year_2030);
+    RUN_TEST(test_fire_suppressed_rest_of_year);
+    RUN_TEST(test_fire_refires_next_year_2031);
+    RUN_TEST(test_fire_horizon_2069);
+    RUN_TEST(test_fire_horizon_refires_2070);
     return UNITY_END();
 }

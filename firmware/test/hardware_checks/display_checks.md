@@ -112,8 +112,8 @@ powering off your router or moving out of range.
 - [ ] Measure during a synthetic palette that hits the 700-sum
       per-entry cap on all 63 LEDs (e.g., temporarily patch
       warm_white() to return `{255, 230, 215}` and reflash).
-      Expected: current stays under ~1.8 A because
-      `FastLED.setMaxPowerInVoltsAndMilliamps` is enforcing.
+      Expected: current stays under ~1.7 A because
+      `FastLED.setMaxPowerInVoltsAndMilliamps(5, 1700)` is enforcing.
 - [ ] Revert the palette patch.
 
 ## 10. Stress / burn-in

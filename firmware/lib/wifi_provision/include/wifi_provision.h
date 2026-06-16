@@ -16,7 +16,7 @@ State state();
 
 // Seconds since the last successful NTP sync. UINT32_MAX if never synced.
 // Display module uses this to decide when to apply the amber stale-sync tint
-// (>24 h).
+// (when it exceeds display STALE_SYNC_THRESHOLD_S — currently 48 h).
 uint32_t seconds_since_last_sync();
 
 // Force a reset back into captive-portal mode. Clears stored credentials.

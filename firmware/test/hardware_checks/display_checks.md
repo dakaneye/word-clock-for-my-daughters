@@ -102,7 +102,7 @@ powering off your router or moving out of range.
       (`{255, 120, 30}`).
 - [ ] Reconnect WiFi; after the next NTP sync the face returns to
       warm white within a few seconds.
-- [ ] Revert the threshold to 86'400. Reflash.
+- [ ] Revert the threshold to 172'800. Reflash.
 
 ## 9. Power-budget sanity (belt-and-suspenders check)
 

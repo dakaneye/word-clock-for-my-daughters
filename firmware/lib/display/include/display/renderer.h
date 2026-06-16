@@ -32,7 +32,8 @@ struct RenderInput {
     uint32_t now_ms;
 
     // From wifi_provision::seconds_since_last_sync(). UINT32_MAX
-    // means "never synced this session"; treated as stale (>24 h).
+    // means "never synced this session"; treated as stale (exceeds
+    // STALE_SYNC_THRESHOLD_S, defined below).
     uint32_t seconds_since_sync;
 
     // Per-kid birthday, sourced from config_{emory,nora}.h in

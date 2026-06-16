@@ -94,8 +94,10 @@ void test_bounce_across_rollover_resets_window(void) {
     TEST_ASSERT_TRUE(d.step(true, 14));       // wrapped; elapsed 25 — commits
 }
 
-// is_pressed() settles correctly when both the press and the subsequent
-// release windows straddle the rollover boundary.
+// is_pressed() settles correctly when the press stability window straddles
+// the millis() rollover boundary; the release window that follows runs fully
+// post-wrap (it does not straddle) but exercises the same unsigned-elapsed
+// path.
 void test_is_pressed_settles_across_rollover(void) {
     Debouncer d(0xFFFFFFFF - 5);
     d.step(true, 0xFFFFFFFF - 5);

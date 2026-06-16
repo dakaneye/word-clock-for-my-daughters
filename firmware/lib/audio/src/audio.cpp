@@ -274,8 +274,17 @@ void loop() {
             return;
         }
         int n = current_file_.read(read_buf_, want);
-        if (n <= 0) {                      // physical EOF (truncated/lying header)
-            dispatch_event(PlaybackEvent::Kind::FileEnded);
+        if (n <= 0) {
+            // want>0 means data_remaining_>0, so a read returning <=0 is NOT a
+            // clean end (that goes through the want==0 branch above) — it's a
+            // truncated file or, the realistic 40-year case, a card that
+            // dropped out mid-playback. Stop cleanly (no playlist advance) and
+            // drop sd_ok so the remount retry re-establishes the card instead
+            // of latching audio off until the next reboot.
+            Serial.println("[audio] read fault before data end; remounting SD");
+            dispatch_event(PlaybackEvent::Kind::StopRequested);
+            sd_ok = false;
+            SD.end();
             return;
         }
         n &= ~1;                           // whole 16-bit samples only

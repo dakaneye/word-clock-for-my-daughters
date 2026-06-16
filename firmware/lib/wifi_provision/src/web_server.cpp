@@ -263,14 +263,18 @@ static void handle_wildcard() {
 void begin(SubmitHandler submit_cb, ConfirmationStatus status_cb) {
     on_submit = std::move(submit_cb);
     get_status = std::move(status_cb);
-    submit_count = 0;
     last_error.clear();
     last_scan_started_at = 0;
     // Seed a CSRF token immediately so the first /submit can't slip past
     // the empty-string comparison.
     current_csrf = rand_hex(16);
 
-    // Fresh AP session — clear submit state from any previous lifecycle.
+    // submit_count is deliberately NOT reset here. begin() runs again on every
+    // captive re-entry (validation failure -> start_ap), so zeroing it here
+    // would defeat the per-AP password-guess rate limit. It is 0 at boot
+    // (static init) and after reset_to_captive() (which restarts the chip),
+    // and is cleared explicitly only on a benign confirmation timeout via
+    // reset_submit_state(_, /*reset_rate_limit=*/true).
     submit_accepted = false;
 
     // Register URI handlers exactly once for the process lifetime. The

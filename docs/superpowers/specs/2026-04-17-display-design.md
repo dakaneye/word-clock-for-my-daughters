@@ -2,6 +2,24 @@
 
 Date: 2026-04-17
 
+> **⚠ SUPERSEDED IN SPECIFICS — read with the 63-LED migration in mind.**
+> This spec captures the original **35-LED**, **1.8 A**-capped design. The
+> board and firmware have since moved on; the concepts here (renderer
+> priority chain, holiday palette, birthday rainbow, amber stale-sync, dim
+> multiplier) still hold, but these numbers do not:
+> - **63 LEDs, not 35.** A word now maps to a `LedSpan{start,count}` (2–3
+>   adjacent LEDs for long words), not one index. Source of truth:
+>   `firmware/lib/display/src/led_map.cpp` + `include/display/rgb.h`
+>   (`LED_COUNT = 63`).
+> - **Runtime power cap is 1700 mA**, not 1.8 A —
+>   `FastLED.setMaxPowerInVoltsAndMilliamps(5, 1700)` in `display.cpp`. The
+>   `PALETTE_MAX_RGB_SUM = 700` figure is now a per-word color bound, not a
+>   total-power guarantee (total current is the runtime cap's job).
+> - **Amber stale-sync threshold is 48 h**, not 24 h —
+>   `STALE_SYNC_THRESHOLD_S` in `include/display/renderer.h`.
+>
+> When in doubt, the code + its native tests are authoritative over this doc.
+
 ## Overview
 
 The `display` module turns the running clock state into pixels on the

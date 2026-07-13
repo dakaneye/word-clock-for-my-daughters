@@ -204,7 +204,7 @@ void begin(const BirthConfig& birth) {
     Serial.println("[audio] begin: mounting SD...");
     sd_ok = SD.begin(PIN_SD_CS);
     if (!sd_ok) {
-        Serial.println("[audio] begin: SD FAILED, playback disabled until next boot");
+        Serial.println("[audio] begin: SD mount failed; will retry every 30 s");
     } else {
         Serial.println("[audio] begin: SD ok, I2S ok");
     }

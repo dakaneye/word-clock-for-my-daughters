@@ -36,6 +36,11 @@ void loop();
 // Spec: docs/superpowers/specs/2026-05-02-audio-playlist-design.md
 void play_lullaby();
 
+// Play birth.wav once, on demand. Same guards as play_lullaby(). Does
+// NOT stamp the NVS birthday-year guard — that happens only in the
+// auto-fire path — so a bench test never burns the real birthday.
+void play_birthday_message();
+
 // Close the open file, stop I²S TX, transition Playing → Idle.
 // No-op if already Idle.
 void stop();

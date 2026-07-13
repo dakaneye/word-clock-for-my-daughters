@@ -322,6 +322,11 @@ void play_lullaby() {
     dispatch_event(PlaybackEvent::Kind::PlayLullabyRequested);
 }
 
+void play_birthday_message() {
+    if (!started || !sd_ok || !i2s_ok) return;
+    dispatch_event(PlaybackEvent::Kind::BirthdayFired);
+}
+
 void stop() {
     if (!started) return;
     dispatch_event(PlaybackEvent::Kind::StopRequested);

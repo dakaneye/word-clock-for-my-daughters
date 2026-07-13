@@ -15,6 +15,7 @@
 // serial command channel ('h'/'m'/'a') that mirrors the button events.
 // Credentials arrive via -D build flags (pulled from the macOS keychain
 // at build time); nothing secret lives in this file or in git.
+#include <SD.h>                       // bench 'l' command: list SD root
 #include "wifi_provision/form_parser.h"
 namespace wc::wifi_provision::nvs_store {
     bool has_credentials();
@@ -113,6 +114,31 @@ void loop() {
         else if (c == 'X') {
             Serial.println("[bench] reset_to_captive (NVS wipe + restart)");
             wc::wifi_provision::reset_to_captive();
+        }
+        else if (c == 'l') {
+            // List SD root: name + size. Audio owns the mount; SD is the
+            // Arduino global, safe to read between playback pumps.
+            File root = SD.open("/");
+            if (!root) {
+                Serial.println("[bench] SD root open failed");
+            } else {
+                Serial.println("[bench] SD root listing:");
+                for (File f = root.openNextFile(); f;
+                     f = root.openNextFile()) {
+                    Serial.printf("[bench]   %-16s %8u bytes%s\n",
+                                  f.name(), (unsigned)f.size(),
+                                  f.isDirectory() ? " <dir>" : "");
+                    f.close();
+                }
+                root.close();
+                Serial.println("[bench] end of listing");
+            }
+        }
+        else if (c == 'b') {
+            // Play birth.wav on demand (does not stamp the NVS birthday
+            // guard) — audible verification after an SD reload.
+            Serial.println("[bench] play birth.wav");
+            wc::audio::play_birthday_message();
         }
     }
 #endif

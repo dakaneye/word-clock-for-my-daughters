@@ -176,7 +176,16 @@ def transfer(clock: Clock, plan: dict, ip: str, port: int):
         for attempt in range(3):
             reply = clock.command(core.format_get(url, name, size, crc))
             if reply["kind"] == "ok":
-                break
+                got = reply.get("got")
+                # A bare "OK ..." with no "got" payload (or one for a
+                # different file) is noise from the clone CP2102's stale
+                # line replay, not a real reply to this G command.
+                if got and got["name"] == name and got["size"] == size \
+                        and got["crc"] == crc:
+                    break
+                say(f"retry {attempt + 1}/3: stale/mismatched OK reply "
+                    f"({reply['detail']!r}) for {name}")
+                continue
             say(f"retry {attempt + 1}/3: {reply['detail']}")
         else:
             raise RuntimeError(f"transfer failed for {name}")
@@ -227,8 +236,13 @@ def main():
 
     if args.restore_only:
         say(f"restore-only from {args.restore_only}")
-        esptool(args.port, ["write_flash", "0x0", args.restore_only])
-        sys.exit(0 if boot_check(args.port) else 1)
+        try:
+            esptool(args.port, ["write_flash", "0x0", args.restore_only])
+            ok = boot_check(args.port)
+        except Exception as e:
+            say(f"restore-only failed: {e}")
+            sys.exit(2)
+        sys.exit(0 if ok else 1)
 
     staging = Path(tempfile.mkdtemp(prefix="sdload-"))
     plan = stage(args, staging)
@@ -259,7 +273,7 @@ def main():
             try:
                 clock.reset()
                 ready = None
-                for text in clock.lines(25):
+                for text in clock.lines(35):
                     p = core.parse_line(text)
                     if p["kind"] == "ready":
                         ready = p
@@ -284,9 +298,11 @@ def main():
                 clock.close()
         finally:
             httpd.shutdown()
-    except Exception as e:
+    except BaseException as e:
         if not loader_flashed:
             raise
+        if isinstance(e, KeyboardInterrupt):
+            say("load: interrupted — restoring original flash before exiting")
         failure = e
 
     say("restore: writing original flash image back")

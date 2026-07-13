@@ -88,12 +88,17 @@ def format_get(url: str, name: str, size: int, crc: int) -> str:
 _READY = re.compile(r"^READY sd=(\w+) wifi=(\S+)$")
 _FILE = re.compile(r"^FILE (\S+) (\d+) ([0-9a-fA-F]{8})$")
 _PROG = re.compile(r"^PROG (\S+) (\d+)$")
+_OK_GOT = re.compile(r"^OK got (\S+) (\d+) ([0-9a-fA-F]{8})$")
 
 
 def parse_line(line: str) -> dict:
     line = line.strip()
     if m := _READY.match(line):
         return {"kind": "ready", "sd": m.group(1), "wifi": m.group(2)}
+    if m := _OK_GOT.match(line):
+        return {"kind": "ok", "detail": line[3:],
+                "got": {"name": m.group(1), "size": int(m.group(2)),
+                        "crc": int(m.group(3), 16)}}
     if line.startswith("OK "):
         return {"kind": "ok", "detail": line[3:]}
     if line.startswith("ERR "):

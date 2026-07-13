@@ -88,7 +88,8 @@ def test_format_get_is_tab_separated():
     ("READY sd=ok wifi=192.168.1.44", "ready",
      {"sd": "ok", "wifi": "192.168.1.44"}),
     ("READY sd=fail wifi=none", "ready", {"sd": "fail", "wifi": "none"}),
-    ("OK got birth.wav 12345 deadbeef", "ok", {}),
+    ("OK got birth.wav 12345 deadbeef", "ok",
+     {"got": {"name": "birth.wav", "size": 12345, "crc": 0xDEADBEEF}}),
     ("ERR get http 404", "err", {}),
     ("FILE lullaby1.wav 10485760 0012abcd", "file",
      {"name": "lullaby1.wav", "size": 10485760, "crc": 0x0012ABCD}),
@@ -100,6 +101,12 @@ def test_parse_line(line, kind, extra):
     assert got["kind"] == kind
     for k, v in extra.items():
         assert got[k] == v
+
+
+def test_parse_line_plain_ok_has_no_got_key():
+    got = core.parse_line("OK list")
+    assert got == {"kind": "ok", "detail": "list"}
+    assert "got" not in got
 
 
 def test_backup_name():

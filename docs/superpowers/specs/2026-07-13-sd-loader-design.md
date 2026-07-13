@@ -81,9 +81,15 @@ Steps, each narrated and each a hard gate:
    NVS creds, then one `G` per file; verify every `OK got` CRC. Finish
    with `L` and print the card's final contents. `--dry-run` instead
    transfers a generated 100 KB test WAV to `dryrun.tmp` and `D`s it.
-4. **Restore** — `esptool write_flash --verify 0x0 <backup>`, reset, then
+4. **Restore** — `esptool write_flash 0x0 <backup>` (esptool 4.x reads
+   back and verifies written data itself; the old `--verify` flag is
+   superfluous), reset, then
    reuse the boot-capture pattern to confirm health markers (boot banner,
-   no RTC error, SD mounted, frame rendered). Only then declare success.
+   setup-complete, no RTC error; a rendered frame or WiFi-Online line ends
+   the capture early when visible but is not required). Only then declare
+   success. The backup image itself is verified (exact flash size + ESP32
+   bootloader magic at 0x1000) before anything is flashed over the
+   original.
 
 Failure posture: once the loader has been flashed, any error triggers an
 automatic restore attempt (finally-block semantics). If even that fails,
@@ -106,13 +112,13 @@ production). CRC equality remains the formal proof; ears are the comfort.
 | read_flash fails at all baud rates | Abort; clock untouched (still running its firmware) |
 | Loader can't join WiFi | Reported over serial; tool restores flash and exits nonzero |
 | Download CRC mismatch | Retry ×3, then restore + fail |
-| Power loss mid-transfer | Only `.part` on card; existing files intact (atomic rename); next run's `D` cleans up |
+| Power loss mid-transfer | Only `.part` on card; existing files intact. The final swap (remove + rename — FAT can't overwrite-rename) has a millisecond window that can leave a slot empty; re-run the load to fill it |
 | Restore write fails | Retry at lower baud; if exhausted, print `--restore-only` recovery instructions |
 | Post-restore boot check fails | Exit nonzero with the backup path and capture transcript; flash image is still on disk |
 
 ## Testing
 
-- **pytest** (`firmware/tools/test_sd_load.py`, following the repo's
+- **pytest** (`firmware/tools/test_sd_load_core.py`, following the repo's
   existing pytest precedents): WAV header validation, CRC/staging, serial
   response parsing, command formatting — the pure-logic half of the host
   tool, structured so it imports without pyserial/esptool present.

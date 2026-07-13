@@ -53,3 +53,28 @@ jobs:
       - name: Run native tests
         working-directory: firmware
         run: pio test -e native --verbose
+      - name: SD loader host-tool tests
+        working-directory: firmware/tools
+        run: pip install pytest && python -m pytest test_sd_load_core.py -q
+
+  # The SD loader is a lifecycle tool expected to work years apart (next
+  # scheduled real use: Nora's build). Without this job a pinmap/NVS/
+  # toolchain drift would surface only at the next live cable session.
+  build-sd-loader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache PlatformIO
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.platformio/.cache
+            ~/.cache/pip
+          key: pio-sdloader-${{ runner.os }}-${{ hashFiles('firmware/tools/sd_loader/platformio.ini') }}
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+      - name: Build sd_loader
+        run: pio run -d firmware/tools/sd_loader

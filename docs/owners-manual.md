@@ -89,10 +89,12 @@ board), and `firmware/` (the program).
   lifted off its four posts, press the old cap's neck from the outside of
   the panel until it pops out of its socket, snap the new one in.
 - **Coin cell**: CR2032, any brand.
-- **Re-recording the audio** never requires opening the clock: the
-  recordings load over the USB cable using the loader tool in the
-  project repository (`firmware/tools/sd_load.py`). The back only
-  comes off for hardware — battery, or a physically failing card.
+- **Re-recording the audio** never requires opening the clock: with the
+  clock's USB cable plugged into a computer and the home WiFi up, the
+  loader tool in the project repository (`firmware/tools/sd_load.py`)
+  sends new recordings inside (the cable controls the clock; the audio
+  travels over WiFi). The back only comes off for hardware — battery,
+  or a physically failing card.
 - **Power**: any USB-C brick, 3 A / 15 W or better.
 
 ## Vital statistics

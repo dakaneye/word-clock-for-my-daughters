@@ -21,7 +21,7 @@ press declined to avoid skewing time — accepted). Night dim raised
       back panel; cable exits the back). Shelf needs nothing; wall needs
       a French cleat or equivalent standoff
 - [ ] Record real audio (parallel track below), then load it with
-      `firmware/tools/sd_load.py` — cable-only, no screws (spec:
+      `firmware/tools/sd_load.py` — no screws; needs the cable + home WiFi (spec:
       docs/superpowers/specs/2026-07-13-sd-loader-design.md). HARD
       DEADLINE: before Oct 6 (first live birthday fire). Verify by ear:
       Audio button for lullabies, bench 'b' for birth.wav.

@@ -68,14 +68,24 @@ static bool wifi_join(const String& ssid, const String& pw,
     return true;
 }
 
+// Distinguishes "no usable credentials" from "credentials present but the
+// join failed" so the READY line can report wifi=none vs wifi=failed —
+// the operator's next step differs (supply --wifi-ssid vs check the router).
+static const char* wifi_fail_state = "none";
+
 static bool wifi_from_nvs() {
     Preferences p;
     if (!p.begin("wifi", /*readOnly=*/true)) return false;
-    bool valid = p.getUChar("valid", 0) == 1;
+    // Same gate as nvs_store.cpp has_credentials(): the valid sentinel AND
+    // the schema version. A future NVS schema bump must not let this
+    // loader trust a differently-shaped credential record.
+    bool valid = p.getUChar("valid", 0) == 1 &&
+                 p.getUChar("schema_ver", 0) == 1;
     String ssid = p.getString("ssid", "");
     String pw = p.getString("pw", "");
     p.end();
     if (!valid || ssid.isEmpty()) return false;
+    wifi_fail_state = "failed";       // creds exist; a miss is a join failure
     return wifi_join(ssid, pw);
 }
 
@@ -168,6 +178,11 @@ static void cmd_get(const String& tail) {
         Serial.println("ERR get readback crc mismatch");
         return;
     }
+    // Swap the verified .part over the target. NOT atomic: this SD lib's
+    // rename can't overwrite, so remove must come first, and a power cut
+    // in that millisecond window leaves the slot empty (recover by
+    // re-running the load). Everything before this point leaves the
+    // original file untouched.
     SD.remove(name);
     if (!SD.rename(temp, name)) {
         Serial.println("ERR get rename failed");
@@ -228,7 +243,8 @@ void setup() {
     sd_ok = SD.begin(PIN_SD_CS);
     bool wifi = wifi_from_nvs();
     Serial.printf("READY sd=%s wifi=%s\n", sd_ok ? "ok" : "fail",
-                  wifi ? WiFi.localIP().toString().c_str() : "none");
+                  wifi ? WiFi.localIP().toString().c_str()
+                       : wifi_fail_state);
 }
 
 void loop() {

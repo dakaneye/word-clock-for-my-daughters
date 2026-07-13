@@ -32,10 +32,9 @@ import datetime
 import re
 import subprocess
 import sys
-import time
 from pathlib import Path
 
-import serial
+from serial_bridge import SerialBridge
 
 FIRMWARE = Path(__file__).resolve().parent.parent
 ORACLE_SRC = FIRMWARE / "tools" / "verify_frame.cpp"
@@ -52,40 +51,19 @@ ORACLE_SOURCES = [
 ORACLE_INCLUDES = ["lib/core/include", "lib/display/include"]
 
 
-class Board:
+class Board(SerialBridge):
+    """SerialBridge plus the bench-sim single-char command channel."""
+
     def __init__(self, port):
-        self.s = serial.Serial()
-        self.s.port = port
-        self.s.baudrate = 115200
-        self.s.timeout = 0.5
-        # Configure lines BEFORE open — avoids an accidental reset pulse.
-        self.s.dtr = False
-        self.s.rts = False
-        self.s.open()
+        super().__init__(port, timeout=0.5)
 
     def reset_and_capture(self, seconds):
-        """Replay-safe reset: hold EN low, flush the bridge's stale
-        buffer, release, then read the genuine boot."""
-        self.s.rts = True
-        deadline = time.time() + 1.5
-        while time.time() < deadline:
-            self.s.reset_input_buffer()
-            time.sleep(0.1)
-        self.s.rts = False
+        """Replay-safe reset (see serial_bridge), then read the boot."""
+        self.reset()
         return self.read(seconds)
 
     def read(self, seconds):
-        lines, last = [], None
-        start = time.time()
-        while time.time() - start < seconds:
-            raw = self.s.readline()
-            if not raw:
-                continue
-            text = raw.decode("utf-8", errors="replace").rstrip()
-            if text and text != last:
-                lines.append(text)
-                last = text
-        return lines
+        return list(self.lines(seconds))
 
     def send(self, ch):
         self.s.write(ch.encode())

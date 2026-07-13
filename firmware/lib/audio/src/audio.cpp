@@ -323,7 +323,13 @@ void play_lullaby() {
 }
 
 void play_birthday_message() {
-    if (!started || !sd_ok || !i2s_ok) return;
+    if (!started || !sd_ok || !i2s_ok) {
+        // This is a verification hook (bench 'b' after an SD reload):
+        // silence must be diagnosable, not ambiguous with a missed press.
+        Serial.println("[audio] birthday message requested but audio is "
+                       "not ready (SD/I2S)");
+        return;
+    }
     dispatch_event(PlaybackEvent::Kind::BirthdayFired);
 }
 

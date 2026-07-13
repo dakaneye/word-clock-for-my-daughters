@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Load/update the clock's SD audio over the captive USB cable.
+"""Load/update the clock's SD audio through the captive USB cable.
 
 Stages (each a hard gate, all narrated):
   1 stage    convert inputs to spec WAVs (afconvert), validate, CRC
-  2 backup   esptool read_flash of the ENTIRE flash to tools/.flash_backups/
-  3 load     flash the loader firmware, serve staged files over HTTP,
+  2 backup   esptool read_flash of the ENTIRE flash to tools/.flash_backups/,
+             then verify the image (size + bootloader magic) before trusting it
+  3 load     flash the loader firmware, serve staged files over the home WiFi
+             (HTTP; the cable carries flashing + serial control only),
              drive the serial protocol until every CRC matches
-  4 restore  esptool write_flash the backup back, verify boot markers
+  4 restore  esptool write_flash the backup back (esptool 4.x verifies
+             written data itself), then check boot markers
 
-If anything fails after the loader is flashed, the tool attempts the
-restore automatically and, failing that, prints the exact
+If anything fails once flashing has begun — including Ctrl-C — the tool
+attempts the restore automatically and, failing that, prints the exact
 --restore-only recovery command. Design:
 docs/superpowers/specs/2026-07-13-sd-loader-design.md
 """
 import argparse
+import fcntl
 import functools
 import http.server
 import math
@@ -25,14 +29,12 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
 import wave
 from datetime import datetime, timezone
 from pathlib import Path
 
-import serial
-
 import sd_load_core as core
+from serial_bridge import SerialBridge
 
 TOOLS = Path(__file__).resolve().parent
 LOADER = TOOLS / "sd_loader"
@@ -42,17 +44,19 @@ ESPTOOL = Path.home() / ".platformio/packages/tool-esptoolpy/esptool.py"
 BAUDS = (921600, 460800, 115200)
 PORT_DEFAULT = "/dev/cu.usbserial-0001"
 
+_IP_RE = re.compile(r"\d+\.\d+\.\d+\.\d+")
 
-def say(msg):
+
+def say(msg: str) -> None:
     print(f"== {msg}", flush=True)
 
 
-def run(cmd, **kw):
+def run(cmd, **kw) -> subprocess.CompletedProcess:
     print(f"   $ {' '.join(str(c) for c in cmd)}", flush=True)
     return subprocess.run([str(c) for c in cmd], check=True, **kw)
 
 
-def esptool(port, args, capture=False):
+def esptool(port: str, args: list, capture: bool = False):
     """Run esptool with baud fallback (clone CP2102 flakes at high baud)."""
     last = None
     for baud in BAUDS:
@@ -65,7 +69,23 @@ def esptool(port, args, capture=False):
     raise last
 
 
-def detect_flash_size(port) -> int:
+def acquire_port_lock(port: str):
+    """One sd_load per serial port. Two concurrent runs would interleave
+    backup/flash/restore and could restore the wrong image over a
+    correctly-restored clock. Returns the held file handle — keep it
+    referenced for the process lifetime."""
+    BACKUPS.mkdir(exist_ok=True)
+    lock_path = BACKUPS / (re.sub(r"\W", "_", port) + ".lock")
+    fh = lock_path.open("w")
+    try:
+        fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise SystemExit(
+            f"another sd_load.py already holds {port} — wait for it")
+    return fh
+
+
+def detect_flash_size(port: str) -> int:
     out = esptool(port, ["flash_id"], capture=True).stdout
     m = re.search(r"Detected flash size: (\d+)MB", out)
     if not m:
@@ -81,39 +101,10 @@ def lan_ip() -> str:
     return ip
 
 
-class Clock:
-    """Serial session against the loader (or clock) with the replay-safe
-    reset recipe — the clone CP2102 re-delivers stale buffers."""
+class Clock(SerialBridge):
+    """SerialBridge plus the loader's command/reply protocol."""
 
-    def __init__(self, port):
-        self.s = serial.Serial()
-        self.s.port = port
-        self.s.baudrate = 115200
-        self.s.timeout = 1.0
-        self.s.dtr = False
-        self.s.rts = False
-        self.s.open()
-
-    def reset(self):
-        self.s.rts = True
-        deadline = time.time() + 1.5
-        while time.time() < deadline:
-            self.s.reset_input_buffer()
-            time.sleep(0.1)
-        self.s.rts = False
-
-    def lines(self, seconds):
-        start, last = time.time(), None
-        while time.time() - start < seconds:
-            raw = self.s.readline()
-            if not raw:
-                continue
-            text = raw.decode("utf-8", errors="replace").strip()
-            if text and text != last:
-                last = text
-                yield text
-
-    def command(self, line, timeout=120):
+    def command(self, line: str, timeout: float = 120) -> dict:
         """Send one command; stream PROG lines; return the OK/ERR parse."""
         self.s.write(line.encode() if line.endswith("\n")
                      else (line + "\n").encode())
@@ -129,11 +120,8 @@ class Clock:
                       flush=True)
         return {"kind": "err", "detail": f"timeout waiting for reply to {line!r}"}
 
-    def close(self):
-        self.s.close()
 
-
-def make_test_wav(path: Path):
+def make_test_wav(path: Path) -> None:
     """100 KB 440 Hz test tone, spec format, for --dry-run."""
     with wave.open(str(path), "wb") as w:
         w.setnchannels(1)
@@ -168,7 +156,7 @@ def stage(args, staging: Path) -> dict:
     return plan
 
 
-def transfer(clock: Clock, plan: dict, ip: str, port: int):
+def transfer(clock: Clock, plan: dict, ip: str, port: int) -> None:
     for name, path in plan.items():
         size, crc = path.stat().st_size, core.file_crc32(path)
         url = f"http://{ip}:{port}/{path.name}"
@@ -176,12 +164,7 @@ def transfer(clock: Clock, plan: dict, ip: str, port: int):
         for attempt in range(3):
             reply = clock.command(core.format_get(url, name, size, crc))
             if reply["kind"] == "ok":
-                got = reply.get("got")
-                # A bare "OK ..." with no "got" payload (or one for a
-                # different file) is noise from the clone CP2102's stale
-                # line replay, not a real reply to this G command.
-                if got and got["name"] == name and got["size"] == size \
-                        and got["crc"] == crc:
+                if core.got_matches(reply, name, size, crc):
                     break
                 say(f"retry {attempt + 1}/3: stale/mismatched OK reply "
                     f"({reply['detail']!r}) for {name}")
@@ -198,10 +181,13 @@ def transfer(clock: Clock, plan: dict, ip: str, port: int):
     clock.command("L", timeout=300)
 
 
-def boot_check(port) -> bool:
+def boot_check(port: str) -> bool:
+    """PASS = boot banner + setup-complete seen and no RTC error within
+    30 s. A rendered frame / WiFi-Online transition ends the capture
+    early when it appears but is NOT required — a production build on
+    slow WiFi may take longer than the window to print either."""
     say("boot check: capturing restored firmware boot")
-    clock = Clock(port)
-    try:
+    with Clock(port) as clock:
         clock.reset()
         seen = set()
         for text in clock.lines(30):
@@ -210,17 +196,17 @@ def boot_check(port) -> bool:
                 seen.add("banner")
             if "[boot] audio::begin done" in text:
                 seen.add("setup")
+            if "[rtc] ERROR" in text:
+                seen.add("rtc_error")
             if "[bench] frame" in text or "-> Online" in text:
-                seen.add("alive")
                 break
-        return {"banner", "setup"} <= seen
-    finally:
-        clock.close()
+        return {"banner", "setup"} <= seen and "rtc_error" not in seen
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("directory", nargs="?", help="dir with lullaby1.*/lullaby2.*/birth.*")
+    ap.add_argument("directory", nargs="?",
+                    help="dir with lullaby1.*/lullaby2.*/birth.*")
     ap.add_argument("--lullaby1")
     ap.add_argument("--lullaby2")
     ap.add_argument("--birth")
@@ -232,11 +218,12 @@ def main():
     ap.add_argument("--wifi-pass", default="")
     args = ap.parse_args()
 
-    BACKUPS.mkdir(exist_ok=True)
+    port_lock = acquire_port_lock(args.port)   # held until process exit
 
     if args.restore_only:
         say(f"restore-only from {args.restore_only}")
         try:
+            core.validate_backup_image(Path(args.restore_only), None)
             esptool(args.port, ["write_flash", "0x0", args.restore_only])
             ok = boot_check(args.port)
         except Exception as e:
@@ -244,78 +231,85 @@ def main():
             sys.exit(2)
         sys.exit(0 if ok else 1)
 
-    staging = Path(tempfile.mkdtemp(prefix="sdload-"))
-    plan = stage(args, staging)
+    with tempfile.TemporaryDirectory(prefix="sdload-") as staging_dir:
+        staging = Path(staging_dir)
+        plan = stage(args, staging)
 
-    say("backup: reading full flash image")
-    size = detect_flash_size(args.port)
-    backup = BACKUPS / core.backup_name(datetime.now(timezone.utc))
-    esptool(args.port, ["read_flash", "0", hex(size), str(backup)])
-    say(f"backup saved: {backup} ({backup.stat().st_size} bytes)")
+        say("backup: reading full flash image")
+        size = detect_flash_size(args.port)
+        backup = BACKUPS / core.backup_name(datetime.now(timezone.utc))
+        esptool(args.port, ["read_flash", "0", hex(size), str(backup)])
+        core.validate_backup_image(backup, size)
+        say(f"backup saved + verified: {backup} ({size} bytes)")
 
-    loader_flashed = False
-    failure = None
-    try:
-        say("load: flashing loader firmware")
-        run([PIO, "run", "-d", LOADER, "-t", "upload",
-             "--upload-port", args.port])
-        loader_flashed = True
-
-        handler = functools.partial(
-            http.server.SimpleHTTPRequestHandler, directory=str(staging))
-        httpd = http.server.ThreadingHTTPServer(("0.0.0.0", 0), handler)
-        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        loader_flashed = False
+        failure = None
         try:
-            ip, http_port = lan_ip(), httpd.server_address[1]
-            say(f"serving staged files at http://{ip}:{http_port}/")
+            say("load: flashing loader firmware")
+            # Mark the flash dirty BEFORE the upload starts: a failed or
+            # interrupted upload can leave the chip partially written, so
+            # every exception from here on must route through the restore.
+            loader_flashed = True
+            run([PIO, "run", "-d", LOADER, "-t", "upload",
+                 "--upload-port", args.port])
 
-            clock = Clock(args.port)
+            ip = lan_ip()
+            handler = functools.partial(
+                http.server.SimpleHTTPRequestHandler, directory=str(staging))
+            httpd = http.server.ThreadingHTTPServer((ip, 0), handler)
+            threading.Thread(target=httpd.serve_forever, daemon=True).start()
             try:
-                clock.reset()
-                ready = None
-                for text in clock.lines(35):
-                    p = core.parse_line(text)
-                    if p["kind"] == "ready":
-                        ready = p
-                        break
-                if not ready:
-                    raise RuntimeError("loader never printed READY")
-                if ready["sd"] != "ok":
-                    raise RuntimeError("loader could not mount the SD card")
-                if not re.match(r"\d+\.\d+\.\d+\.\d+", ready["wifi"]):
-                    if not args.wifi_ssid:
-                        raise RuntimeError(
-                            "loader has no WiFi (NVS empty?) — pass "
-                            "--wifi-ssid/--wifi-pass for an unprovisioned board")
-                    say(f"wifi: joining {args.wifi_ssid} via W command")
-                    reply = clock.command(
-                        f"W {args.wifi_ssid}\t{args.wifi_pass}", timeout=30)
-                    if reply["kind"] != "ok":
-                        raise RuntimeError(f"loader WiFi join failed: "
-                                           f"{reply['detail']}")
-                transfer(clock, plan, ip, http_port)
-            finally:
-                clock.close()
-        finally:
-            httpd.shutdown()
-    except BaseException as e:
-        if not loader_flashed:
-            raise
-        if isinstance(e, KeyboardInterrupt):
-            say("load: interrupted — restoring original flash before exiting")
-        failure = e
+                http_port = httpd.server_address[1]
+                say(f"serving staged files at http://{ip}:{http_port}/")
 
-    say("restore: writing original flash image back")
-    try:
-        esptool(args.port, ["write_flash", "0x0", str(backup)])
-    except Exception as restore_exc:
-        if failure is not None:
-            say(f"load failed: {failure}")
-        say(f"RESTORE FAILED: {restore_exc}")
-        say("recover with:")
-        say(f"  python3 tools/sd_load.py --restore-only {backup} "
-            f"--port {args.port}")
-        sys.exit(2)
+                with Clock(args.port) as clock:
+                    clock.reset()
+                    ready = None
+                    for text in clock.lines(35):
+                        p = core.parse_line(text)
+                        if p["kind"] == "ready":
+                            ready = p
+                            break
+                    if not ready:
+                        raise RuntimeError("loader never printed READY")
+                    if ready["sd"] != "ok":
+                        raise RuntimeError("loader could not mount the SD card")
+                    if not _IP_RE.match(ready["wifi"]):
+                        if not args.wifi_ssid:
+                            why = ("stored WiFi credentials failed to join "
+                                   "(router down? clock moved?)"
+                                   if ready["wifi"] == "failed"
+                                   else "no WiFi credentials in NVS")
+                            raise RuntimeError(
+                                f"loader has no WiFi: {why} — pass "
+                                "--wifi-ssid/--wifi-pass to supply a network")
+                        say(f"wifi: joining {args.wifi_ssid} via W command")
+                        reply = clock.command(
+                            f"W {args.wifi_ssid}\t{args.wifi_pass}", timeout=30)
+                        if reply["kind"] != "ok":
+                            raise RuntimeError(f"loader WiFi join failed: "
+                                               f"{reply['detail']}")
+                    transfer(clock, plan, ip, http_port)
+            finally:
+                httpd.shutdown()
+        except BaseException as e:
+            if not loader_flashed:
+                raise
+            if isinstance(e, KeyboardInterrupt):
+                say("load: interrupted — restoring original flash before exiting")
+            failure = e
+
+        say("restore: writing original flash image back")
+        try:
+            esptool(args.port, ["write_flash", "0x0", str(backup)])
+        except Exception as restore_exc:
+            if failure is not None:
+                say(f"load failed: {failure}")
+            say(f"RESTORE FAILED: {restore_exc}")
+            say("recover with:")
+            say(f"  python3 tools/sd_load.py --restore-only {backup} "
+                f"--port {args.port}")
+            sys.exit(2)
 
     ok = boot_check(args.port)
     if failure is not None:

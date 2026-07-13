@@ -35,7 +35,6 @@ import serial
 import sd_load_core as core
 
 TOOLS = Path(__file__).resolve().parent
-FIRMWARE = TOOLS.parent
 LOADER = TOOLS / "sd_loader"
 BACKUPS = TOOLS / ".flash_backups"
 PIO = Path.home() / "Library/Python/3.9/bin/pio"
@@ -241,6 +240,7 @@ def main():
     say(f"backup saved: {backup} ({backup.stat().st_size} bytes)")
 
     loader_flashed = False
+    failure = None
     try:
         say("load: flashing loader firmware")
         run([PIO, "run", "-d", LOADER, "-t", "upload",
@@ -251,49 +251,64 @@ def main():
             http.server.SimpleHTTPRequestHandler, directory=str(staging))
         httpd = http.server.ThreadingHTTPServer(("0.0.0.0", 0), handler)
         threading.Thread(target=httpd.serve_forever, daemon=True).start()
-        ip, http_port = lan_ip(), httpd.server_address[1]
-        say(f"serving staged files at http://{ip}:{http_port}/")
-
-        clock = Clock(args.port)
         try:
-            clock.reset()
-            ready = None
-            for text in clock.lines(25):
-                p = core.parse_line(text)
-                if p["kind"] == "ready":
-                    ready = p
-                    break
-            if not ready:
-                raise RuntimeError("loader never printed READY")
-            if ready["sd"] != "ok":
-                raise RuntimeError("loader could not mount the SD card")
-            if not re.match(r"\d+\.\d+\.\d+\.\d+", ready["wifi"]):
-                if not args.wifi_ssid:
-                    raise RuntimeError(
-                        "loader has no WiFi (NVS empty?) — pass "
-                        "--wifi-ssid/--wifi-pass for an unprovisioned board")
-                say(f"wifi: joining {args.wifi_ssid} via W command")
-                reply = clock.command(
-                    f"W {args.wifi_ssid}\t{args.wifi_pass}", timeout=30)
-                if reply["kind"] != "ok":
-                    raise RuntimeError(f"loader WiFi join failed: "
-                                       f"{reply['detail']}")
-            transfer(clock, plan, ip, http_port)
-        finally:
-            clock.close()
-            httpd.shutdown()
-    finally:
-        if loader_flashed:
-            say("restore: writing original flash image back")
+            ip, http_port = lan_ip(), httpd.server_address[1]
+            say(f"serving staged files at http://{ip}:{http_port}/")
+
+            clock = Clock(args.port)
             try:
-                esptool(args.port, ["write_flash", "0x0", str(backup)])
-            except Exception:
-                say("RESTORE FAILED — recover with:")
-                say(f"  python3 tools/sd_load.py --restore-only {backup} "
-                    f"--port {args.port}")
-                raise
+                clock.reset()
+                ready = None
+                for text in clock.lines(25):
+                    p = core.parse_line(text)
+                    if p["kind"] == "ready":
+                        ready = p
+                        break
+                if not ready:
+                    raise RuntimeError("loader never printed READY")
+                if ready["sd"] != "ok":
+                    raise RuntimeError("loader could not mount the SD card")
+                if not re.match(r"\d+\.\d+\.\d+\.\d+", ready["wifi"]):
+                    if not args.wifi_ssid:
+                        raise RuntimeError(
+                            "loader has no WiFi (NVS empty?) — pass "
+                            "--wifi-ssid/--wifi-pass for an unprovisioned board")
+                    say(f"wifi: joining {args.wifi_ssid} via W command")
+                    reply = clock.command(
+                        f"W {args.wifi_ssid}\t{args.wifi_pass}", timeout=30)
+                    if reply["kind"] != "ok":
+                        raise RuntimeError(f"loader WiFi join failed: "
+                                           f"{reply['detail']}")
+                transfer(clock, plan, ip, http_port)
+            finally:
+                clock.close()
+        finally:
+            httpd.shutdown()
+    except Exception as e:
+        if not loader_flashed:
+            raise
+        failure = e
+
+    say("restore: writing original flash image back")
+    try:
+        esptool(args.port, ["write_flash", "0x0", str(backup)])
+    except Exception as restore_exc:
+        if failure is not None:
+            say(f"load failed: {failure}")
+        say(f"RESTORE FAILED: {restore_exc}")
+        say("recover with:")
+        say(f"  python3 tools/sd_load.py --restore-only {backup} "
+            f"--port {args.port}")
+        sys.exit(2)
 
     ok = boot_check(args.port)
+    if failure is not None:
+        say(f"load failed: {failure}")
+        say("restore: OK, boot check passed" if ok else
+            "restore: OK, boot check FAILED")
+        say(f"backup at {backup}")
+        sys.exit(1)
+
     say("SUCCESS — clock restored and healthy" if ok else
         f"restore wrote OK but boot check failed; backup at {backup}")
     sys.exit(0 if ok else 1)

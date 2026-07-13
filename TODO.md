@@ -20,7 +20,11 @@ press declined to avoid skewing time — accepted). Night dim raised
       and the clock can't hang flush (button caps sit 2.5 mm proud of the
       back panel; cable exits the back). Shelf needs nothing; wall needs
       a French cleat or equivalent standoff
-- [ ] Record real audio (parallel track below) and swap SD test files
+- [ ] Record real audio (parallel track below), then load it with
+      `firmware/tools/sd_load.py` — cable-only, no screws (spec:
+      docs/superpowers/specs/2026-07-13-sd-loader-design.md). HARD
+      DEADLINE: before Oct 6 (first live birthday fire). Verify by ear:
+      Audio button for lullabies, bench 'b' for birth.wav.
 - [ ] 30-day burn-in, then start Nora
 - [ ] G2 note: first-light bleed at the U1/U2/SW2 bridge keyholes not yet
       formally assessed — eyeball at night and tape on the PCB if needed

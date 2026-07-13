@@ -8,47 +8,114 @@
 #include "rtc.h"
 #include "wifi_provision.h"
 
+#ifdef BENCH_BACKDOOR_SSID
+// TEMP bench-only block — remove before final assembly. Injects WiFi
+// credentials directly into NVS (same atomic write the captive portal
+// uses) so bench iteration doesn't need the phone flow, and adds a
+// serial command channel ('h'/'m'/'a') that mirrors the button events.
+// Credentials arrive via -D build flags (pulled from the macOS keychain
+// at build time); nothing secret lives in this file or in git.
+#include "wifi_provision/form_parser.h"
+namespace wc::wifi_provision::nvs_store {
+    bool has_credentials();
+    bool write(const FormBody& body);
+}
+#endif
+
+static void handle_button_event(wc::buttons::Event e);
+
 void setup() {
     Serial.begin(115200);
     Serial.printf("word-clock booting for target: %s\n", CLOCK_NAME);
+    Serial.flush();  // TEMP boot breadcrumbs — remove after bench debug
+
+#ifdef BENCH_BACKDOOR_SSID
+    if (!wc::wifi_provision::nvs_store::has_credentials()) {
+        wc::wifi_provision::FormBody creds;
+        creds.ssid = BENCH_BACKDOOR_SSID;
+        creds.pw   = BENCH_BACKDOOR_PASS;
+        creds.tz   = "PST8PDT,M3.2.0,M11.1.0";
+        bool ok = wc::wifi_provision::nvs_store::write(creds);
+        Serial.printf("[bench] backdoor credential inject (%s): %s\n",
+                      BENCH_BACKDOOR_SSID, ok ? "OK" : "FAILED");
+        Serial.flush();
+    } else {
+        Serial.println("[bench] NVS already has credentials; backdoor idle");
+        Serial.flush();
+    }
+#endif
 
     wc::wifi_provision::begin();   // runs setenv/tzset on warm boot
+    Serial.println("[boot] wifi_provision::begin done"); Serial.flush();
     wc::rtc::begin();              // AFTER wifi_provision — load-bearing
                                    // so TZ is set before first now()
+    Serial.println("[boot] rtc::begin done"); Serial.flush();
     wc::ntp::begin();              // AFTER wifi_provision; warm-boot
                                    // resume reads NVS-stored last-sync
+    Serial.println("[boot] ntp::begin done"); Serial.flush();
     wc::display::begin();
+    Serial.println("[boot] display::begin done"); Serial.flush();
 
-    wc::buttons::begin([](wc::buttons::Event e) {
-        using BE = wc::buttons::Event;
-        using WS = wc::wifi_provision::State;
-        switch (e) {
-            case BE::HourTick:
-                wc::rtc::advance_hour();
-                break;
-            case BE::MinuteTick:
-                wc::rtc::advance_minute();
-                break;
-            case BE::AudioPressed:
-                if (wc::wifi_provision::state() == WS::AwaitingConfirmation) {
-                    wc::wifi_provision::confirm_audio();
-                } else if (wc::audio::is_playing()) {
-                    wc::audio::stop();
-                } else {
-                    wc::audio::play_lullaby();
-                }
-                break;
-            case BE::ResetCombo:
-                Serial.println("[buttons] ResetCombo — resetting to captive portal");
-                wc::wifi_provision::reset_to_captive();
-                break;
-        }
-    });
+    wc::buttons::begin(handle_button_event);
+    Serial.println("[boot] buttons::begin done"); Serial.flush();
     wc::audio::begin({CLOCK_BIRTH_MONTH, CLOCK_BIRTH_DAY,
                       CLOCK_BIRTH_HOUR,  CLOCK_BIRTH_MINUTE});
+    Serial.println("[boot] audio::begin done — setup complete"); Serial.flush();
+}
+
+static void handle_button_event(wc::buttons::Event e) {
+    using BE = wc::buttons::Event;
+    using WS = wc::wifi_provision::State;
+    switch (e) {
+        case BE::HourTick:
+            wc::rtc::advance_hour();
+            break;
+        case BE::MinuteTick:
+            wc::rtc::advance_minute();
+            break;
+        case BE::AudioPressed:
+            if (wc::wifi_provision::state() == WS::AwaitingConfirmation) {
+                wc::wifi_provision::confirm_audio();
+            } else if (wc::audio::is_playing()) {
+                wc::audio::stop();
+            } else {
+                wc::audio::play_lullaby();
+            }
+            break;
+        case BE::ResetCombo:
+            Serial.println("[buttons] ResetCombo — resetting to captive portal");
+            wc::wifi_provision::reset_to_captive();
+            break;
+    }
 }
 
 void loop() {
+#ifdef BENCH_BACKDOOR_SSID
+#define BENCH_SIM 1
+#endif
+#ifdef BENCH_SIM
+    // TEMP: serial button simulation — 'h' hour, 'm' minute, 'a' audio,
+    // 'X' reset-to-captive (wipes NVS + restarts — bench only).
+    // Same dispatch as the physical switches; ResetCombo deliberately
+    // not exposed (it wipes NVS).
+    while (Serial.available()) {
+        char c = (char)Serial.read();
+        using BE = wc::buttons::Event;
+        if      (c == 'h') { Serial.println("[bench] sim HourTick");     handle_button_event(BE::HourTick); }
+        else if (c == 'm') { Serial.println("[bench] sim MinuteTick");   handle_button_event(BE::MinuteTick); }
+        else if (c == 'a') { Serial.println("[bench] sim AudioPressed"); handle_button_event(BE::AudioPressed); }
+        else if (c == 'r') {
+            // Restore DS3231 from the NTP-true system clock (button ticks
+            // above only skew the DS3231, never the system clock).
+            wc::rtc::set_from_epoch((uint32_t)time(nullptr));
+            Serial.println("[bench] DS3231 restored from system clock");
+        }
+        else if (c == 'X') {
+            Serial.println("[bench] reset_to_captive (NVS wipe + restart)");
+            wc::wifi_provision::reset_to_captive();
+        }
+    }
+#endif
     wc::wifi_provision::loop();
     wc::buttons::loop();
     wc::ntp::loop();               // sync scheduler; no-op when not Online
@@ -105,7 +172,33 @@ void loop() {
             in.seconds_since_sync = sync_age;
             in.birthday = {CLOCK_BIRTH_MONTH, CLOCK_BIRTH_DAY,
                            CLOCK_BIRTH_HOUR,  CLOCK_BIRTH_MINUTE};
-            wc::display::show(wc::display::render(in));
+            wc::display::Frame frame = wc::display::render(in);
+#ifdef BENCH_SIM
+            // TEMP: log the lit-LED set whenever it changes so the face
+            // can be verified over serial without eyes on the board.
+            {
+                static uint64_t last_sig = 0;
+                uint64_t sig = 0;
+                int lit = 0;
+                for (int i = 0; i < (int)frame.size(); i++) {
+                    if (frame[i].r | frame[i].g | frame[i].b) {
+                        sig ^= 0x9E3779B97F4A7C15ull * (uint64_t)(i + 1);
+                        lit++;
+                    }
+                }
+                sig ^= (uint64_t)lit << 56;
+                if (sig != last_sig) {
+                    last_sig = sig;
+                    Serial.printf("[bench] frame %02u:%02u lit=%d idx=",
+                                  in.hour, in.minute, lit);
+                    for (int i = 0; i < (int)frame.size(); i++)
+                        if (frame[i].r | frame[i].g | frame[i].b)
+                            Serial.printf("%d,", i);
+                    Serial.println();
+                }
+            }
+#endif
+            wc::display::show(frame);
         } else {
             // Pre-first-sync: blank. Captive portal is running here;
             // displaying UTC (or DS3231 lost-power garbage) would be

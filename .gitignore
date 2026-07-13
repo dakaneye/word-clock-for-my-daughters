@@ -48,3 +48,7 @@ firmware/.cache/
 
 # host-compiled frame oracle (bench_acceptance.py builds it on demand)
 firmware/tools/.verify_frame
+
+# SD-loader build artifacts
+firmware/tools/sd_loader/.pio/
+firmware/tools/.flash_backups/

@@ -164,8 +164,23 @@ REG_HOLE_D_MM    = 2.2               # glue-up registration: drop 2 mm drill
 
 # Cable cleat: on the bottom web along the ESP32→exit run (interior view).
 CLEAT_POS_IN     = (129.0, 158.0)
-CLEAT_GAP_MM     = 3.6               # snap gap for the USB cable jacket
+CLEAT_GAP_MM     = 4.4               # jacket measured ⌀4.5 (2026-07-12);
+                                     # light grip. The original 3.6 was a
+                                     # guess and too small on the bench.
+CLEAT_NUB_MM     = 0.6               # per-side snap nub; top opening =
+                                     # gap − 2×nub = 3.2 — the 4.5 jacket
+                                     # squeezes past and seats
 CLEAT_H_MM       = 8.0
+
+# Grommet + cable clearance at the panel's USB exit hole. The grommet's
+# wide flange sits on the panel EXTERIOR; the interior side still sees its
+# sleeve + retaining lip through the ⌀16 hole, and the plate's bottom ring
+# band (y ≥ 170.9) overlaps that footprint — Emory's plate was hand-cut on
+# the bench (2026-07-12) to clear it. This puts the clearance in CAD.
+CABLE_EXIT_IN    = (165.0, 170.0)    # render_back_panel.py
+                                     # USB_CABLE_EXIT_CENTER (panel-native:
+                                     # interior == outside-view values)
+GROMMET_CLEAR_D_MM = 22.0            # ⌀16 hole + lip + margin
 
 # Keep-out windows (kicad frame, conservative, from daughtercards.md +
 # pcbnew): the skeleton must not put material under these.
@@ -302,10 +317,16 @@ def build_plate(crop=None):
         fx = ccx + sgn * (CLEAT_GAP_MM / 2)          # inner face of finger
         finger = Pos(min(fx, fx + sgn * 2.5), ccy - 5.0, WEB_T_MM) * Box(
             2.5, 10.0, CLEAT_H_MM, align=BOTTOM)
-        nub = Pos(min(fx, fx - sgn * 1.0), ccy - 5.0,
+        nub = Pos(min(fx, fx - sgn * CLEAT_NUB_MM), ccy - 5.0,
                   WEB_T_MM + CLEAT_H_MM - 2.0) * Box(
-            1.0, 10.0, 2.0, align=BOTTOM)
+            CLEAT_NUB_MM, 10.0, 2.0, align=BOTTOM)
         plate = _fuse(plate + finger + nub)
+
+    # grommet + cable clearance at the panel's USB exit hole
+    gx, gy = CABLE_EXIT_IN
+    grommet = Pos(gx, gy, -0.1) * Cylinder(
+        GROMMET_CLEAR_D_MM / 2, WEB_T_MM + 0.2, align=CENTER_B)
+    plate = _fuse(plate - grommet)
 
     # orientation chamfer at the H1 (kicad 0,0) corner of the ring
     cc = IN(0, 0)

@@ -45,3 +45,6 @@ enclosure/scripts/__pycache__/
 **/.pytest_cache/
 **/__pycache__/
 firmware/.cache/
+
+# host-compiled frame oracle (bench_acceptance.py builds it on demand)
+firmware/tools/.verify_frame

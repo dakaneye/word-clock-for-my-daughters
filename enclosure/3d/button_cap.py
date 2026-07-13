@@ -21,11 +21,11 @@ Shape (exterior face at top, plunger contact at bottom):
          |  STEM     <- 5 mm dia; spans the air gap between panel
          |              interior and the tact-switch plunger
          |
-         +
-         X           <- POCKET: small cavity at the bottom of the stem
-         X              that fits over the plunger tip (0.15 mm
-         +              clearance per side); keeps the cap centered
-                        on the plunger so it doesn't slide sideways
+       +---+
+       |   |         <- ANVIL: 8.2 mm dia flat disc that presses the
+       +---+            plunger anywhere within ±2 mm of nominal; its
+                        cylindrical section rides in the carrier's
+                        per-cap guide bore (see pcb_carrier.py)
 
 Install procedure (Phase F8 of `docs/hardware/assembly-plan.md`):
   Lay back panel interior-side-up on the bench. Drop a cap into each
@@ -37,11 +37,14 @@ History: original design had an 8 mm HEAD on top of the neck so the
 cap could be pushed in from outside and self-retain. That made it
 geometrically impossible to install through a 6.5 mm hole (both the
 head and the flange were 8 mm — neither could thread through). Fix
-applied 2026-04-25: drop the head, install from interior, accept that
-caps fall loose when the back panel is removed for service (manageable
-on the 5-year battery cadence by holding the panel cap-side-up during
-swaps). Inward over-press is now limited by the tact switch's own
-travel rather than a head-on-panel hard stop.
+applied 2026-04-25: drop the head, install from interior. Caps
+originally fell loose whenever the back panel came off; since
+2026-07-11 each cap SNAPS through a hole in the carrier plate's
+retention pad roof (pcb_carrier.py) — captive with the panel through
+any service event, yet interchangeable: press the neck from the panel
+exterior (board off) and the cap pops back out. Inward over-press is
+limited by the tact switch's own travel rather than a head-on-panel
+hard stop.
 
 All dimensions in millimeters. Sources:
   - Tact switch geometry: DAOKI 6x6x4.3 mm 4-pin THT — total height
@@ -78,7 +81,11 @@ PLUNGER_HEIGHT_ABOVE_BODY =  1.6  # measured: plunger protrudes 1.6 mm
 # From render_back_panel.py + pcb_standoff.py:
 PANEL_HOLE_DIA_MM   =  6.5
 PANEL_THICKNESS_MM  =  3.2
-STANDOFF_LIFT_MM    = 22.0  # base 2 + post 20 (stub sits inside PCB)
+STANDOFF_LIFT_MM    = 28.4  # carrier web 2.5 + post 25.9.
+                            # STACK CORRECTION 2026-07-09: the frame cavity
+                            # is the full 48.0 (face ON TOP of the walls,
+                            # panel UNDERNEATH); the old 22.0 came from a
+                            # table that counted face+panel inside the 48.
 SWITCH_BODY_HEIGHT  =  2.7  # body alone (4.3 mm total - 1.6 mm plunger).
                             # Verify with calipers if your switches differ.
 
@@ -100,8 +107,24 @@ NECK_HEIGHT_MM     = PANEL_THICKNESS_MM + 2.5  # 5.7 mm — 2.5 mm proud at rest
 # stops at the panel) and rest stop (spring pushes cap back out until
 # flange hits panel interior again). 8 mm > 6.5 mm hole — never passes
 # through, by design.
-FLANGE_DIA_MM      = 8.0
-FLANGE_HEIGHT_MM   = 1.0
+#
+# SNAP FIT (2026-07-11): the flange also snaps through the carrier pad's
+# roof hole (SNAP_HOLE_D_MM in pcb_carrier.py, ~7.9 nominal). Going IN,
+# the 45° lower cone cams the flange through; coming OUT (press the neck
+# from the panel exterior, board off), the REMOVAL CHAMFER on top of the
+# rim cams it back. Between snaps the ⌀8 band rides captive under the
+# roof lip. Calibrate the hole with pcb_carrier.py --part snap-test.
+# RESIZED ⌀9→⌀8 (2026-07-12): ⌀8 still can't pass the 6.5 panel hole,
+# and the smaller flange is what makes the carrier's per-cap guide bores
+# printable at the 10 mm pitch (1.0 mm webs between ⌀9 bores).
+FLANGE_DIA_MM      = 8.0    # > 6.5 panel hole; fits the ⌀9 guide bore
+FLANGE_CONE_H_MM   = 0.9    # 45-deg cone from neck to flange = no support
+FLANGE_BAND_H_MM   = 0.4    # cylindrical land at full ⌀8 (the snap lip
+                            # engagement surface)
+FLANGE_RCONE_H_MM  = 0.6    # removal chamfer, ⌀8 → ⌀6.8 (45°)
+FLANGE_RCONE_TOP_D = 6.8
+FLANGE_HEIGHT_MM   = (FLANGE_CONE_H_MM + FLANGE_BAND_H_MM
+                      + FLANGE_RCONE_H_MM)
 
 # Stem: bridges the air gap to the plunger AND extends slightly BELOW
 # the plunger tip at rest, so the bottom of the stem (the pocket
@@ -109,13 +132,24 @@ FLANGE_HEIGHT_MM   = 1.0
 # of it. Without this capture, the cap can slide laterally off the
 # plunger when pressed even slightly off-axis.
 #
-# AT_REST_CAPTURE: how far the plunger sits inside the pocket when the
-# cap is at rest (flange against panel interior, spring force holding
-# it up). 0.6 mm = ~37% of the 1.6 mm plunger height, deep enough to
-# feel positively engaged with PLA ±0.2 mm tolerance.
-AT_REST_CAPTURE_MM = 0.6
+# ANVIL (2026-07-09, resized 2026-07-12): the stem ends in a flat disc
+# that presses the plunger anywhere within ±2.0 mm of nominal — 4× the
+# real position error a THT switch can have (4 pins in plated holes cap
+# it at ~±0.5 mm; the "~3 mm offset" once measured on the bench was the
+# mis-built early coupon, not the switch). The old plunger-hugging
+# pocket is obsolete: the carrier's snap pocket keeps the cap captive
+# and its GUIDE BORE (TOWER_BORE_D_MM in pcb_carrier.py) rides the
+# anvil disc, holding the cap rigid at three heights (neck / flange /
+# anvil) so it meets its switch square with no lean. The disc is 2.4
+# tall so the bore guides the cylindrical section, not the cone; the
+# cone is 42° to stay support-free printed neck-down.
+AT_REST_GAP_MM     = 0.3    # anvil hovers this far above the plunger tip
 STEM_DIA_MM        = 5.0
-STEM_HEIGHT_MM     = AIR_GAP_MM - FLANGE_HEIGHT_MM + AT_REST_CAPTURE_MM
+ANVIL_DIA_MM       = 8.2    # keep in sync with pcb_carrier.py CAP_ANVIL_D_MM
+ANVIL_CONE_H_MM    = 1.8
+ANVIL_T_MM         = 2.4
+STEM_HEIGHT_MM     = (AIR_GAP_MM - FLANGE_HEIGHT_MM - ANVIL_CONE_H_MM
+                      - ANVIL_T_MM - AT_REST_GAP_MM)
 
 # Pocket at the bottom of the stem — wraps around the plunger.
 # Pocket depth must exceed AT_REST_CAPTURE so the plunger tip doesn't
@@ -128,8 +162,7 @@ STEM_HEIGHT_MM     = AIR_GAP_MM - FLANGE_HEIGHT_MM + AT_REST_CAPTURE_MM
 # (with K = 0.6). For click before bottom-out: D + 0.3 < 1.6, i.e.
 # D < 1.3. POCKET_DEPTH = 1.0 leaves 0.3 mm margin AND keeps the
 # plunger tip 0.4 mm clear of the ceiling at rest.
-POCKET_DIA_MM      = PLUNGER_DIA_MM + 0.3  # 0.15 mm clearance per side
-POCKET_DEPTH_MM    = 1.0
+
 
 # ─── Geometry ────────────────────────────────────────────────────
 # Stack from bottom (build-plate) to top: NECK → FLANGE → STEM.
@@ -142,25 +175,23 @@ BOTTOM = (Align.CENTER, Align.CENTER, Align.MIN)
 neck = Cylinder(NECK_DIA_MM / 2, NECK_HEIGHT_MM, align=BOTTOM)
 
 flange_z = NECK_HEIGHT_MM
-flange = Pos(0, 0, flange_z) * Cylinder(
-    FLANGE_DIA_MM / 2, FLANGE_HEIGHT_MM, align=BOTTOM
-)
+fcone = Pos(0, 0, flange_z) * Cone(
+    NECK_DIA_MM / 2, FLANGE_DIA_MM / 2, FLANGE_CONE_H_MM, align=BOTTOM)
+fband = Pos(0, 0, flange_z + FLANGE_CONE_H_MM) * Cylinder(
+    FLANGE_DIA_MM / 2, FLANGE_BAND_H_MM, align=BOTTOM)
+frcone = Pos(0, 0, flange_z + FLANGE_CONE_H_MM + FLANGE_BAND_H_MM) * Cone(
+    FLANGE_DIA_MM / 2, FLANGE_RCONE_TOP_D / 2, FLANGE_RCONE_H_MM,
+    align=BOTTOM)
 
 stem_z = flange_z + FLANGE_HEIGHT_MM
 stem = Pos(0, 0, stem_z) * Cylinder(
-    STEM_DIA_MM / 2, STEM_HEIGHT_MM, align=BOTTOM
-)
-
-solid = neck + flange + stem
-
-# Pocket: subtract a cylinder from the top of the stem (which becomes
-# the plunger contact face after the cap is flipped into install
-# orientation).
-pocket_z = stem_z + STEM_HEIGHT_MM - POCKET_DEPTH_MM
-pocket = Pos(0, 0, pocket_z) * Cylinder(
-    POCKET_DIA_MM / 2, POCKET_DEPTH_MM + 0.01, align=BOTTOM
-)
-cap = solid - pocket
+    STEM_DIA_MM / 2, STEM_HEIGHT_MM, align=BOTTOM)
+acone_z = stem_z + STEM_HEIGHT_MM
+acone = Pos(0, 0, acone_z) * Cone(
+    STEM_DIA_MM / 2, ANVIL_DIA_MM / 2, ANVIL_CONE_H_MM, align=BOTTOM)
+anvil = Pos(0, 0, acone_z + ANVIL_CONE_H_MM) * Cylinder(
+    ANVIL_DIA_MM / 2, ANVIL_T_MM, align=BOTTOM)
+cap = neck + fcone + fband + frcone + stem + acone + anvil
 
 # ─── Export ──────────────────────────────────────────────────────
 
@@ -169,13 +200,10 @@ out_dir.mkdir(exist_ok=True)
 stl_path = out_dir / "button_cap.stl"
 export_stl(cap, str(stl_path))
 
-total_height = NECK_HEIGHT_MM + FLANGE_HEIGHT_MM + STEM_HEIGHT_MM
+total_height = (NECK_HEIGHT_MM + FLANGE_HEIGHT_MM + STEM_HEIGHT_MM
+                + ANVIL_CONE_H_MM + ANVIL_T_MM)
 print(f"wrote {stl_path}")
-print(f"  neck:    {NECK_DIA_MM:>5.1f} mm dia x {NECK_HEIGHT_MM:>4.1f} mm "
-      f"({NECK_HEIGHT_MM - PANEL_THICKNESS_MM:.1f} mm proud of "
-      f"{PANEL_THICKNESS_MM:.1f} mm panel at rest)")
-print(f"  flange:  {FLANGE_DIA_MM:>5.1f} mm dia x {FLANGE_HEIGHT_MM:>4.1f} mm "
-      f"(catches on panel interior)")
-print(f"  stem:    {STEM_DIA_MM:>5.1f} mm dia x {STEM_HEIGHT_MM:>4.1f} mm")
-print(f"  pocket:  {POCKET_DIA_MM:>5.1f} mm dia x {POCKET_DEPTH_MM:>4.1f} mm deep")
-print(f"  overall: {total_height:>5.1f} mm tall (air-gap budget {AIR_GAP_MM:.1f} mm)")
+print(f"  flange: {FLANGE_DIA_MM:.1f} dia, snap band {FLANGE_BAND_H_MM:.1f}"
+      f" + removal chamfer to {FLANGE_RCONE_TOP_D:.1f} (support-free)")
+print(f"  anvil:  {ANVIL_DIA_MM:.1f} dia flat — tolerates ±{(ANVIL_DIA_MM-PLUNGER_DIA_MM)/2:.1f} mm switch offset")
+print(f"  total:  {total_height:.1f} mm  (stack lift {STANDOFF_LIFT_MM:.1f})")

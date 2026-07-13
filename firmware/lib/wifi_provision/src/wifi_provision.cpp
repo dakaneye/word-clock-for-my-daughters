@@ -40,7 +40,7 @@ namespace wc::wifi_provision::dns_hijack {
 }
 
 namespace wc::wifi_provision::web {
-    void begin(std::function<void(const FormBody&)> on_submit,
+    void begin(std::function<bool(const FormBody&)> on_submit,
                std::function<std::string()> status);
     void loop();
     void stop();
@@ -56,6 +56,7 @@ static State last_logged_state = State::Boot;
 static uint32_t ap_started_at = 0;
 static uint32_t awaiting_started_at = 0;
 static uint32_t validating_started_at = 0;
+static uint32_t validating_last_begin_at = 0;
 static uint32_t last_validating_heartbeat_at = 0;
 static uint32_t last_sta_attempt_at = 0;
 static uint32_t sta_backoff_ms = 2000;
@@ -133,21 +134,24 @@ static void start_ap() {
                   ssid, ip.toString().c_str());
     dns_hijack::begin(ip);
     web::begin(
-        [](const FormBody& body) {
+        [](const FormBody& body) -> bool {
             // Only a submit while genuinely in ApActive starts the
             // confirmation flow. A duplicate POST arriving while already
             // AwaitingConfirmation (an iOS re-probe, a second browser tab)
             // must not silently swap the pending credentials or reset the
             // 60 s timer — FormSubmitted is a no-op transition there anyway.
+            // Returning false tells the web layer not to count it against
+            // the rate limit or arm a waiting page nobody is listening to.
             if (sm.state() != State::ApActive) {
                 Serial.println("[wifi_provision] ignoring submit; not in ApActive");
-                return;
+                return false;
             }
             pending = body;
             sm.handle(Event::FormSubmitted);
             awaiting_started_at = millis();
             Serial.println("[wifi_provision] form accepted; awaiting audio confirm");
             log_state_if_changed();
+            return true;
         },
         confirmation_message
     );
@@ -204,6 +208,7 @@ static void start_validating() {
     WiFi.mode(WIFI_STA);
     WiFi.begin(pending.ssid.c_str(), pending.pw.c_str());
     validating_started_at = millis();
+    validating_last_begin_at = validating_started_at;
     last_validating_heartbeat_at = 0;
     Serial.printf("[wifi_provision] validating credentials for SSID=%s\n",
                   pending.ssid.c_str());
@@ -290,6 +295,37 @@ void loop() {
                 Serial.printf("[wifi_provision] connecting to home WiFi... (%us elapsed)\n",
                               elapsed_s);
                 last_validating_heartbeat_at = now;
+            }
+            // The first STA attempt right after a SoftAP teardown is
+            // empirically flaky on ESP32 (see the keep-AP-up revert note
+            // above): a terminal status can land seconds in, on known-good
+            // credentials. One WiFi.begin() per 60 s window turned that
+            // flake into a user-visible provisioning failure with the
+            // phone already kicked off the AP (bench 2026-07-05, NVS left
+            // empty). Re-kick the trial connection on terminal status,
+            // rate-limited, within the same 60 s window.
+            {
+                const wl_status_t st = WiFi.status();
+                // Hard failures retry after 5 s. WL_DISCONNECTED is the
+                // NORMAL in-progress status while associating, so it only
+                // counts as stalled after 30 s — patient enough for the
+                // slow handshakes seen on a congested band (2026-04-20),
+                // early enough that a genuinely stuck attempt still gets
+                // one full retry inside the 60 s window.
+                const bool hard_fail =
+                    (st == WL_NO_SSID_AVAIL || st == WL_CONNECT_FAILED ||
+                     st == WL_CONNECTION_LOST);
+                const bool stalled = (st == WL_DISCONNECTED);
+                const uint32_t patience_ms = hard_fail ? 5000UL : 30000UL;
+                if (st != WL_CONNECTED && (hard_fail || stalled) &&
+                    now - validating_last_begin_at >= patience_ms) {
+                    Serial.printf("[wifi_provision] trial connect stalled "
+                                  "(status=%d); retrying within window\n",
+                                  (int)st);
+                    WiFi.disconnect(/* wifioff = */ false);
+                    WiFi.begin(pending.ssid.c_str(), pending.pw.c_str());
+                    validating_last_begin_at = now;
+                }
             }
             if (WiFi.status() == WL_CONNECTED) {
                 Serial.printf("[wifi_provision] validated; committing creds (SSID=%s)\n",

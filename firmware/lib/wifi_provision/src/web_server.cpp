@@ -15,7 +15,11 @@
 
 namespace wc::wifi_provision::web {
 
-using SubmitHandler = std::function<void(const FormBody&)>;
+// Returns true iff the orchestrator actually accepted the credentials and
+// armed the audio-confirmation flow. False means the submit was dropped
+// (e.g. not in ApActive) — the web layer must not count it against the
+// rate limit or claim "waiting for Audio" for a submit nobody is waiting on.
+using SubmitHandler = std::function<bool(const FormBody&)>;
 using ConfirmationStatus = std::function<std::string()>;
 
 static WebServer& server() {
@@ -244,10 +248,25 @@ static void handle_submit() {
         return;
     }
 
-    submit_count++;
-    submit_accepted = true;
-    on_submit(parsed);
-    server().send(200, "text/html; charset=utf-8", render_waiting_page().c_str());
+    const bool accepted = on_submit(parsed);
+    if (accepted) {
+        // Real accept: orchestrator armed the confirmation flow. Count it
+        // against the per-AP rate limit and pin the waiting page.
+        submit_count++;
+        submit_accepted = true;
+        server().send(200, "text/html; charset=utf-8", render_waiting_page().c_str());
+    } else if (submit_accepted) {
+        // Duplicate POST while already AwaitingConfirmation (iOS captive
+        // re-probe, second tab). The flow is armed from the first submit —
+        // re-serve the waiting page but do NOT burn a rate-limit slot.
+        server().send(200, "text/html; charset=utf-8", render_waiting_page().c_str());
+    } else {
+        // Dropped and nothing armed (e.g. a POST racing a state change).
+        // Tell the truth instead of showing a "press Audio" page that no
+        // one is listening to.
+        last_error = "The clock wasn't ready for that — please try again.";
+        server().send(409, "text/html", render_form().c_str());
+    }
 }
 
 static void handle_status() {

@@ -93,14 +93,14 @@ void test_multi_signal_transition_is_atomic(void) {
         const WordId w = static_cast<WordId>(i);
         const Rgb c = f[index_of(w)];
         if (word_in(w, lit)) {
-            // Time words: warm white × dim = {26, 17, 10}.
-            TEST_ASSERT_EQUAL_UINT8_MESSAGE(26, c.r,
+            // Time words: warm white × dim = {64, 43, 25}.
+            TEST_ASSERT_EQUAL_UINT8_MESSAGE(64, c.r,
                 "time word R should be warm-white × dim");
-            TEST_ASSERT_EQUAL_UINT8(17, c.g);
-            TEST_ASSERT_EQUAL_UINT8(10, c.b);
+            TEST_ASSERT_EQUAL_UINT8(43, c.g);
+            TEST_ASSERT_EQUAL_UINT8(25, c.b);
         } else if (is_decor(w)) {
             // Decor words: rainbow value at now_ms=0 × dim.
-            // Rainbow produces saturated colors; dim scales by 26/255,
+            // Rainbow produces saturated colors; dim scales by 64/255,
             // which keeps at-least-one channel non-zero. Assert not-black.
             const bool not_black = (c.r != 0) || (c.g != 0) || (c.b != 0);
             TEST_ASSERT_TRUE_MESSAGE(not_black,

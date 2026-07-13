@@ -13,10 +13,10 @@ void test_full_bright_midday(void) {
 }
 
 void test_dim_at_night(void) {
-    TEST_ASSERT_EQUAL_FLOAT(0.1f, brightness(19, 0));  // 7 PM — first dim minute
-    TEST_ASSERT_EQUAL_FLOAT(0.1f, brightness(22, 30));
-    TEST_ASSERT_EQUAL_FLOAT(0.1f, brightness(0,  0));
-    TEST_ASSERT_EQUAL_FLOAT(0.1f, brightness(7, 59));  // 7:59 AM — last dim minute
+    TEST_ASSERT_EQUAL_FLOAT(0.25f, brightness(19, 0));  // 7 PM — first dim minute
+    TEST_ASSERT_EQUAL_FLOAT(0.25f, brightness(22, 30));
+    TEST_ASSERT_EQUAL_FLOAT(0.25f, brightness(0,  0));
+    TEST_ASSERT_EQUAL_FLOAT(0.25f, brightness(7, 59));  // 7:59 AM — last dim minute
 }
 
 // brightness() is hour-granular: the minute argument must not change the result.
@@ -30,13 +30,13 @@ void test_minute_independent_full_bright_hour(void) {
 
 void test_minute_independent_evening_dim_hour(void) {
     for (uint8_t m = 0; m < 60; ++m) {
-        TEST_ASSERT_EQUAL_FLOAT(0.1f, brightness(20, m)); // 8 PM: dim every minute
+        TEST_ASSERT_EQUAL_FLOAT(0.25f, brightness(20, m)); // 8 PM: dim every minute
     }
 }
 
 void test_minute_independent_predawn_dim_hour(void) {
     for (uint8_t m = 0; m < 60; ++m) {
-        TEST_ASSERT_EQUAL_FLOAT(0.1f, brightness(3, m));  // 3 AM: dim every minute
+        TEST_ASSERT_EQUAL_FLOAT(0.25f, brightness(3, m));  // 3 AM: dim every minute
     }
 }
 

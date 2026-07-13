@@ -3,6 +3,40 @@
 Living working list of what's left. Supersedes the archived phase-by-phase
 roadmap (`docs/archive/specs/2026-04-15-activity-blocking-graph.md`).
 
+## Status update (2026-07-12) — EMORY ASSEMBLED AND RUNNING
+
+Board #1 is inside the enclosure, closed up (carrier plate dry-fit, no
+glue), on the wall-of-Dad's-desk running bench firmware: WiFi + NTP + RTC
++ display + audio all verified on the assembled clock. Physical Audio
+button proven by ear; Hour/Min sim-verified (identical circuit; physical
+press declined to avoid skewing time — accepted). Night dim raised
+0.10 → 0.25 after viewing through the real face (2026-07-12).
+
+**Emory's remaining punch list:**
+- [ ] Captive-portal persist bug (below) — fix, then strip TEMP bench code
+      from `main.cpp`, flash production, re-provision via the real portal
+      (doubles as the Hour+Audio 10 s combo's first physical test)
+- [ ] Decide wall-hang vs shelf placement — no hanging provision exists,
+      and the clock can't hang flush (button caps sit 2.5 mm proud of the
+      back panel; cable exits the back). Shelf needs nothing; wall needs
+      a French cleat or equivalent standoff
+- [ ] Record real audio (parallel track below) and swap SD test files
+- [ ] 30-day burn-in, then start Nora
+- [ ] G2 note: first-light bleed at the U1/U2/SW2 bridge keyholes not yet
+      formally assessed — eyeball at night and tape on the PCB if needed
+
+**Nora's build punch list (start after burn-in):**
+- [ ] Hand-solder THT on board #2 + pre-power smoke test (pinout.md)
+- [ ] Abbreviated bring-up: flash `nora` env with bench backdoor, run the
+      full-system check (WiFi → NTP → RTC → words → audio)
+- [ ] Print: carrier plate + 3 caps + 2 spares (STLs current; snap size
+      7.9 validated on this printer 2026-07-12), verify her light channel
+      print + fit (STL final; confirm it was printed)
+- [ ] Assemble per `docs/hardware/assembly-plan.md` (now carrier-era
+      current) — watch daughtercard seating at closeout (Emory's RTC
+      unseated during assembly)
+- [ ] Her audio WAVs (9:17 AM birth minute), her burn-in
+
 ## Status (2026-06-13)
 
 | Workstream | State |
@@ -23,13 +57,32 @@ Everything below waits on the 63-LED boards arriving. Once they do, in order:
 2. **Pre-power smoke test** per `docs/hardware/pinout.md` §Pre-power smoke test:
    multimeter checks, inspect the AITRIP module for a VBUS polyfuse (bridge if
    present — see `docs/archive/hardware/2026-04-17-usb-c-breakout-removal.md`),
-   remove the DS3231 battery-charging resistor, MAX98357A pin sanity.
+   DS3231 trickle-charge resistor stays in place (locked 2026-04-20, see
+   `docs/hardware/pinout.md` §1 — inert at 3.3V, mitigated by the 5-year
+   battery-swap cadence), MAX98357A pin sanity.
 3. **Bench checks on the real board** (details below).
 4. **Flash `emory` firmware**, verify captive-portal provisioning, time-to-words,
    buttons (hour/min/audio + the 10 s Hour+Audio captive-reset combo), and audio.
-5. **Dry-fit the printed light channel to a real 63-LED board** before final
-   assembly — the channel's PCB-edge locator tabs were sized to a board outline
-   that may have shifted between the 35- and 63-LED revs. Sand/adjust if needed.
+5. **✅ DONE 2026-07-06 — light channel v4 printed (PETG) and fits board #1.**
+   The 2026-06 print
+   failed dry-fit on board #1 (2026-07-05): its pockets predate the 63-LED
+   layout, and its flat underside rides up on THT pin stubs.
+   `enclosure/3d/light_channel.py` (v4, first-principles rework) keeps the
+   original pure-void honeycomb and adds essentially nothing: blind relief
+   cavities (5 mm deep) at every pin, one merged slot per daughtercard
+   header row (bent-flat socket tails spread laterally), and 25 low wall
+   JOGS — 2 mm ribs only 6 mm tall that route walls around pins, straight
+   wall untouched above. 9 small notches remain at the U1/U2 pin fences
+   and SW2 (build prints WARNINGs; no thin wall can cross a 2.54 mm pin
+   fence) — assess at G2, black tape on the PCB if visible. Pad/LED data:
+   `hardware/word-clock-tht-pads.csv` + `word-clock-led-pos.csv`
+   (regenerate via `enclosure/3d/export_tht_pads.py`). Orientation: the
+   chamfered corner (tab on the coupon) goes to the D1 / IT-IS corner; do
+   NOT flip the part in the slicer; supports OFF. Workflow: print the
+   coupon first (`--coupon`), dry-fit, then the full part: black PETG,
+   PCB-side down, brim, ~6-8 h. Old prints superseded. Note
+   `hardware/word-clock-all-pos.csv` is stale (35-LED era) — regenerate or
+   delete when convenient.
 6. **Integrate the PCB into the (already-built) enclosure**: PCB standoffs, seat
    the light channel, apply diffusion film to the face back, drill the cable port
    6 → 16 mm, install the P-clip strain relief, fit the back panel (M3 wood
@@ -45,15 +98,32 @@ All firmware bench work so far was on a breadboard with a single LED. The real
 board closes the "does it actually look right" question. Sketches live in
 `firmware/test/hardware_checks/`.
 
-- [ ] **D1 glows RED / GRB color order** — `display_checks.md`. Confirms the
+- [x] **D1 glows RED / GRB color order** — `display_checks.md`. Confirms the
       level-shifter + first-LED data path and the GRB color order before trusting
-      anything else.
-- [ ] **Full 63-LED all-on brightness + power** — the all-on chain-walker sketch
-      (committed). Verify even brightness across the strip and that draw stays at
-      the 1700 mA cap with no +5V droop or brownout.
-- [ ] **Per-word LED walk** — confirm the firmware `kSpans` table matches the
+      anything else. *Passed 2026-07-04 on board #1 via the 05_fastled sketch
+      (63-LED rev): D1 red alone, full 63-LED chain walk clean, all-on dim red
+      at 600 mA laptop cap. WS2812B-V6 substitution confirmed GRB.*
+- [~] **Full 63-LED all-on brightness + power** — WAIVED 2026-07-12 with the
+      clock assembled: production firmware's worst frame (birthday rainbow +
+      decor) lights ~30 LEDs ≈ 40% of the 1700 mA cap, and the 2026-07-04
+      600 mA all-on bench check plus assembled-clock operation showed no
+      droop. Revisit only if brightness ever increases.
+- [x] **Per-word LED walk** — confirm the firmware `kSpans` table matches the
       physical chain (each word lights its own letters, no neighbors). This is
       the on-hardware check behind the `test_spans_partition_the_chain` unit test.
+      *Passed 2026-07-05 on board #1: live-rendered frames at 13:29/13:30 matched
+      a host-compiled oracle (same pure-logic sources) index-for-index, and the
+      2026-07-04 chain walk proved every physical LED lights at its index.
+      Letter-alignment through the actual face still gets eyeballed at enclosure
+      integration (assembly-plan G2).*
+- [ ] **Captive-portal persist bug (OPEN, needs phone)** — two bench attempts on
+      2026-07-05 (submit → "waiting for audio" → press Audio) ended with NVS still
+      empty and the clock back in ApActive after reboot. Bench work continued via
+      the TEMP `BENCH_BACKDOOR_SSID` credential inject in `main.cpp`, but the real
+      portal flow MUST be debugged with a phone before Emory ships. Suspects: the
+      per-AP submit rate limit (b988959) blocking re-submits, or the 60 s
+      confirmation timeout racing the user. Repro: watch serial during a live
+      phone provisioning session.
 - [ ] **WiFi radio isolation** — the softap-only sketch (committed) if provisioning
       misbehaves, to separate radio bring-up from the rest.
 
@@ -78,8 +148,9 @@ work, so these were never bought. Quantities are for two clocks.
 - [ ] **5/8" step drill bit (HSS, 1/4" hex)** — drill cable port 6 → 16 mm.
 - [ ] **Cable P-clip, ~5 mm OD** — internal USB strain relief.
 - [ ] **Titebond III** — face-to-frame joint (do NOT substitute 5-min epoxy here).
-- [ ] **Micro-USB-to-USB-C cable, 3–6 ft** — one per clock (the captive cable;
-      micro-USB end to match the ESP32 module, NOT USB-C-to-USB-C).
+- [ ] **USB-C-to-USB-C cable, 3–6 ft** — one per clock (the captive cable;
+      the delivered ESP32 modules turned out to have USB-C, not micro-USB —
+      confirmed on the bench 2026-07-07).
 
 ## Parallel tracks (non-blocking, re-doable)
 
@@ -95,7 +166,7 @@ work, so these were never bought. Quantities are for two clocks.
 - **Captive portal is a custom `DNSServer` + `WebServer` + NVS** implementation
   (not WiFiManager) — supply-chain control + per-kid palette. Shipped in
   `firmware/lib/wifi_provision/`.
-- **USB: captive Micro-USB-to-USB-C cable** permanently inside the clock, exiting
+- **USB: captive USB-C-to-USB-C cable** (module port is USB-C) permanently inside the clock, exiting
   a back-panel hole drilled 6 → 16 mm at assembly; strain relief via internal
   P-clip, not the grommet.
 - **Back panel removable** via 4 × M3 wood screws into the 6.4 mm hardwood frame
@@ -118,10 +189,13 @@ work, so these were never bought. Quantities are for two clocks.
   is the LED-only `hardware/fab/word-clock-bom.csv` (63 designators, D7 removed).
   Regenerate a complete 63-LED master BOM from the KiCad source (with LCSC part
   numbers for a JLC reorder), then track it.
-- **Light-channel top-edge seal** — foam strip vs putty against the diffusion
-  film. Pick at first assembly (was deferred; channel is now printed).
+- ~~**Light-channel top-edge seal**~~ — DECIDED 2026-07-07: none. Channel
+  walls press directly on the film; foam/putty held only as a G2 retrofit
+  if bleed ever shows.
 - **Back-panel screw head** — pan-head (sits proud, simple) vs countersunk
   (needs countersinking the 3.2 mm panel). Order both lengths, decide at assembly.
+- **Wall-hang vs shelf** — see the Emory punch list above; undecided and
+  physically consequential (proud button caps + rear cable exit).
 
 ## Coverage gaps carried forward
 

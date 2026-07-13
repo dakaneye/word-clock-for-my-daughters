@@ -15,10 +15,10 @@ wood arrived from Ponoko, supplies on the `TODO.md` order list in hand.
 | Item | Qty | Purpose |
 |---|---|---|
 | M3 × 1/2" or 5/8" wood screws (pan-head, brass or steel) | 4 | Back-panel-to-frame-wall closure (thread directly into the 6.4 mm frame wood at the existing 4 mm corner inset; pre-drilled pilot hole) |
-| M3 × 10 mm brass hex spacer, F-F, 5 mm AF | 2 | Speaker mount risers epoxied to back panel interior, 37 mm apart behind the vent |
+| M3 × 10 mm brass hex spacer, F-F (measured 4.5 mm AF) | 2 | Speaker mount risers — drop through the carrier plate's hex collars and stand on the panel wood, 37 mm apart behind the vent. No adhesive; the hex bore stops rotation |
 | M3 × 6-8 mm machine screws | 2 | Speaker integral flanges → speaker hex spacers |
 | Rubber grommet for ~16 mm panel hole + cable P-clip | 1 | USB cable strain relief; back-panel hole gets drilled out 6 → 16 mm at assembly so the connector overmold fits through |
-| Self-adhesive black foam (1 mm), ~30 cm² | 1 | Light-channel top-edge seal against the diffusion film on the face back (alternative: putty at assembly) |
+| ~~Self-adhesive black foam (1 mm)~~ | 0 | **Decision 2026-07-07: no top-edge seal** — channel wall tops press directly on the film. Foam/putty held as a G2 retrofit if first-light shows bleed at the channel/film interface. |
 | M3 washers (optional) | 4 | Under screw heads on the back panel to protect the wood |
 
 **Adhesives**
@@ -27,9 +27,9 @@ wood arrived from Ponoko, supplies on the `TODO.md` order list in hand.
 |---|---|---|
 | Frame box joints (4 corners) | Titebond III preferred; Gorilla 5-min epoxy works as substitute | Strongest wood-to-wood; epoxy-on-finger-joints relies on joint geometry for strength but needs ≥30 min clamp time, not the 5 the label implies (Nora's frame is being assembled with epoxy 2026-04-25) |
 | Face top edge → frame top | Titebond III (do NOT substitute 5-min epoxy here) | Large flat-on-flat perimeter joint; 5-min epoxy's ~3 min open time is too fast for face alignment, and squeeze-out is much harder to clean off a visible exterior joint than wood glue is |
-| Speaker hex spacers → back panel interior | 2-part epoxy (Gorilla 5-min, JB Weld, or E6000) | Metal-to-wood; spacer flange contact is small, structural epoxy required |
-| PCB standoff posts → back panel interior | E6000 | PLA-to-wood; slight flex tolerates thermal cycling |
-| Light-channel top edge → diffusion film (on face back) | Self-adhesive foam (1 mm) compressed by back-panel screws, OR putty at assembly | Seals lateral light bleed at the channel/diffuser interface. (Diffuser stack is film-only as of 2026-04-26 — opal acrylic was removed from the production stack after bench testing showed it was the source of lateral bleed.) |
+| Speaker hex spacers | **None** — spacers pass through the carrier plate's hex collars and stand on the wood under screw compression | Superseded the epoxy plan when the carrier plate (`enclosure/3d/pcb_carrier.py`) replaced loose parts, 2026-07-11 |
+| Carrier plate → back panel interior | **None — dry fit (decision 2026-07-12, Emory build)** | Every in-service load is compression (button presses squeeze plate against panel; the screwed-down 48.0 stack holds it captive); laterally it's pinned by the spacers in the hex collars and the caps in the panel holes. Dry fit keeps every part individually replaceable over the 40-year horizon; glue can be added later if float ever annoys, but never removed |
+| Light-channel top edge → diffusion film (on face back) | **None (2026-07-07)** — direct PETG-on-film contact under screw compression; foam/putty retrofit only if G2 shows bleed | Interface bleed judged at G2. (Diffuser stack is film-only as of 2026-04-26 — opal acrylic was removed from the production stack after bench testing showed it was the source of lateral bleed.) |
 | Inner letter islands → face back | self-adhesive diffusion film | Ships pre-glued; the same film also retains loose letter islands |
 
 **Tools**
@@ -47,6 +47,17 @@ wood arrived from Ponoko, supplies on the `TODO.md` order list in hand.
 - Masking tape (clamping substitute + alignment)
 
 ---
+
+> **STACK CORRECTION (2026-07-09, found on the bench):** the interior cavity
+> is the FULL 48.0 mm (face glues ON TOP of the frame walls, back panel screws
+> UNDERNEATH them). The original stack table wrongly counted the face + panel
+> thicknesses (6.4 mm) inside the 48.0, which sized the PCB standoffs 6.4 mm
+> too short (22.0 → correct 28.4 panel-to-PCB-underside). The carrier plate
+> (`enclosure/3d/pcb_carrier.py`, posts 25.9 + web 2.5) and the button caps
+> (`button_cap.py`, anvil redesign) carry the corrected numbers. The light
+> channel (17.84) is unchanged: 28.4 + 1.6 + 17.84 + 0.16 = 48.0 exactly.
+> The old loose `pcb_standoff.py` posts (22.0) were superseded and the
+> script deleted 2026-07-12.
 
 ## Phase A — Pre-assembly prep
 
@@ -70,15 +81,18 @@ can run in parallel.
       the enclosure. Flash firmware, verify every peripheral works, then
       power off.
 - [ ] **Print 3D internals.**
-  - PCB standoff posts × 4
-  - Button actuator caps × 3
+  - Carrier plate × 1 (`pcb_carrier.py --part plate`; PETG, glue-face
+    down, brim, supports off — print the coupon first on a new printer
+    or filament)
+  - Button actuator caps × 3 + 2 spares (`button_cap.py`; ⌀8 snap-fit
+    flange rev, 2026-07-12)
   - Light-channel honeycomb × 1 — **printed** (2026-06, at the 177.8 mm
     nominal envelope; `enclosure/3d/light_channel.py`). Dry-fit to the
     delivered PCB and the glued frame interior before final assembly;
     re-print only if frame clearance or LED-pocket centering is off.
 - [ ] **Face sub-assembly (D below) can happen now** — doesn't block on anything else.
 - [ ] **Cut captive USB cable to internal length.** Measure from back-panel
-      cable hole position to ESP32's micro-USB port with ~50 mm slack.
+      cable hole position to ESP32's USB-C port with ~50 mm slack.
       Typical: 100-150 mm of cable inside, the rest trails outside as the
       user-facing USB-C plug.
 
@@ -211,41 +225,35 @@ Do F1–F9 with the back panel on the bench, still separate from the frame.
 - [ ] **F3: Install rubber grommet** in the now-16 mm cable hole.
       Cosmetic + dust-blocking only at this size; doesn't grip the cable.
 - [ ] **F4: Thread USB cable through the grommet** from outside (USB-C
-      plug trails outside) to inside (micro-USB plug lies loose inside).
+      plug trails outside) to inside (the module-end USB-C plug lies loose inside).
       Screw a small cable P-clip to the back-panel interior 2-3 cm
       inside the cable hole, clamp the cable in the P-clip — this is
       the actual strain relief that keeps tugs on the outside cable from
-      reaching the ESP32 micro-USB solder joints.
-- [ ] **F5: Epoxy PCB standoff posts × 4** to the back panel interior at
-      the PCB corner positions. Use E6000. Hold 60 s. Diagonals: measure
-      corner-to-corner to confirm the 4 standoffs form a square matching
-      the PCB footprint (verify against the actual PCB outline measured
-      in Phase A, not the 177.8 mm nominal).
-- [ ] **F6: Epoxy 2 × M3 hex spacers** to the back-panel interior 37 mm
-      apart, centered behind the speaker vent. Threaded openings face
-      outward (away from the back panel). The speaker's integral
-      mounting flanges land on the spacer tops; the spacers carry the
-      speaker, the vent passes the air. (No 3D-printed cradle needed —
-      removed from the design 2026-04-21 after measuring that the
-      speaker has 37 mm-spaced integral M3-compatible flanges.)
+      reaching the ESP32 USB-C solder joints.
+- [ ] **F5: Seat the carrier plate** (`pcb_carrier.py --part plate`,
+      PETG) on the panel interior, web-side down, orientation chamfer
+      toward the cable-hole corner. **Dry fit — no glue (decision
+      2026-07-12).** To confirm position, drop two ⌀2 mm drill bits
+      through the plate's registration holes into the speaker-vent grid
+      corner holes; they should pass clean. Pull the bits.
+- [ ] **F6: Drop the 2 × M3 hex spacers** into the plate's hex collars
+      behind the speaker vent. They pass through and stand on the wood;
+      the hex bore stops rotation. No adhesive.
 - [ ] **F7: Mount the speaker** with 2 × M3 × 6-8 mm machine screws
       through the speaker flanges into the hex spacers. Connect the
       JST-PH 2-pin lead to the speaker but leave the PCB-side end loose
-      for now.
-- [ ] **F8: Install button actuator caps × 3** by dropping each one
-      into a button hole from the panel **interior side** (panel laying
-      flat, engraved dedication face-down). The 6.2 mm neck slides
-      through the 6.5 mm hole and protrudes 1 mm out the exterior; the
-      8 mm flange catches on the panel interior and can't pass through.
-      No force, no cutting. Caps will want to fall back out toward the
-      case interior when you flip the panel for closeout — either tape
-      over the holes during the in-between, or proceed promptly to
-      Phase G. (Original design used a "push-from-outside friction-fit"
-      cap with an outer head; revised 2026-04-25 to drop-in-from-
-      interior because the head + flange both being wider than the hole
-      made the original geometrically uninstallable. See `enclosure/3d/
-      button_cap.py` history block for the rationale.)
-- [ ] **F9: Cure all epoxies 24 h** before Phase G.
+      for now. Snap the USB cable into the plate's cable cleat.
+- [ ] **F8: Snap the button actuator caps × 3** into the carrier
+      plate's guide bores: drop each cap neck-first down its bore and
+      press (pencil-end or dowel — the bore is too narrow for a
+      fingertip) until the ⌀8 flange clicks through the roof's snap
+      hole. The neck drops into the panel's 6.5 mm button hole below.
+      Caps are now captive — they cannot fall out with the panel off —
+      and each rides its own compartment, pre-aligned under its switch.
+      To ever swap a cap (board must be off the posts): press its neck
+      from the panel exterior and it pops back out the top. (History of
+      the three earlier cap-retention designs: `enclosure/3d/
+      button_cap.py` and `pcb_carrier.py` docstrings.)
 
 ---
 
@@ -257,10 +265,9 @@ together; now it does.
 - [ ] **G1: Inspect the frame + face** (cured from E) interior. Remove any
       glue drips with a chisel. Dry-fit the light channel into the frame,
       letter-side aligned. It should slide in and rest against the back
-      of the face — channel walls press against the diffusion film
-      (which is bonded to the face back). If foam is in use as the
-      top-edge seal, verify it's already applied to the channel's wall
-      tops.
+      of the face — channel walls press directly against the diffusion
+      film (which is bonded to the face back; no top-edge seal, per the
+      2026-07-07 decision).
 - [ ] **G2: First-light bleed assessment** *(post-2026-04-26 design;
       diffuser is film-only).* Before fastening anything, do a rough
       preview: hold the back-panel-plus-PCB assembly behind the
@@ -273,17 +280,18 @@ together; now it does.
       at ~21 mm walls extending through the acrylic level. If face
       looks clean (uniform glow on lit words, dark on filler letters),
       proceed.
-- [ ] **G3: Plug the micro-USB end** of the captive cable into the ESP32
+- [ ] **G3: Plug the module end (USB-C)** of the captive cable into the ESP32
       module on the PCB.
 - [ ] **G4: Connect the speaker JST** to the PCB's speaker header.
-- [ ] **G5: Place the PCB on the standoff posts** in the back panel. The
-      PCB's 4 corners should rest on the 4 standoff tops with LEDs
-      facing UP (toward the light channel / face). The standoff stubs
-      locate the PCB without holding it down.
-- [ ] **G6: Verify button alignment.** The PCB's 3 tact switches
-      (SW1/SW2/SW3) must line up with the 3 button actuator caps in
-      the back panel. If misaligned, the buttons won't press through —
-      STOP and fix before closing.
+- [ ] **G5: Place the PCB on the carrier posts.** The board's 4 corner
+      holes (H1–H4) drop onto the posts' 3 mm stubs, LEDs facing UP
+      (toward the light channel / face). The stubs locate the PCB
+      without holding it down.
+- [ ] **G6: Verify button action.** The caps sit pre-aligned in their
+      carrier guide bores directly under SW1/SW2/SW3. Press each from
+      the panel exterior and listen for the tact-switch click. If one
+      doesn't click, the board isn't fully seated on its stubs — STOP
+      and reseat before closing.
 - [ ] **G7: Lower the frame + face assembly** onto the back-panel-plus-PCB.
       PCB slides up into the frame interior, the light channel's top
       edge presses against the diffusion film on the face back. Back
@@ -301,8 +309,8 @@ together; now it does.
       tight first, all 4, before any torquing.
 - [ ] **G11: Torque in cross-pattern** (diagonal, not around the
       perimeter) to snug-not-gorilla-tight. The compression sandwich is
-      now engaged: face → diffusion film → light channel top edge
-      (foam-sealed) → channel walls → PCB → standoffs → back panel.
+      now engaged: face → diffusion film → light channel top edge →
+      channel walls → PCB → carrier posts → carrier web → back panel.
       Wood screws hold all of it in tension against the frame walls.
       (No opal acrylic — the production diffuser stack is film-only as
       of 2026-04-26; see the diffuser note above.)
@@ -338,8 +346,9 @@ physically enforce the right angle even if the clamps slip.
 Before declaring the build done, walk through the Phase 2 hardware checks
 (`firmware/test/hardware_checks/wifi_provision_checks.md` plus any other
 module checklists as they're written). Assembly can introduce issues that
-breadboard bring-up didn't catch: loose standoff post, speaker wire
-pinched by the light channel, button actuator with too much friction.
+breadboard bring-up didn't catch: an unseated daughtercard (Emory's DS3231
+lost its socket during closeout, 2026-07-12 — reseat fixed it), speaker
+wire pinched by the light channel, a cap dragging in its guide bore.
 Burn-in: 30 days of running on Dad's desk before declaring Emory done and
 starting Nora.
 

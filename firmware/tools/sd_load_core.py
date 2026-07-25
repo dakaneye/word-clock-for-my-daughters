@@ -16,7 +16,11 @@ SLOTS = ("lullaby1.wav", "lullaby2.wav", "birth.wav")
 def validate_wav(path: Path) -> int:
     """Return the data-chunk size of a spec-compliant WAV; raise
     ValueError naming the first violation. Spec: RIFF/WAVE, PCM,
-    mono, 44100 Hz, 16-bit, non-empty data."""
+    mono, 44100 Hz, 16-bit, non-empty data, and the canonical
+    44-byte header layout — the clock firmware's parser
+    (lib/audio/src/wav.cpp) requires the data chunk at offset 36
+    and rejects anything else, so this validation must be exactly
+    as strict."""
     raw = Path(path).read_bytes()
     if len(raw) < 44 or raw[0:4] != b"RIFF" or raw[8:12] != b"WAVE":
         raise ValueError(f"{path.name}: not a RIFF/WAVE file")
@@ -44,7 +48,64 @@ def validate_wav(path: Path) -> int:
         raise ValueError(f"{path.name}: missing fmt chunk")
     if not data_size:
         raise ValueError(f"{path.name}: empty data chunk")
+    if raw[36:40] != b"data":
+        raise ValueError(
+            f"{path.name}: data chunk not at offset 36 — not the canonical "
+            "layout the clock firmware plays; run canonicalize_wav first")
     return data_size
+
+
+def canonicalize_wav(path: Path) -> None:
+    """Rewrite a WAV in place into the canonical 44-byte-header layout
+    (fmt at 12, data at 36) the firmware parser requires. afconvert
+    inserts a FLLR padding chunk between fmt and data, which the clock
+    rejects as BadDataMagic. No-op if already canonical."""
+    raw = Path(path).read_bytes()
+    if len(raw) >= 44 and raw[0:4] == b"RIFF" and raw[8:12] == b"WAVE" \
+            and raw[36:40] == b"data":
+        return
+    pos, fmt_body, data = 12, None, None
+    while pos + 8 <= len(raw):
+        cid, csize = raw[pos:pos + 4], struct.unpack_from("<I", raw, pos + 4)[0]
+        if cid == b"fmt " and fmt_body is None:
+            fmt_body = raw[pos + 8:pos + 8 + 16]
+        elif cid == b"data" and data is None:
+            data = raw[pos + 8:pos + 8 + csize]
+        pos += 8 + csize + (csize & 1)   # chunks are word-aligned
+    if fmt_body is None or len(fmt_body) < 16 or data is None:
+        raise ValueError(f"{path.name}: cannot canonicalize — "
+                         "missing fmt or data chunk")
+    body = b"WAVE" + struct.pack("<4sI", b"fmt ", 16) + fmt_body \
+        + struct.pack("<4sI", b"data", len(data)) + data
+    Path(path).write_bytes(b"RIFF" + struct.pack("<I", len(body)) + body)
+
+
+NORMALIZE_TARGET_PEAK = 29204   # -1 dBFS: 32767 * 10^(-1/20)
+
+
+def normalize_wav_peak(path: Path) -> float:
+    """Scale a canonical WAV in place so its loudest sample peaks at
+    -1 dBFS, and return the gain factor applied. Voice-memo recordings
+    land at unpredictable levels and the clock has no volume control,
+    so staging brings every file to a consistent, full loudness. Never
+    attenuates: files already at/above the target (or silent) are left
+    byte-identical and 1.0 is returned."""
+    raw = bytearray(Path(path).read_bytes())
+    n = (len(raw) - 44) // 2
+    samples = memoryview(raw)[44:44 + n * 2].cast("h")
+    peak = 0
+    for s in samples:
+        a = -s if s < 0 else s
+        if a > peak:
+            peak = a
+    if peak == 0 or peak >= NORMALIZE_TARGET_PEAK:
+        return 1.0
+    gain = NORMALIZE_TARGET_PEAK / peak
+    for i in range(n):
+        samples[i] = int(samples[i] * gain)   # |result| <= target < 32767
+    samples.release()
+    Path(path).write_bytes(bytes(raw))
+    return gain
 
 
 def file_crc32(path: Path) -> int:

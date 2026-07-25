@@ -148,6 +148,10 @@ def stage(args, staging: Path) -> dict:
                 shutil.copy(src, dst)
             else:
                 run(core.afconvert_cmd(src, dst))
+            core.canonicalize_wav(dst)
+            gain = core.normalize_wav_peak(dst)
+            if gain != 1.0:
+                say(f"stage: normalized {slot} (+{20 * math.log10(gain):.1f} dB)")
             core.validate_wav(dst)
             plan[slot] = dst
     for name, p in plan.items():

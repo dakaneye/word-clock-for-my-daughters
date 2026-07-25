@@ -40,6 +40,85 @@ def test_validate_wav_rejects_violations(tmp_path, kwargs, needle):
         core.validate_wav(p)
 
 
+def make_filler_wav(path: Path, *, data=b"\x00\x01" * 100):
+    """WAV in afconvert's layout: a FLLR padding chunk between fmt and
+    data — spec-valid audio, but not the canonical 44-byte layout the
+    clock firmware's parser requires."""
+    fmt_chunk = struct.pack("<4sIHHIIHH", b"fmt ", 16, 1, 1,
+                            44100, 44100 * 2, 2, 16)
+    filler = struct.pack("<4sI", b"FLLR", 4044) + b"\x00" * 4044
+    data_chunk = struct.pack("<4sI", b"data", len(data)) + data
+    body = b"WAVE" + fmt_chunk + filler + data_chunk
+    path.write_bytes(b"RIFF" + struct.pack("<I", len(body)) + body)
+    return path
+
+
+def test_validate_wav_rejects_noncanonical_layout(tmp_path):
+    # The firmware parser demands "data" at offset 36; a chunk-walking
+    # validation that accepts more than that lets unplayable files reach
+    # the card (the 2026-07-25 silent-lullaby bug).
+    p = make_filler_wav(tmp_path / "filler.wav")
+    with pytest.raises(ValueError, match="canonical"):
+        core.validate_wav(p)
+
+
+def test_canonicalize_wav_strips_filler_chunk(tmp_path):
+    audio = b"\x37\x13" * 500
+    p = make_filler_wav(tmp_path / "filler.wav", data=audio)
+    core.canonicalize_wav(p)
+    raw = p.read_bytes()
+    assert raw[36:40] == b"data"
+    assert struct.unpack_from("<I", raw, 40)[0] == len(audio)
+    assert raw[44:] == audio                       # audio bytes untouched
+    assert struct.unpack_from("<I", raw, 4)[0] == 36 + len(audio)
+    assert core.validate_wav(p) == len(audio)
+
+
+def test_canonicalize_wav_noop_on_canonical(tmp_path):
+    p = make_wav(tmp_path / "ok.wav")
+    before = p.read_bytes()
+    core.canonicalize_wav(p)
+    assert p.read_bytes() == before
+
+
+def test_canonicalize_wav_raises_without_data_chunk(tmp_path):
+    fmt_chunk = struct.pack("<4sIHHIIHH", b"fmt ", 16, 1, 1,
+                            44100, 44100 * 2, 2, 16)
+    body = b"WAVE" + fmt_chunk + struct.pack("<4sI", b"FLLR", 8) + b"\x00" * 8
+    p = tmp_path / "nodata.wav"
+    p.write_bytes(b"RIFF" + struct.pack("<I", len(body)) + body)
+    with pytest.raises(ValueError, match="missing fmt or data"):
+        core.canonicalize_wav(p)
+
+
+def test_normalize_wav_peak_scales_quiet_file(tmp_path):
+    quiet = struct.pack("<4h", 1000, -2000, 500, -1500) * 50
+    p = make_wav(tmp_path / "quiet.wav", data=quiet)
+    core.normalize_wav_peak(p)
+    raw = p.read_bytes()
+    samples = struct.unpack_from(f"<{(len(raw) - 44) // 2}h", raw, 44)
+    peak = max(max(samples), -min(samples))
+    assert abs(peak - core.NORMALIZE_TARGET_PEAK) <= 1   # rounding tolerance
+    # relative shape preserved: loudest sample is still the -2000 slots
+    assert samples[1] == min(samples)
+    assert core.validate_wav(p) == len(quiet)
+
+
+def test_normalize_wav_peak_leaves_loud_file_alone(tmp_path):
+    loud = struct.pack("<2h", 32000, -32000) * 50
+    p = make_wav(tmp_path / "loud.wav", data=loud)
+    before = p.read_bytes()
+    core.normalize_wav_peak(p)
+    assert p.read_bytes() == before   # never attenuates, never re-scales
+
+
+def test_normalize_wav_peak_skips_silence(tmp_path):
+    p = make_wav(tmp_path / "silent.wav", data=b"\x00\x00" * 100)
+    before = p.read_bytes()
+    core.normalize_wav_peak(p)
+    assert p.read_bytes() == before
+
+
 def test_file_crc32_matches_zlib(tmp_path):
     p = tmp_path / "f.bin"
     p.write_bytes(b"hello sd loader")

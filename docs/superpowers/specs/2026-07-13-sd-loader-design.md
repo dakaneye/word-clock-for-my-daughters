@@ -66,10 +66,15 @@ python3 tools/sd_load.py --restore-only <backup> # recover a clock left in loade
 Steps, each narrated and each a hard gate:
 
 1. **Stage** — `afconvert -f WAVE -d LEI16@44100 -c 1` each input into a
-   staging dir; parse and validate the output headers (RIFF/WAVE, PCM,
-   mono, 44100 Hz, 16-bit); compute CRC32 + size. Any problem aborts here,
-   before the clock is touched. Partial sets are allowed (update only
-   `birth.wav`) — unspecified slots are left alone on the card.
+   staging dir; **canonicalize** the result to the 44-byte-header layout
+   (afconvert inserts a `FLLR` padding chunk between `fmt ` and `data`,
+   which the firmware's strict parser in `lib/audio/src/wav.cpp` rejects
+   as `BadDataMagic` — the 2026-07-25 silent-lullaby bug); then validate
+   exactly as strictly as the firmware parser (RIFF/WAVE, PCM, mono,
+   44100 Hz, 16-bit, `data` at offset 36); compute CRC32 + size. Any
+   problem aborts here, before the clock is touched. Partial sets are
+   allowed (update only `birth.wav`) — unspecified slots are left alone
+   on the card.
 2. **Backup** — `esptool read_flash 0 0x400000` to
    `tools/.flash_backups/<UTC-timestamp>.bin` (directory gitignored;
    backups never auto-deleted). Baud 921600, falling back 460800 → 115200

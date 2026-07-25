@@ -20,11 +20,17 @@ press declined to avoid skewing time — accepted). Night dim raised
       and the clock can't hang flush (button caps sit 2.5 mm proud of the
       back panel; cable exits the back). Shelf needs nothing; wall needs
       a French cleat or equivalent standoff
-- [ ] Record real audio (parallel track below), then load it with
-      `firmware/tools/sd_load.py` — no screws; needs the cable + home WiFi (spec:
-      docs/superpowers/specs/2026-07-13-sd-loader-design.md). HARD
-      DEADLINE: before Oct 6 (first live birthday fire). Verify by ear:
-      Audio button for lullabies, bench 'b' for birth.wav.
+- [ ] Verify Emory's real audio by ear — **loaded 2026-07-25** via
+      `firmware/tools/sd_load.py` (dry-run proven first, then all three
+      WAVs CRC-verified on card, firmware restored, boot healthy).
+      Remaining: press Audio button for lullabies (3 Little Birds →
+      I am kind), bench 'b' for birth.wav. HARD DEADLINE: before Oct 6
+      (first live birthday fire).
+      Recordings captured 2026-07-25 for BOTH kids, staged at
+      `~/recordings/<kid>/{lullaby1,lullaby2,birth}.m4a`, lullaby order
+      matching how Dad sings them. Emory: I am kind / 3 Little Birds /
+      HBD. Nora: I am kind / Take on Me / HBD — load hers at her
+      bring-up.
 - [ ] 30-day burn-in, then start Nora
 - [ ] G2 note: first-light bleed at the U1/U2/SW2 bridge keyholes not yet
       formally assessed — eyeball at night and tape on the PCB if needed
@@ -39,7 +45,8 @@ press declined to avoid skewing time — accepted). Night dim raised
 - [ ] Assemble per `docs/hardware/assembly-plan.md` (now carrier-era
       current) — watch daughtercard seating at closeout (Emory's RTC
       unseated during assembly)
-- [ ] Her audio WAVs (9:17 AM birth minute), her burn-in
+- [ ] Load her staged recordings (`~/recordings/nora/`) via
+      `sd_load.py`, her burn-in
 
 ## Status (2026-06-13)
 
@@ -132,6 +139,12 @@ board closes the "does it actually look right" question. Sketches live in
       misbehaves, to separate radio bring-up from the rest.
 
 ## Still to buy
+
+- [ ] **Nylon M2 + M2.5 screw/nut assortment** (with washers, lengths to
+      ~12 mm) — single-point securing for the SD (M2) and RTC (M2.5)
+      daughtercards on both clocks; PCB NPTHs are mirrored so only one
+      hole per card aligns (see `docs/hardware/daughtercards.md` erratum).
+      Emory's cards are currently held by header friction alone.
 
 **Board THT passives — never purchased (gate the first bench check; order now).**
 The April inventory predates the 35→63-LED respin and the on-PCB decoupling

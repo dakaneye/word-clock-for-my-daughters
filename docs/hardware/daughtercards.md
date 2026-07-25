@@ -8,6 +8,23 @@ All three daughtercards plug into the main PCB on **B.Cu (back side)**. The
 "top" orientation in the tables below is the user's caliper-measurement
 orientation: pin row up, looking at the *component* side of the daughtercard.
 
+## Erratum — NPTH holes mirrored on fabbed boards (observed 2026-07-25)
+
+On the assembled boards the daughtercard mounting NPTHs land mirrored
+relative to the cards' actual holes — only **one hole per card** lines up.
+Both clocks' boards are affected (same fab batch). Likely cause: the hole
+coordinates below were measured looking at the card's component side, but
+the cards mount on B.Cu, where that view is mirrored (unverified against
+the layout).
+
+Field fix: secure each card with a single screw + nylon nut through the
+one aligned hole — SD takes **M2** (⌀2.0 mm holes), RTC takes **M2.5**
+(⌀3.0 mm holes; M3 is a press fit, don't use). One screw plus the header
+socket is mechanically sufficient; the cards carry no load. Keep the RTC
+screw clear of CR2032 access. If the boards are ever respun, mirror the
+hole coordinates across the pin-row axis and verify against a physical
+card held to the back side.
+
 ## SD card breakout (Stemedu / Catalex-style microSD)
 
 | Property | Value |

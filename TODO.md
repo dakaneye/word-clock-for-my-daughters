@@ -20,33 +20,29 @@ press declined to avoid skewing time — accepted). Night dim raised
       and the clock can't hang flush (button caps sit 2.5 mm proud of the
       back panel; cable exits the back). Shelf needs nothing; wall needs
       a French cleat or equivalent standoff
-- [ ] Verify Emory's real audio by ear — **loaded 2026-07-25** via
-      `firmware/tools/sd_load.py` (dry-run proven first, then all three
-      WAVs CRC-verified on card, firmware restored, boot healthy).
-      Remaining: press Audio button for lullabies (3 Little Birds →
-      I am kind), bench 'b' for birth.wav. HARD DEADLINE: before Oct 6
-      (first live birthday fire).
-      Recordings captured 2026-07-25 for BOTH kids, staged at
-      `~/recordings/<kid>/{lullaby1,lullaby2,birth}.m4a`, lullaby order
-      matching how Dad sings them. Emory: I am kind / 3 Little Birds /
-      HBD. Nora: I am kind / Take on Me / HBD — load hers at her
-      bring-up.
-- [ ] 30-day burn-in, then start Nora
+- [x] Audio loaded AND verified by ear 2026-07-25 — I am kind / 3 Little
+      Birds / HBD (Dad's order), staged WAVs canonicalized + peak
+      normalized by `sd_load.py`, all CRC-verified on card. Lullabies
+      and birth.wav both confirmed audible. Oct 6 deadline satisfied;
+      first live fire will be the real test. Clock delivered to her
+      room 2026-07-25.
+- [ ] 30-day burn-in (running in her room since 2026-07-25)
 - [ ] G2 note: first-light bleed at the U1/U2/SW2 bridge keyholes not yet
       formally assessed — eyeball at night and tape on the PCB if needed
 
-**Nora's build punch list (start after burn-in):**
-- [ ] Hand-solder THT on board #2 + pre-power smoke test (pinout.md)
-- [ ] Abbreviated bring-up: flash `nora` env with bench backdoor, run the
-      full-system check (WiFi → NTP → RTC → words → audio)
-- [ ] Print: carrier plate + 3 caps + 2 spares (STLs current; snap size
-      7.9 validated on this printer 2026-07-12), verify her light channel
-      print + fit (STL final; confirm it was printed)
-- [ ] Assemble per `docs/hardware/assembly-plan.md` (now carrier-era
-      current) — watch daughtercard seating at closeout (Emory's RTC
-      unseated during assembly)
-- [ ] Load her staged recordings (`~/recordings/nora/`) via
-      `sd_load.py`, her burn-in
+**Nora's build punch list:**
+- [x] Assembled and brought up 2026-07-25 — first flash onto the
+      factory-fresh module required a full `esptool erase_flash` (AT
+      firmware NVS residue silently blocked WiFi association; clean
+      erase fixed it, note for any future fresh module). WiFi → NTP →
+      RTC → words verified (live frame matched host oracle at 12:35);
+      audio loaded (I am kind / Take on Me / HBD, normalized,
+      CRC-verified) and confirmed by ear after reseating a loose
+      speaker ground wire found at first audio check.
+- [ ] Her 30-day burn-in
+- [ ] RTC coin-cell persistence spot check: after her next unplugged
+      move, confirm the boot log does NOT say "DS3231 lost power"
+      (her cell has not yet been proven across a power gap)
 
 ## Status (2026-06-13)
 

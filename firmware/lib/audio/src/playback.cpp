@@ -17,6 +17,14 @@ PlaybackTransition next_transition(State state, Track track, PlaybackEvent event
         // Already playing — ignore; caller must stop first.
         return {A::None, nullptr, state, track};
 
+    case K::PlayBirthdayRequested:
+        if (state == State::Idle) {
+            return {A::OpenFile, BIRTH_PATH, State::Playing, Track::Birth};
+        }
+        // Already playing — ignore, mirroring PlayLullabyRequested. The
+        // interrupting semantics belong to BirthdayFired alone.
+        return {A::None, nullptr, state, track};
+
     case K::StopRequested:
         if (state == State::Playing) {
             return {A::CloseFile, nullptr, State::Idle, Track::None};

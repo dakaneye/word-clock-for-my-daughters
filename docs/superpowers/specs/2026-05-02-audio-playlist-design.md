@@ -14,6 +14,14 @@ separate single-file path with one behavior change: **birthday now
 interrupts an in-progress lullaby** rather than being suppressed for the
 year.
 
+On the kid's birthday (month+day match, time synced at least once), the
+Audio button plays `birth.wav` instead of the lullaby playlist — any
+time that day. This routing (`PlayBirthdayRequested`, Idle-gated like
+the lullaby request) is independent of the birth-minute auto-fire and
+never touches the NVS year stamp, so button plays neither burn nor
+block the 6:10 PM fire. With time never synced, the button falls back
+to lullabies — an unsynced RTC must not false-fire on a garbage date.
+
 ## Motivation
 
 The original audio design supported one button-triggered song. Sam's
@@ -171,10 +179,10 @@ guard fires:
 - Stamp NVS year **before** executing OpenFile/SwitchFile (preserves
   fire-once semantics across power loss).
 
-The button press handler in `main.cpp` continues to call
-`audio::play_lullaby()` and `audio::stop()` — those public API
-functions translate to `PlayLullabyRequested` and `StopRequested`
-internally. No changes needed in `main.cpp`.
+The button press handler in `main.cpp` calls `audio::play()` and
+`audio::stop()`. `play()` routes internally: `PlayBirthdayRequested`
+when `is_birthday()` (fire_guard) says today is the birthday and time
+is known, `PlayLullabyRequested` otherwise.
 
 ## SD card content
 

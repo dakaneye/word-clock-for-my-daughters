@@ -33,4 +33,12 @@ bool should_auto_fire(const NowFields& now,
                       bool time_known,
                       bool already_playing);
 
+// Pure. True iff today is the kid's birthday (month+day) AND the clock
+// has synced time at least once. Gates the Audio button's
+// birthday-message routing; an unsynced RTC must fall back to
+// lullabies rather than false-fire on a garbage date.
+bool is_birthday(const NowFields& now,
+                 const BirthConfig& birth,
+                 bool time_known);
+
 } // namespace wc::audio

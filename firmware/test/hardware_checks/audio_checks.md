@@ -103,6 +103,15 @@ Spec: `docs/superpowers/specs/2026-04-18-audio-design.md`.
     because `seconds_since_last_sync()` reads UINT32_MAX. No
     `[audio] play birth.wav` log should appear.
 
+11. **Birthday button routing.** With the DS3231 pre-set to any
+    daytime hour on the birthday (e.g. 9:00 AM Oct 6) and time
+    synced, press the Audio button. Expect
+    `[audio] birthday today — button plays birth.wav` then
+    `[audio] play /birth.wav` — NOT lullaby1. Confirm the 6:10 PM
+    auto-fire still occurs later that day (button plays do not
+    stamp `last_birth_year`). On any other date the button must
+    play `/lullaby1.wav` as in check 2.
+
 11. **ntp deferral during playback.** Start lullaby playback. In
     serial, confirm no `[ntp] sync ok` / `[ntp] forceUpdate()`
     log lines fire during the ~3 min playback window, even if a

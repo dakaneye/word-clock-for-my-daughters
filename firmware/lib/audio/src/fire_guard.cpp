@@ -18,4 +18,13 @@ bool should_auto_fire(const NowFields& now,
     return true;
 }
 
+bool is_birthday(const NowFields& now,
+                 const BirthConfig& birth,
+                 bool time_known) {
+    if (!time_known)              return false;
+    if (now.month != birth.month) return false;
+    if (now.day   != birth.day)   return false;
+    return true;
+}
+
 } // namespace wc::audio

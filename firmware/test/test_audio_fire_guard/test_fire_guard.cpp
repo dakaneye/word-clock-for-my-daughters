@@ -100,6 +100,25 @@ void test_fire_horizon_refires_2070(void) {
         /*last_fired_year=*/2069, true, false));
 }
 
+// is_birthday: the Audio-button day gate. True any time on the birthday
+// (month+day), independent of the birth hour:minute.
+void test_is_birthday_any_time_of_day(void) {
+    TEST_ASSERT_TRUE(is_birthday(make_now(2030, 10, 6, 7, 0),  EMORY, true));
+    TEST_ASSERT_TRUE(is_birthday(make_now(2030, 10, 6, 23, 59), EMORY, true));
+    TEST_ASSERT_TRUE(is_birthday(make_now(2030, 10, 6, 18, 10), EMORY, true));
+}
+
+void test_is_birthday_wrong_date(void) {
+    TEST_ASSERT_FALSE(is_birthday(make_now(2030, 10, 5, 12, 0), EMORY, true));
+    TEST_ASSERT_FALSE(is_birthday(make_now(2030, 9, 6, 12, 0),  EMORY, true));
+}
+
+// An unsynced RTC could read any date; without known time the button
+// must fall back to lullabies, never false-fire the birthday message.
+void test_is_birthday_requires_known_time(void) {
+    TEST_ASSERT_FALSE(is_birthday(make_now(2030, 10, 6, 12, 0), EMORY, false));
+}
+
 int main(int, char**) {
     UNITY_BEGIN();
     RUN_TEST(test_fire_happy_path);
@@ -115,5 +134,8 @@ int main(int, char**) {
     RUN_TEST(test_fire_refires_next_year_2031);
     RUN_TEST(test_fire_horizon_2069);
     RUN_TEST(test_fire_horizon_refires_2070);
+    RUN_TEST(test_is_birthday_any_time_of_day);
+    RUN_TEST(test_is_birthday_wrong_date);
+    RUN_TEST(test_is_birthday_requires_known_time);
     return UNITY_END();
 }

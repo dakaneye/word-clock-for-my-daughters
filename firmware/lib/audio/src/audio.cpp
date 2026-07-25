@@ -317,9 +317,22 @@ void loop() {
     }
 }
 
-void play_lullaby() {
+void play() {
     if (!started || !sd_ok || !i2s_ok) return;
-    dispatch_event(PlaybackEvent::Kind::PlayLullabyRequested);
+    // On the kid's birthday the Audio button plays the birthday message
+    // instead of the lullabies — any time that day. Independent of the
+    // birth-minute auto-fire and its NVS once-a-year stamp, so pressing
+    // the button never burns (or is blocked by) the 6:10 PM fire.
+    auto dt = wc::rtc::now();
+    NowFields nf{ dt.year, dt.month, dt.day, dt.hour, dt.minute };
+    bool time_known =
+        (wc::wifi_provision::seconds_since_last_sync() != UINT32_MAX);
+    if (is_birthday(nf, birth_, time_known)) {
+        Serial.println("[audio] birthday today — button plays birth.wav");
+        dispatch_event(PlaybackEvent::Kind::PlayBirthdayRequested);
+    } else {
+        dispatch_event(PlaybackEvent::Kind::PlayLullabyRequested);
+    }
 }
 
 void play_birthday_message() {

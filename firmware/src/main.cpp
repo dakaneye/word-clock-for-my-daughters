@@ -8,6 +8,9 @@
 #include "rtc.h"
 #include "wifi_provision.h"
 
+#if defined(BENCH_BACKDOOR_SSID) || defined(BENCH_SIM)
+#include <SD.h>                       // bench 'l' command: list SD root
+#endif
 #ifdef BENCH_BACKDOOR_SSID
 // TEMP bench-only block — remove before final assembly. Injects WiFi
 // credentials directly into NVS (same atomic write the captive portal
@@ -15,7 +18,9 @@
 // serial command channel ('h'/'m'/'a') that mirrors the button events.
 // Credentials arrive via -D build flags (pulled from the macOS keychain
 // at build time); nothing secret lives in this file or in git.
-#include <SD.h>                       // bench 'l' command: list SD root
+// Build with -D BENCH_SIM=1 alone to get the serial sim + frame
+// telemetry without the credential inject (board must already be
+// provisioned).
 #include "wifi_provision/form_parser.h"
 namespace wc::wifi_provision::nvs_store {
     bool has_credentials();
@@ -80,7 +85,7 @@ static void handle_button_event(wc::buttons::Event e) {
             } else if (wc::audio::is_playing()) {
                 wc::audio::stop();
             } else {
-                wc::audio::play_lullaby();
+                wc::audio::play();
             }
             break;
         case BE::ResetCombo:

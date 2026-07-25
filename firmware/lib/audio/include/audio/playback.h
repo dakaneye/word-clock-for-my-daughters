@@ -18,9 +18,10 @@ enum class Track : uint8_t { None, LullabyOne, LullabyTwo, Birth };
 struct PlaybackEvent {
     enum class Kind : uint8_t {
         PlayLullabyRequested,
+        PlayBirthdayRequested,   // Audio button on the birthday: birth.wav, Idle-gated
         StopRequested,
         FileEnded,
-        BirthdayFired
+        BirthdayFired            // birth-minute auto-fire: interrupts anything playing
     } kind;
 };
 

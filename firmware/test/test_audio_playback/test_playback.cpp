@@ -58,6 +58,35 @@ void test_birth_end_closes_to_idle(void) {
     TEST_ASSERT_EQUAL(static_cast<int>(Track::None), static_cast<int>(t.next_track));
 }
 
+void test_idle_play_birthday_request_opens_birth(void) {
+    // Audio button on the kid's birthday: plays birth.wav instead of
+    // the lullabies. Idle-gated like PlayLullabyRequested — the caller
+    // converts press-while-playing to Stop.
+    PlaybackTransition t = next_transition(
+        State::Idle, Track::None,
+        make_event(PlaybackEvent::Kind::PlayBirthdayRequested));
+    TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::OpenFile),
+                      static_cast<int>(t.action));
+    TEST_ASSERT_EQUAL_STRING("/birth.wav", t.path);
+    TEST_ASSERT_EQUAL(static_cast<int>(State::Playing), static_cast<int>(t.next_state));
+    TEST_ASSERT_EQUAL(static_cast<int>(Track::Birth), static_cast<int>(t.next_track));
+}
+
+void test_playing_play_birthday_request_is_noop(void) {
+    // Unlike BirthdayFired (which interrupts), a button request while
+    // Playing is ignored — same defensive row as PlayLullabyRequested.
+    for (Track t_in : {Track::LullabyOne, Track::LullabyTwo, Track::Birth}) {
+        PlaybackTransition t = next_transition(
+            State::Playing, t_in,
+            make_event(PlaybackEvent::Kind::PlayBirthdayRequested));
+        TEST_ASSERT_EQUAL(static_cast<int>(PlaybackTransition::Action::None),
+                          static_cast<int>(t.action));
+        TEST_ASSERT_NULL(t.path);
+        TEST_ASSERT_EQUAL(static_cast<int>(State::Playing), static_cast<int>(t.next_state));
+        TEST_ASSERT_EQUAL(static_cast<int>(t_in), static_cast<int>(t.next_track));
+    }
+}
+
 void test_playing_stop_closes_to_idle(void) {
     // Test for each Track value to confirm the transition is uniform.
     for (Track t_in : {Track::LullabyOne, Track::LullabyTwo, Track::Birth}) {
@@ -131,6 +160,8 @@ int main(int, char**) {
     RUN_TEST(test_lullaby1_end_switches_to_lullaby2);
     RUN_TEST(test_lullaby2_end_closes_to_idle);
     RUN_TEST(test_birth_end_closes_to_idle);
+    RUN_TEST(test_idle_play_birthday_request_opens_birth);
+    RUN_TEST(test_playing_play_birthday_request_is_noop);
     RUN_TEST(test_playing_stop_closes_to_idle);
     RUN_TEST(test_idle_stop_stays_idle);
     RUN_TEST(test_idle_birthday_opens_birth);

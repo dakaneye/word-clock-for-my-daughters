@@ -29,12 +29,14 @@ void begin(const BirthConfig& birth);
 //   write fault stops cleanly without advancing the playlist.
 void loop();
 
-// Start the 2-song lullaby playlist (lullaby1.wav -> lullaby2.wav).
-// Opens lullaby1.wav and transitions Idle -> Playing. When lullaby1.wav
-// finishes the adapter automatically advances to lullaby2.wav. No-op if
-// already Playing (caller should check is_playing()).
+// Audio-button playback. Normally starts the 2-song lullaby playlist
+// (lullaby1.wav -> lullaby2.wav, auto-advancing). On the kid's
+// birthday (month+day match, time synced at least once) it plays
+// birth.wav once instead — without touching the NVS year stamp, so
+// the birth-minute auto-fire still happens. No-op if already Playing
+// (caller should check is_playing()).
 // Spec: docs/superpowers/specs/2026-05-02-audio-playlist-design.md
-void play_lullaby();
+void play();
 
 // Play birth.wav once, on demand. Same guards as play_lullaby(). Does
 // NOT stamp the NVS birthday-year guard — that happens only in the

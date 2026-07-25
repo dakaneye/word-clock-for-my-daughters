@@ -74,8 +74,13 @@ void push_suffix(WordSet& ws, TimeOfDay tod) {
             push(ws, WordId::NIGHT);
             break;
         case TimeOfDay::NOON_EXACT:
+            // "TO TWELVE" approaching 12:00 PM: the named instant is noon.
+            push(ws, WordId::NOON);
+            break;
         case TimeOfDay::MIDNIGHT_EXACT:
-            // Handled as special early-return cases in time_to_words.
+            // "TO TWELVE" approaching 00:00: midnight phrasing.
+            push(ws, WordId::AT);
+            push(ws, WordId::NIGHT);
             break;
     }
 }
@@ -92,9 +97,8 @@ WordSet time_to_words(uint8_t hour24, uint8_t minute) {
     push(ws, WordId::IT);
     push(ws, WordId::IS);
 
-    TimeOfDay tod = classify(hour24, m5);
-
     // Special exact cases (only when block == 0).
+    TimeOfDay tod = classify(hour24, m5);
     if (tod == TimeOfDay::NOON_EXACT) {
         push(ws, WordId::TWELVE);
         push(ws, WordId::NOON);
@@ -190,10 +194,15 @@ WordSet time_to_words(uint8_t hour24, uint8_t minute) {
             break;
     }
 
-    // Suffix classification reflects the current wall-clock period-of-day.
-    // NOON_EXACT/MIDNIGHT_EXACT are already handled via early return above, so
-    // here tod is always one of MORNING/AFTERNOON/EVENING/NIGHT.
-    push_suffix(ws, tod);
+    // The period suffix describes the announced hour, not the current one:
+    // 11:40 is "TO TWELVE NOON", 16:40 is "TO FIVE IN THE EVENING". A "to"
+    // phrase names the announced hour's :00 exactly, so classifying that
+    // instant also yields NOON_EXACT/MIDNIGHT_EXACT for the twelve cases.
+    if (block >= 7) {
+        push_suffix(ws, classify(announced_h24, 0));
+    } else {
+        push_suffix(ws, tod);
+    }
 
     return ws;
 }

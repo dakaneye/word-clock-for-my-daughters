@@ -95,7 +95,7 @@ Time-tellers: IT, IS, FIVE-min, TEN-min, QUARTER, TWENTY, HALF, MINUTES, PAST, T
 
 Birthday message: HAPPY, BIRTH, DAY, NAME. Woven across rows 4, 5, 6, 9.
 
-Time phrasing uses "IT IS [minutes] PAST/TO [hour] IN THE MORNING/AFTERNOON/EVENING / AT NIGHT". Special case: "IT IS TWELVE NOON" at 12:00 PM; midnight uses "IT IS TWELVE AT NIGHT".
+Time phrasing uses "IT IS [minutes] PAST/TO [hour] IN THE MORNING/AFTERNOON/EVENING / AT NIGHT". The period suffix describes the **announced** hour, not the current one: in "TO" phrasing the suffix follows the upcoming hour (11:40 AM → "TO TWELVE NOON", 4:40 PM → "TO FIVE IN THE EVENING", 8:40 PM → "TO NINE AT NIGHT", 11:40 PM → "TO TWELVE AT NIGHT"). Special case: "IT IS TWELVE NOON" at 12:00 PM; midnight uses "IT IS TWELVE AT NIGHT".
 
 ## Firmware Behaviors
 

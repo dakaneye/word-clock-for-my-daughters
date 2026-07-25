@@ -126,6 +126,52 @@ void test_four_fiftyfive_is_morning(void) {
     TEST_ASSERT_FALSE(contains(ws, WordId::NIGHT));
 }
 
+// 11:40 -> "IT IS TWENTY MINUTES TO TWELVE NOON" — the period suffix
+// describes the announced hour, and the approaching twelve is noon.
+void test_twenty_to_noon(void) {
+    WordSet ws = time_to_words(11, 40);
+    TEST_ASSERT_TRUE(contains(ws, WordId::TWENTY));
+    TEST_ASSERT_TRUE(contains(ws, WordId::MINUTES));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TO));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TWELVE));
+    TEST_ASSERT_TRUE(contains(ws, WordId::NOON));
+    TEST_ASSERT_FALSE(contains(ws, WordId::MORNING));
+    TEST_ASSERT_FALSE(contains(ws, WordId::IN));
+    TEST_ASSERT_FALSE(contains(ws, WordId::THE));
+}
+
+// 23:40 -> "IT IS TWENTY MINUTES TO TWELVE AT NIGHT" (approaching midnight)
+void test_twenty_to_midnight(void) {
+    WordSet ws = time_to_words(23, 40);
+    TEST_ASSERT_TRUE(contains(ws, WordId::TWENTY));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TO));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TWELVE));
+    TEST_ASSERT_TRUE(contains(ws, WordId::AT));
+    TEST_ASSERT_TRUE(contains(ws, WordId::NIGHT));
+    TEST_ASSERT_FALSE(contains(ws, WordId::NOON));
+    TEST_ASSERT_FALSE(contains(ws, WordId::MORNING));
+}
+
+// 16:40 -> "IT IS TWENTY MINUTES TO FIVE IN THE EVENING" — five o'clock
+// is evening, even though 4:40 PM is still afternoon.
+void test_twenty_to_five_evening(void) {
+    WordSet ws = time_to_words(16, 40);
+    TEST_ASSERT_TRUE(contains(ws, WordId::FIVE_HR));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TO));
+    TEST_ASSERT_TRUE(contains(ws, WordId::EVENING));
+    TEST_ASSERT_FALSE(contains(ws, WordId::AFTERNOON));
+}
+
+// 20:40 -> "IT IS TWENTY MINUTES TO NINE AT NIGHT" — nine o'clock is night.
+void test_twenty_to_nine_night(void) {
+    WordSet ws = time_to_words(20, 40);
+    TEST_ASSERT_TRUE(contains(ws, WordId::NINE));
+    TEST_ASSERT_TRUE(contains(ws, WordId::TO));
+    TEST_ASSERT_TRUE(contains(ws, WordId::AT));
+    TEST_ASSERT_TRUE(contains(ws, WordId::NIGHT));
+    TEST_ASSERT_FALSE(contains(ws, WordId::EVENING));
+}
+
 void test_wordset_bounds(void) {
     for (uint8_t h = 0; h < 24; ++h) {
         for (uint8_t m = 0; m < 60; ++m) {
@@ -149,6 +195,10 @@ int main(int, char**) {
     RUN_TEST(test_five_am_is_morning);
     RUN_TEST(test_one_am_is_morning);
     RUN_TEST(test_four_fiftyfive_is_morning);
+    RUN_TEST(test_twenty_to_noon);
+    RUN_TEST(test_twenty_to_midnight);
+    RUN_TEST(test_twenty_to_five_evening);
+    RUN_TEST(test_twenty_to_nine_night);
     RUN_TEST(test_wordset_bounds);
     return UNITY_END();
 }
